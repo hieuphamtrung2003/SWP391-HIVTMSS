@@ -10,8 +10,14 @@ const RegisterForm = () => {
                 </div>
                 <div className="w-1/2 h-full bg-[#fff] flex flex-col p-20 justify-between items-center">
                     <Link to="/" className="w-full max-w-[550px] mx-auto text-xl text-[#373E79] font-semibold ">
+                        <div className="flex items-center">
+                            <h1 className="text-2xl font-bold text-blue-600">
+                                <span className="text-blue-800">HIV</span>
+                                <span className="text-blue-600">TMSS</span>
+                            </h1>
+                        </div>
                         <h1 >
-                            HIV MTSS bệnh viện chữa bệnh HIV tốt nhất
+                            Bệnh viện chữa bệnh HIV tốt nhất
                         </h1>
                     </Link>
                     <div className="w-full flex flex-col max-w-[550px]">

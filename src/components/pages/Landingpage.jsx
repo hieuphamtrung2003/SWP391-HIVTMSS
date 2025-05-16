@@ -103,7 +103,12 @@ export default function LandingPage() {
                             transition={{ duration: 0.5 }}
                             className="text-2xl font-bold text-blue-600"
                         >
-                            HIV TMSS
+                            <div className="flex items-center">
+                                <h1 className="text-2xl font-bold text-blue-600">
+                                    <span className="text-blue-800">HIV</span>
+                                    <span className="text-blue-600">TMSS</span>
+                                </h1>
+                            </div>
                         </motion.div>
                         <div className="hidden md:flex space-x-8">
                             <Button
@@ -127,6 +132,7 @@ export default function LandingPage() {
                             >
                                 Blog
                             </Button>
+
                         </div>
                         <motion.div
                             whileHover={{ scale: 1.05 }}
@@ -192,14 +198,18 @@ export default function LandingPage() {
                                             className="flex flex-col sm:flex-row justify-center gap-4"
                                         >
                                             <motion.div variants={itemVariants}>
-                                                <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg">
-                                                    Đặt lịch hẹn ngay
-                                                </Button>
+                                                <Link to="/login">
+                                                    <Button className="bg-blue-600 hover:bg-blue-700 px-8 py-6 text-lg">
+                                                        Đặt lịch hẹn ngay
+                                                    </Button>
+                                                </Link>
                                             </motion.div>
                                             <motion.div variants={itemVariants}>
-                                                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-800 px-8 py-6 text-lg">
-                                                    Tìm hiểu thêm
-                                                </Button>
+                                                <Link to="/login">
+                                                    <Button variant="outline" className="border-white text-white hover:bg-white hover:text-blue-800 px-8 py-6 text-lg">
+                                                        Tìm hiểu thêm
+                                                    </Button>
+                                                </Link>
                                             </motion.div>
                                         </motion.div>
                                     </div>

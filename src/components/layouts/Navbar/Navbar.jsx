@@ -4,7 +4,7 @@ import {
   MessageSquare,
   Bell,
   FileText,
-  Settings
+  CircleUser,
 } from 'lucide-react'
 import { Button } from '../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -15,7 +15,7 @@ export default function SideNavbar() {
     { 
       name: 'Xem lịch đặt', 
       icon: <Calendar className="h-5 w-5" />,
-      path: '/appointments'
+      path: '/schedule'
     },
     { 
       name: 'Đặt lịch', 
@@ -30,7 +30,7 @@ export default function SideNavbar() {
     { 
       name: 'Thông báo', 
       icon: <Bell className="h-5 w-5" />,
-      path: '/notifications'
+      path: '/notify'
     },
     { 
       name: 'Nhắn tin hỗ trợ', 
@@ -77,9 +77,9 @@ export default function SideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <Link to="/settings" className="flex items-center gap-3">
-              <Settings className="h-5 w-5" />
-              <span>Cài đặt</span>
+            <Link to="/profile" className="flex items-center gap-3">
+              <CircleUser className="h-5 w-5" />
+              <span>Hồ Sơ</span>
             </Link>
           </Button>
         </div>

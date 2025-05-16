@@ -41,9 +41,9 @@ export default function Header() {
           <div className="flex items-center gap-2 ml-2">
             <Avatar className="h-8 w-8 border border-blue-100">
               <AvatarImage src="/avatars/default.png" />
-              <AvatarFallback>DR</AvatarFallback>
+              <AvatarFallback>T</AvatarFallback>
             </Avatar>
-            <span className="hidden md:inline font-medium text-sm text-gray-700">Dr. Nguyen</span>
+            <span className="hidden md:inline font-medium text-sm text-gray-700">Tịnh</span>
           </div>
         </div>
       </div>

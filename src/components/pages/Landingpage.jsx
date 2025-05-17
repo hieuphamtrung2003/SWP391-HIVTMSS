@@ -3,9 +3,61 @@ import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
 import { ScrollArea } from "../ui/scroll-area"
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom";
+
+const FAQItem = ({ question, answer }) => {
+    const [isOpen, setIsOpen] = useState(false)
+    return (
+        <motion.div
+            whileInView="visible"
+            variants={itemVariants}
+            className="border border-gray-200 rounded-lg overflow-hidden"
+        >
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full p-4 text-left flex justify-between items-center bg-white hover:bg-gray-50 transition-colors"
+            >
+                <h3 className="font-medium text-gray-800">{question}</h3>
+                <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <svg
+                        className="w-5 h-5 text-gray-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </motion.div>
+            </button>
+
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="p-4 pt-0 text-gray-600 bg-gray-50">
+                            {answer}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
+    )
+}
 
 // Animation variants
 const containerVariants = {
@@ -244,12 +296,12 @@ export default function LandingPage() {
                         variants={containerVariants}
                         className="container mx-auto px-6"
                     >
-                        <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center mb-12">
+                        <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-12">
                             Giới thiệu
                         </motion.h2>
                         <div className="grid md:grid-cols-2 gap-8">
                             <motion.div variants={itemVariants}>
-                                <h3 className="text-2xl font-semibold mb-4">Về chúng tôi</h3>
+                            
                                 <p className="text-gray-600 mb-4">
                                     Chúng tôi là trung tâm điều trị HIV với hơn 10 năm kinh nghiệm trong lĩnh vực chăm sóc sức khỏe
                                     cho bệnh nhân HIV. Đội ngũ bác sĩ chuyên môn cao cùng hệ thống trang thiết bị hiện đại luôn sẵn sàng
@@ -299,7 +351,7 @@ export default function LandingPage() {
                         variants={containerVariants}
                         className="container mx-auto px-6"
                     >
-                        <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center mb-12">
+                        <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-12">
                             Tài liệu giáo dục
                         </motion.h2>
                         <motion.div
@@ -327,6 +379,67 @@ export default function LandingPage() {
                     </motion.div>
                 </SectionWrapper>
 
+                <SectionWrapper id="faq" className="py-25 bg-white-50">
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        variants={containerVariants}
+                        className="container mx-auto px-6"
+                    >
+                        <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-10">
+                            Câu hỏi thường gặp
+                        </motion.h2>
+
+                        <motion.div
+                            variants={containerVariants}
+                            className="py-3 px-3 bg-blue-50 rounded-3xl mx-4"
+                        >
+                            {/* FAQ Item 1 */}
+                            <FAQItem
+                                question="HIV lây truyền qua những đường nào?"
+                                answer="HIV lây truyền qua 3 đường chính: đường máu, đường tình dục không an toàn, và từ mẹ sang con trong quá trình mang thai, sinh đẻ hoặc cho con bú. HIV không lây qua tiếp xúc thông thường như bắt tay, ôm, dùng chung bát đũa..."
+                            />
+
+                            {/* FAQ Item 2 */}
+                            <FAQItem
+                                question="Triệu chứng nhiễm HIV giai đoạn đầu là gì?"
+                                answer="Trong 2-4 tuần sau khi nhiễm HIV, khoảng 40-90% người có triệu chứng giống cúm như sốt, đau họng, nổi hạch, phát ban. Tuy nhiên, nhiều người không có triệu chứng rõ ràng. Cách duy nhất để xác định là xét nghiệm HIV."
+                            />
+
+                            {/* FAQ Item 3 */}
+                            <FAQItem
+                                question="Xét nghiệm HIV sau bao lâu thì chính xác?"
+                                answer="Xét nghiệm HIV thế hệ mới có thể phát hiện sau 2-3 tuần phơi nhiễm. Để kết quả chắc chắn, nên xét nghiệm lại sau 3 tháng. Xét nghiệm nhanh tại nhà cần thực hiện đúng hướng dẫn và xét nghiệm lại sau 3 tháng để khẳng định."
+                            />
+
+                            {/* FAQ Item 4 */}
+                            <FAQItem
+                                question="Điều trị ARV có hiệu quả không?"
+                                answer="Điều trị ARV hiệu quả cao khi tuân thủ đúng phác đồ. Thuốc giúp ức chế virus, bảo vệ hệ miễn dịch, giảm nguy cơ lây truyền. Người điều trị tốt có thể sống khỏe mạnh gần như người bình thường và tuổi thọ gần như không bị ảnh hưởng."
+                            />
+
+                            {/* FAQ Item 5 */}
+                            <FAQItem
+                                question="Có phải uống thuốc ARV suốt đời không?"
+                                answer="Hiện tại vẫn cần duy trì ARV suốt đời để kiểm soát virus. Tuy nhiên, với phác đồ hiện đại, chỉ cần uống 1 viên/ngày, ít tác dụng phụ. Các nghiên cứu về điều trị khỏi HIV đang được tiến hành nhưng chưa có kết quả chính thức."
+                            />
+
+                            {/* FAQ Item 6 */}
+                            <FAQItem
+                                question="Làm sao để sống khỏe với HIV?"
+                                answer="Ngoài uống thuốc đều đặn, cần: Ăn uống đủ chất, tập thể dục điều độ, ngủ đủ giấc, tránh stress, không hút thuốc/uống rượu, khám định kỳ. Quan trọng nhất là giữ tinh thần lạc quan và kết nối với cộng đồng hỗ trợ."
+                            />
+
+                            {/* FAQ Item 7 */}
+                            <FAQItem
+                                question="Tôi có thể sinh con an toàn nếu nhiễm HIV?"
+                                answer="Hoàn toàn có thể. Với điều trị ARV sớm, tỷ lệ lây truyền từ mẹ sang con giảm xuống dưới 1%. Bạn cần: Uống thuốc đúng chỉ định, sinh mổ nếu tải lượng virus cao, không cho con bú và cho bé uống ARV dự phòng sau sinh."
+                            />
+                        </motion.div>
+                    </motion.div>
+                </SectionWrapper>
+
                 {/* Blog Section */}
                 <SectionWrapper id="blog" className="py-20">
                     <motion.div
@@ -336,7 +449,7 @@ export default function LandingPage() {
                         variants={containerVariants}
                         className="container mx-auto px-6"
                     >
-                        <motion.h2 variants={itemVariants} className="text-3xl font-bold text-center mb-12">
+                        <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-12">
                             Blog chia sẻ kinh nghiệm
                         </motion.h2>
                         <motion.div
@@ -444,9 +557,9 @@ export default function LandingPage() {
                             viewport={{ once: true }}
                             className="flex space-x-6"
                         >
-                            <a href="#" className="hover:text-blue-300">Chính sách bảo mật</a>
-                            <a href="#" className="hover:text-blue-300">Điều khoản sử dụng</a>
-                            <a href="#" className="hover:text-blue-300">Liên hệ</a>
+                            <a className="hover:text-blue-300">Chính sách bảo mật</a>
+                            <a className="hover:text-blue-300">Điều khoản sử dụng</a>
+                            <a className="hover:text-blue-300">Liên hệ</a>
                         </motion.div>
                     </div>
                     <motion.div

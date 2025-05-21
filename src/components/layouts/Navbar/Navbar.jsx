@@ -35,7 +35,7 @@ export default function SideNavbar() {
     { 
       name: 'Nhắn tin hỗ trợ', 
       icon: <MessageSquare className="h-5 w-5" />,
-      path: '/support'
+      path: '/chat'
     }
   ]
 

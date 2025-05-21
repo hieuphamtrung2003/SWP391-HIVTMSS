@@ -54,7 +54,7 @@ const RegisterForm = () => {
                             <input
                                 type="text"
                                 name="text"
-                                placeholder="Năm sinh"
+                                placeholder="Ngày sinh"
                                 className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none focus:outline-none"
 
                             />

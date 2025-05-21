@@ -7,6 +7,8 @@ import ProfileSettings from "components/pages/ProfilePage/ProfilePage";
 import NotificationsPage from "components/pages/NotificationPage/NotificationPage";
 import BlogListPage from "components/pages/BlogPage/BlogPage";
 import BlogEditorPage from "components/pages/BlogEditor/Blogeditor";
+import ChatPage from "components/pages/ChatPage/ChatPage";
+import DoctorBookingPage from "components/pages/BookingPage";
 const role = localStorage.getItem("userRole");
 
 const publicRoute = [
@@ -18,6 +20,8 @@ const publicRoute = [
     { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
     { path: "/blog", component: BlogListPage, layout: DefaultLayout },
     { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
+    { path: "/chat", component: ChatPage, layout: DefaultLayout },
+    { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
 ];
 const privateRoute = [];
 export { publicRoute, privateRoute };

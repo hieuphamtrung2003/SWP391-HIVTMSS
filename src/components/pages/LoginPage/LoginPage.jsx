@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const LoginForm = () => {
     return (
-        <>
+        <div>
             <div className="w-full h-screen flex items-start">
                 <div className="relative w-1/2 h-full flex flex-col">
                     <img src={LoginImage} className="w-full h-full" alt="Pet Dog" />
@@ -71,7 +71,7 @@ const LoginForm = () => {
 
                         <div className="w-full flex items-center justify-center relative py-2">
                             <div className="w-full h-[1px] bg-black"></div>
-                            <p className="text-lg absolute text-black/80 bg-[#f5f5f5] px-2 text-[#373E79]">or</p>
+                            <p className="text-lg absolute text-black/80 bg-[#f5f5f5] px-2 text-[#373E79]"></p>
                         </div>
                     </div>
 
@@ -87,7 +87,7 @@ const LoginForm = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 

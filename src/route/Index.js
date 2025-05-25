@@ -9,6 +9,9 @@ import BlogListPage from "components/pages/BlogPage/BlogPage";
 import BlogEditorPage from "components/pages/BlogEditor/Blogeditor";
 import ChatPage from "components/pages/ChatPage/ChatPage";
 import DoctorBookingPage from "components/pages/BookingPage";
+import ForgotPasswordForm from "components/pages/ForgotPasswordPage/ForgotPasswordPage";
+import ResetPasswordForm from "components/pages/ForgotPasswordPage/ResetPasswordPage";
+import BlogDetail from "components/pages/BlogDetail/BlogDetail";
 const role = localStorage.getItem("userRole");
 
 const publicRoute = [
@@ -22,6 +25,10 @@ const publicRoute = [
     { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
     { path: "/chat", component: ChatPage, layout: DefaultLayout },
     { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
+    { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
+    { path: "/reset-password", component: ResetPasswordForm, layout: null },
+    { path: "/blog/", component: BlogDetail, layout: null },
+
 ];
 const privateRoute = [];
 export { publicRoute, privateRoute };

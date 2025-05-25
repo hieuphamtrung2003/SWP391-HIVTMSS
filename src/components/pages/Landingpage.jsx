@@ -144,7 +144,7 @@ export default function LandingPage() {
     };
 
     return (
-        <div>
+        <div className>
             {/* Navigation Bar */}
             <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100">
                 <div className="container mx-auto px-6 py-4">
@@ -456,7 +456,7 @@ export default function LandingPage() {
                             </motion.h2>
 
                             <div className="grid md:grid-cols-3 gap-8">
-                                {/* === Blog nổi bật bên trái === */}
+                                {/* === Blog lớn === */}
                                 <div className="md:col-span-2">
                                     <Card className="hover:shadow-lg transition-shadow hover:bg-gray-50">
                                         <div className="bg-gray-100 h-64 rounded-t-lg overflow-hidden">
@@ -473,14 +473,17 @@ export default function LandingPage() {
                                             <p className="text-gray-600 mb-4">
                                                 Chia sẻ từ bệnh nhân đã điều trị thành công và có cuộc sống khỏe mạnh.
                                             </p>
-                                            <Button variant="link" className="px-0">
-                                                Đọc thêm →
-                                            </Button>
+
+                                            <Link to="/blog/">
+                                                <Button variant="link" className="px-0">
+                                                    Đọc thêm →
+                                                </Button>
+                                            </Link>
                                         </CardContent>
                                     </Card>
                                 </div>
 
-                                {/* === Các blog nhỏ bên phải === */}
+                                {/* === Blog nhỏ === */}
                                 <div className="flex flex-col gap-6">
                                     {[1, 2, 3].map((post) => (
                                         <div key={post} className="flex gap-4 items-start hover:bg-gray-50 p-2 rounded-lg transition">
@@ -499,6 +502,10 @@ export default function LandingPage() {
                                             </div>
                                         </div>
                                     ))}
+                                    <Button variant="link" className="px-0 text-sm mt-2 pr-2 w-full">
+                                        <div className="text-right w-full">Đọc thêm bài viết</div>
+                                    </Button>
+
                                 </div>
                             </div>
 

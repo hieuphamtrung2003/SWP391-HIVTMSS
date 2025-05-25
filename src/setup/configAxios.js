@@ -6,21 +6,21 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(async (config) => {
   const access_token = localStorage.getItem("access_token");
-  
+
   // Check if the token is still in localStorage after page reload
   console.log("check token", access_token);
-  
+
   if (access_token) {
     config.headers.Authorization = `Bearer ${access_token}`;
     console.log("check header", config.headers);
   }
-  
+
   if (config.data instanceof FormData) {
     config.headers["Content-Type"] = "multipart/form-data";
   } else {
     config.headers["Content-Type"] = "application/json";
   }
-  
+
   return config;
 });
 

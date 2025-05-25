@@ -1,7 +1,7 @@
 import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link } from "react-router-dom";
 
-const LoginForm = () => {
+const ResetPasswordForm = () => {
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">
@@ -15,7 +15,7 @@ const LoginForm = () => {
                             alt="Pet Dog"
                         />
                     </div>
-                    {/* Nội dung form login */}
+                    {/* Nội dung form */}
                     <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
                         <Link to="/" className="text-left mb-6 text-xl font-semibold text-[#373E79]">
                             <h1 className="text-2xl font-bold text-blue-600 mb-1">
@@ -26,61 +26,34 @@ const LoginForm = () => {
                         </Link>
 
                         <div className="mb-4">
-                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Đăng nhập</h3>
-                            <p className="text-sm text-[#373E79]">Chào mừng bạn trở lại! Vui lòng điền thông tin.</p>
+                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Cài đặt lại mật khẩu</h3>
+                            <p className="text-sm text-[#373E79]">Nhập mật khẩu mới của bạn</p>
                         </div>
 
                         <form className="flex flex-col">
                             <input
-                                type="email"
-                                name="email"
-                                placeholder="Email"
+                                type="password"
+                                name="newPassword"
+                                placeholder="Mật khẩu mới"
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="email"
+                                autoComplete="new-password"
                             />
                             <input
                                 type="password"
-                                name="password"
-                                placeholder="Password"
+                                name="confirmPassword"
+                                placeholder="Xác nhận mật khẩu mới"
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="current-password"
+                                autoComplete="confirm-new-password"
                             />
-
-                            <div className="flex justify-between items-center text-sm mt-2">
-                                <label className="flex items-center text-[#373E79]">
-                                    <input type="checkbox" className="mr-2" />
-                                    Nhớ tôi cho lần sau
-                                </label>
-                                <Link to="/forgot-password">
-                                    <p className="underline cursor-pointer text-[#373E79]">Quên mật khẩu?</p>
-                                </Link>
-
-                            </div>
-
                             <button
                                 type="button"
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition"
                             >
-                                Đăng nhập
+                                Xác nhận
                             </button>
                         </form>
 
 
-                        <div className="w-full my-6">
-                            <div className="h-[0.5px] bg-black w-full" />
-                        </div>
-
-
-                        <div className="w-full flex items-center justify-center">
-                            <p className="text-sm font-normal text-[#373E79]">
-                                Không có tài khoản?{" "}
-                                <Link to="/register">
-                                    <span className="font-semibold underline underline-offset-2 cursor-pointer text-[#373E79]">
-                                        Hãy đăng kí
-                                    </span>
-                                </Link>
-                            </p>
-                        </div>
 
                     </div>
                 </div>
@@ -90,4 +63,4 @@ const LoginForm = () => {
     );
 };
 
-export default LoginForm;
+export default ResetPasswordForm;

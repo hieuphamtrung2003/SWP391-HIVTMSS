@@ -1,0 +1,45 @@
+import React from "react";
+import { Link } from "react-router-dom";
+
+const BlogDetail = () => {
+    return (
+
+
+        <div className="max-h-screen py-10 px-4">
+            <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-6">
+                <h1 className="text-3xl font-bold text-[#373E79] mb-4">
+                    Kinh nghiệm điều trị HIV hiệu quả
+                </h1>
+                <p className="text-sm text-gray-500 mb-6">Đăng ngày: 24/05/2025</p>
+                <div className="flex items-center justify-center w-full h-full ">
+                    <img
+                        src="https://www.huggies.com.vn/-/media/Project/be-6-thang-an-duoc-trai-cay-gi-thumb.jpeg"
+                        alt="Blog detail"
+                        className="max-w-[700px] max-h-[700px] object-cover rounded-md mb-6"
+                    />
+                </div>
+                <div className="prose max-w-none text-gray-800 leading-relaxed">
+                    <p>
+                        Việc điều trị HIV hiệu quả đòi hỏi sự tuân thủ nghiêm ngặt phác đồ điều trị ARV.
+                        Quan trọng nhất là phải khám định kỳ, sử dụng thuốc đúng giờ và duy trì lối sống lành mạnh.
+                    </p>
+                    <p>
+                        Những người điều trị thành công thường duy trì tinh thần lạc quan, tham gia các nhóm hỗ trợ
+                        và thường xuyên kiểm tra tải lượng virus.
+                    </p>
+                    <p>
+                        Ngoài ra, chế độ ăn uống cân bằng và vận động đều đặn cũng đóng vai trò thiết yếu trong việc cải thiện sức khỏe tổng thể.
+                    </p>
+                </div>
+
+                <div className="mt-10 text-right">
+                    <Link to="/" className="text-blue-600 underline hover:text-blue-800">
+                        ← Quay lại trang blog
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default BlogDetail;

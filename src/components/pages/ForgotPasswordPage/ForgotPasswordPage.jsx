@@ -1,7 +1,7 @@
 import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link } from "react-router-dom";
 
-const LoginForm = () => {
+const ForgotPasswordForm = () => {
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">
@@ -22,12 +22,12 @@ const LoginForm = () => {
                                 <span className="text-blue-800">HIV</span>
                                 <span className="text-blue-600">TMSS</span>
                             </h1>
-                            <p className="text-sm">Bệnh viện chữa bệnh HIV tốt nhất</p>
+                            <p className="text-sm">Bệnh viện chữa bệnh HIV tệ nhất</p>
                         </Link>
 
                         <div className="mb-4">
-                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Đăng nhập</h3>
-                            <p className="text-sm text-[#373E79]">Chào mừng bạn trở lại! Vui lòng điền thông tin.</p>
+                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Quên mật khẩu?</h3>
+                            <p className="text-sm text-[#373E79]">Vui lòng điền thông tin email của bạn để xác nhận.</p>
                         </div>
 
                         <form className="flex flex-col">
@@ -38,30 +38,12 @@ const LoginForm = () => {
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="email"
                             />
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="current-password"
-                            />
-
-                            <div className="flex justify-between items-center text-sm mt-2">
-                                <label className="flex items-center text-[#373E79]">
-                                    <input type="checkbox" className="mr-2" />
-                                    Nhớ tôi cho lần sau
-                                </label>
-                                <Link to="/forgot-password">
-                                    <p className="underline cursor-pointer text-[#373E79]">Quên mật khẩu?</p>
-                                </Link>
-
-                            </div>
 
                             <button
                                 type="button"
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition"
                             >
-                                Đăng nhập
+                                Xác nhận
                             </button>
                         </form>
 
@@ -73,10 +55,10 @@ const LoginForm = () => {
 
                         <div className="w-full flex items-center justify-center">
                             <p className="text-sm font-normal text-[#373E79]">
-                                Không có tài khoản?{" "}
-                                <Link to="/register">
+
+                                <Link to="/login">
                                     <span className="font-semibold underline underline-offset-2 cursor-pointer text-[#373E79]">
-                                        Hãy đăng kí
+                                        Quay về trang đăng nhập
                                     </span>
                                 </Link>
                             </p>
@@ -90,4 +72,4 @@ const LoginForm = () => {
     );
 };
 
-export default LoginForm;
+export default ForgotPasswordForm;

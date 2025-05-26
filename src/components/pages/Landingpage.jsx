@@ -108,6 +108,7 @@ const carouselImages = [
 ];
 
 export default function LandingPage() {
+    const token = localStorage.getItem("access_token");
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
@@ -190,11 +191,12 @@ export default function LandingPage() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                         >
-                            <Link to="/login">
+                            {token ? <></> : <Link to="/login">
                                 <Button className="bg-blue-600 hover:bg-blue-700">
                                     Đăng nhập
                                 </Button>
-                            </Link>
+                            </Link>}
+
 
                         </motion.div>
                     </div>

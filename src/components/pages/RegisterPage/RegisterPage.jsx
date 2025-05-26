@@ -1,6 +1,6 @@
+
 import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link } from "react-router-dom";
-
 const RegisterForm = () => {
     return (
         <div>

@@ -1,7 +1,41 @@
+import { useState } from "react";
 import LoginImage from "../../../assets/loginmiage.jpg";
-import { Link } from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
+import axios from "../../../setup/configAxios";
+import { toast } from "react-toastify";
 const LoginForm = () => {
+
+    const navigate = useNavigate();
+    const [formValue, setFormValue] = useState({
+        email: "",
+        password: "",
+    });
+    const handleChange = (e) => {
+        const { value, name } = e.target;
+        setFormValue((prevFormValue) => ({
+            ...prevFormValue,
+            [name]: value,
+        }));
+    };
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post("http://103.179.185.77:8080/api/v1/auth/login", formValue);
+            console.log(res);
+            if (res?.http_status === 200) {
+                const token = res.data.access_token;
+                localStorage.setItem("access_token", token);
+                toast.success("Đăng nhập thành công!!");
+                navigate("/");
+            } else {
+                toast.error("Vui lòng kiểm tra lại email hoặc mật khẩu !!");
+            }
+        } catch (error) {
+            toast.error("Email hoặc mật khẩu không đúng!");
+            console.error("Login failed:", error);
+        }
+    };
+
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">
@@ -30,13 +64,15 @@ const LoginForm = () => {
                             <p className="text-sm text-[#373E79]">Chào mừng bạn trở lại! Vui lòng điền thông tin.</p>
                         </div>
 
-                        <form className="flex flex-col">
+                        <form className="flex flex-col" onSubmit={handleLogin}>
                             <input
                                 type="email"
                                 name="email"
                                 placeholder="Email"
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="email"
+                                value={formValue.email}
+                                onChange={handleChange}
                             />
                             <input
                                 type="password"
@@ -44,6 +80,8 @@ const LoginForm = () => {
                                 placeholder="Password"
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="current-password"
+                                value={formValue.password}
+                                onChange={handleChange}
                             />
 
                             <div className="flex justify-between items-center text-sm mt-2">
@@ -58,7 +96,7 @@ const LoginForm = () => {
                             </div>
 
                             <button
-                                type="button"
+                                type="submit"
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition"
                             >
                                 Đăng nhập

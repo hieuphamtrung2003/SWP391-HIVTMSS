@@ -1,32 +1,75 @@
-import axios from "axios";
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-const axiosClient = axios.create({
-  baseURL: "http://localhost:3000",
+// Tạo instance axios với cấu hình mặc định
+const instance = axios.create({
+  baseURL: 'http://localhost:3000/',
 });
+instance.defaults.withCredentials = true;
 
-axiosClient.interceptors.request.use(async (config) => {
-  const access_token = localStorage.getItem("access_token");
+// Hàm refresh token
+// const refreshToken = async () => {
+//   try {
+//     const refresh_token = localStorage.getItem('refresh_token');
+//     if (!refresh_token) {
+//       throw new Error('No refresh token found');
+//     }
 
-  // Check if the token is still in localStorage after page reload
-  console.log("check token", access_token);
+//     const response = await axios.post(
+//       'https://souvi-be-v1.onrender.com/auth/refresh-token',
+//       {},
+//       {
+//         headers: {
+//           Authorization: `Bearer ${refresh_token}`,
+//         },
+//       }
+//     );
 
-  if (access_token) {
-    config.headers.Authorization = `Bearer ${access_token}`;
-    console.log("check header", config.headers);
+//     const access_token = response.data.data.access_token;
+
+//     localStorage.setItem('access_token', access_token);
+//     localStorage.setItem('refresh_token', response.data.data.refresh_token);
+
+//     return access_token;
+//   } catch (error) {
+//     console.error('Failed to refresh token:', error);
+//     return null;
+//   }
+// };
+
+// Interceptor cho request
+instance.interceptors.request.use(
+  (config) => {
+    const access_token = localStorage.getItem('access_token');
+    if (access_token) {
+      config.headers['Authorization'] = `Bearer ${access_token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Interceptor cho response
+let isToastShown = false;
+
+instance.interceptors.response.use(
+  (response) => {
+    isToastShown = false;
+    return response.data;
+  },
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response && error.response.status === 401 && !isToastShown) {
+      isToastShown = true;
+      toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      // window.location.href = '/login';
+    }
+
+    return Promise.reject(error);
   }
+);
 
-  if (config.data instanceof FormData) {
-    config.headers["Content-Type"] = "multipart/form-data";
-  } else {
-    config.headers["Content-Type"] = "application/json";
-  }
-
-  return config;
-});
-
-// Store token in localStorage for persistence across refreshes
-export const setAccessToken = (token) => {
-  localStorage.setItem("access_token", token);
-};
-
-export default axiosClient;
+export default instance;

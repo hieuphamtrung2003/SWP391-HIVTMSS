@@ -27,7 +27,7 @@ const publicRoute = [
     { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
     { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
     { path: "/reset-password", component: ResetPasswordForm, layout: null },
-    { path: "/blog/", component: BlogDetail, layout: null },
+    { path: "/blog/1", component: BlogDetail, layout: null },
 
 ];
 const privateRoute = [];

@@ -12,28 +12,28 @@ import { Link, useLocation } from 'react-router-dom'
 export default function SideNavbar() {
   const location = useLocation()
   const navItems = [
-    { 
-      name: 'Xem lịch đặt', 
+    {
+      name: 'Xem lịch đặt',
       icon: <Calendar className="h-5 w-5" />,
       path: '/schedule'
     },
-    { 
-      name: 'Đặt lịch', 
+    {
+      name: 'Đặt lịch',
       icon: <CalendarCheck className="h-5 w-5" />,
       path: '/book'
     },
-    { 
-      name: 'Quản lý blog', 
+    {
+      name: 'Quản lý blog',
       icon: <FileText className="h-5 w-5" />,
       path: '/blog'
     },
-    { 
-      name: 'Thông báo', 
+    {
+      name: 'Thông báo',
       icon: <Bell className="h-5 w-5" />,
       path: '/notify'
     },
-    { 
-      name: 'Nhắn tin hỗ trợ', 
+    {
+      name: 'Nhắn tin hỗ trợ',
       icon: <MessageSquare className="h-5 w-5" />,
       path: '/chat'
     }
@@ -43,7 +43,7 @@ export default function SideNavbar() {
     <aside className="fixed left-0 top-0 h-full w-64 border-r bg-white z-40">
       <div className="flex flex-col h-full p-4">
         {/* Logo with Link to home */}
-        <Link to="/" className="mb-8 px-4 py-3">
+        <Link to="/" className="mb-8 px-4 py-3 z-10">
           <h2 className="text-xl font-semibold text-blue-600">
             <span className="text-blue-800">HIV</span>
             <span className="text-blue-600">TMSS</span>

@@ -3,6 +3,8 @@ import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
+import { decodeToken } from "../../../utils/tokenUtils";
+
 const LoginForm = () => {
 
     const navigate = useNavigate();
@@ -19,22 +21,61 @@ const LoginForm = () => {
     };
     const handleLogin = async (e) => {
         e.preventDefault();
+        // Chưa điền password
+        if (!formValue.password.trim()) {
+            toast.error("Bạn chưa điền mật khẩu");
+            return;
+        }
+        // Chưa điền email
+        if (!formValue.email.trim()) {
+            toast.error("Bạn chưa điền email");
+            return;
+        }
+
         try {
             const res = await axios.post("http://103.179.185.77:8080/api/v1/auth/login", formValue);
             console.log(res);
             if (res?.http_status === 200) {
                 const token = res.data.access_token;
                 localStorage.setItem("access_token", token);
+
+                const decodedToken = decodeToken(token);
+                if (!decodedToken) {
+                    toast.error("Token không hợp lệ hoặc đã hết hạn!");
+                    return;
+                }
+
+                const role = decodedToken.role;
+
+                // Điều hướng theo phân quyền
+                if (role === "ADMIN") {
+                    navigate("/");
+                } else if (role === "STAFF") {
+                    navigate("/");
+                } else if (role === "CUSTOMER") {
+                    navigate("/schedule");
+                } else {
+                    toast.error("Vai trò không được hỗ trợ!");
+                    return;
+                }
+
                 toast.success("Đăng nhập thành công!!");
-                navigate("/");
+                // navigate("/");
             } else {
                 toast.error("Vui lòng kiểm tra lại email hoặc mật khẩu !!");
             }
         } catch (error) {
+
+            // Password sai
             toast.error("Email hoặc mật khẩu không đúng!");
             console.error("Login failed:", error);
         }
     };
+
+    //hiện password
+    // const [view, setViewPassword] = useState(false);
+    // const icon =
+
 
     return (
         <div>

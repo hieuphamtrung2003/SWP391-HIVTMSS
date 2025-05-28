@@ -12,30 +12,40 @@ import { Link, useLocation } from 'react-router-dom'
 export default function SideNavbar() {
   const location = useLocation()
   const navItems = [
-    { 
-      name: 'Xem lịch đặt', 
+    {
+      name: 'Xem lịch đặt',
       icon: <Calendar className="h-5 w-5" />,
       path: '/schedule'
     },
-    { 
-      name: 'Đặt lịch', 
+    {
+      name: 'Đặt lịch',
       icon: <CalendarCheck className="h-5 w-5" />,
       path: '/book'
     },
-    { 
-      name: 'Quản lý blog', 
+    {
+      name: 'Quản lý blog',
       icon: <FileText className="h-5 w-5" />,
       path: '/blog'
     },
-    { 
-      name: 'Thông báo', 
+    {
+      name: 'Thông báo',
       icon: <Bell className="h-5 w-5" />,
       path: '/notify'
     },
-    { 
-      name: 'Nhắn tin hỗ trợ', 
+    {
+      name: 'Nhắn tin hỗ trợ',
       icon: <MessageSquare className="h-5 w-5" />,
       path: '/chat'
+    },
+    {
+      name: 'Dashboard',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/dashboard'
+    },
+    {
+      name: 'Yêu cầu khám bệnh',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/patient-request'
     }
   ]
 

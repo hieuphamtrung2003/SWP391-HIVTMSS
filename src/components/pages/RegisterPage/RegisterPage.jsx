@@ -39,7 +39,6 @@ const RegisterForm = () => {
         try {
             const res = await axios.post("http://103.179.185.77:8080/api/v1/auth/register", formValue);
             if (res?.http_status === 200) {
-
                 toast.success("Đăng ký thành công!");
                 navigate("/login");
             } else {
@@ -64,7 +63,7 @@ const RegisterForm = () => {
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">
-                <div className="flex w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
+                <div className="flex w-full max-w-5xl bg-white shadow-lg rounded-lg overflow-hidden">
 
                     {/* Ảnh */}
                     <div className="w-1/2 hidden md:flex bg-blue-50">

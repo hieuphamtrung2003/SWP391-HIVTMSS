@@ -53,7 +53,7 @@ export default function SideNavbar() {
     <aside className="fixed left-0 top-0 h-full w-64 border-r bg-white z-40">
       <div className="flex flex-col h-full p-4">
         {/* Logo with Link to home */}
-        <Link to="/" className="mb-8 px-4 py-3">
+        <Link to="/" className="mb-8 px-4 py-3 z-10">
           <h2 className="text-xl font-semibold text-blue-600">
             <span className="text-blue-800">HIV</span>
             <span className="text-blue-600">TMSS</span>

@@ -80,6 +80,7 @@ export default function SideNavbar() {
     },
     {
       name: 'Patient Requests',
+      name: 'Yêu cầu khám bệnh',
       icon: <MessageSquare className="h-5 w-5" />,
       path: '/patient-request'
     }

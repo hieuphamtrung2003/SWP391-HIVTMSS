@@ -9,9 +9,13 @@ import BlogListPage from "components/pages/BlogPage/BlogPage";
 import BlogEditorPage from "components/pages/BlogEditor/Blogeditor";
 import ChatPage from "components/pages/ChatPage/ChatPage";
 import DoctorBookingPage from "components/pages/BookingPage";
+import AdminDashboard from "components/pages/DashBoard/DashBoard";
+import PatientRequestsManager from "components/pages/PatientRequest/PatientRequest";
 import ForgotPasswordForm from "components/pages/ForgotPasswordPage/ForgotPasswordPage";
 import ResetPasswordForm from "components/pages/ForgotPasswordPage/ResetPasswordPage";
 import BlogDetail from "components/pages/BlogDetail/BlogDetail";
+import DashboardContent from "components/pages/DashBoard/DashBoard";
+import PatientRequestsManager from "components/pages/PatientRequest/PatientRequest";
 const role = localStorage.getItem("userRole");
 
 const publicRoute = [
@@ -25,10 +29,13 @@ const publicRoute = [
     { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
     { path: "/chat", component: ChatPage, layout: DefaultLayout },
     { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
+    { path: "/dashboard", component: AdminDashboard, layout: DefaultLayout },
+    { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
     { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
     { path: "/reset-password", component: ResetPasswordForm, layout: null },
     { path: "/blog/1", component: BlogDetail, layout: null },
-
+    { path: "/dashboard", component: DashboardContent, layout: DefaultLayout },
+    { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
 ];
 const privateRoute = [];
 export { publicRoute, privateRoute };

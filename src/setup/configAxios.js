@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 // Tạo instance axios với cấu hình mặc định
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/',
+  baseURL: 'http://103.179.185.77:8080/',
 });
 instance.defaults.withCredentials = true;
 

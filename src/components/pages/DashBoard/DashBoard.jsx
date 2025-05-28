@@ -4,7 +4,7 @@ import {
   CardTitle,
   CardContent,
   CardDescription,
-} from '../../../components/ui/card';
+} from '../../ui/card';
 import {
   LineChart,
   Line,

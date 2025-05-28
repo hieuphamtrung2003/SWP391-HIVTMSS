@@ -33,7 +33,7 @@ const LoginForm = () => {
         }
 
         try {
-            const res = await axios.post("http://103.179.185.77:8080/api/v1/auth/login", formValue);
+            const res = await axios.post("api/v1/auth/login", formValue);
             console.log(res);
             if (res?.http_status === 200) {
                 const token = res.data.access_token;

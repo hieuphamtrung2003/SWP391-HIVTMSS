@@ -6,13 +6,11 @@ import { ScrollArea } from "../ui/scroll-area"
 import { AnimatePresence, motion } from "framer-motion"
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import axios from "../../setup/configAxios";
-
 
 const FAQItem = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false)
+
+
     return (
         <motion.div
             whileInView="visible"
@@ -112,37 +110,7 @@ const carouselImages = [
 ];
 
 export default function LandingPage() {
-    // Khai báo token
 
-    const [token, setToken] = useState(() => localStorage.getItem("access_token"));
-
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const savedToken = localStorage.getItem("access_token");
-        setToken(savedToken);
-    }, []);
-
-    const handleLogout = async () => {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-
-        try {
-            await axios.post("http://103.179.185.77:8080/api/v1/auth/logout", null, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            localStorage.removeItem("access_token");
-            setToken(null); // 🔥 cập nhật lại state để render lại button
-            toast.success("Đăng xuất thành công");
-            navigate("/");
-        } catch (error) {
-            toast.error("Lỗi khi đăng xuất");
-            console.error("Logout failed:", error);
-        }
-    };
 
     //Cách ban đầu
     // const token = localStorage.getItem("access_token");
@@ -230,15 +198,9 @@ export default function LandingPage() {
 
                         </div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            {token ? (
-                                <Button onClick={handleLogout} className="bg-green-600 hover:bg-green-700">
-                                    Đăng xuất
-                                </Button>
-                            ) : (
-                                <Link to="/login">
-                                    <Button className="bg-blue-600 hover:bg-blue-700">Đăng nhập</Button>
-                                </Link>
-                            )}
+                            <Link to="/login">
+                                <Button className="bg-blue-600 hover:bg-blue-700">Đăng nhập</Button>
+                            </Link>
                         </motion.div>
 
                     </div>
@@ -283,7 +245,7 @@ export default function LandingPage() {
                                                 variants={itemVariants}
                                                 className="text-4xl md:text-3xl font-bold text-white mb-6"
                                             >
-                                                {token ? <h1 className="text-red-500">Xin chào</h1> : <></>}
+
                                                 Hệ thống hỗ trợ điều trị HIV
                                             </motion.h1>
                                             <motion.p

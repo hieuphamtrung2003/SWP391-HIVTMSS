@@ -1,645 +1,493 @@
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "components/ui/card";
-import { Button } from "components/ui/button";
-import { Input } from "components/ui/input";
-import { Label } from "components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "components/ui/select";
-import { Textarea } from "components/ui/textarea";
-import { Switch } from "components/ui/switch";
-import { Badge } from "components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "components/ui/avatar";
-import { Calendar } from "components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "components/ui/popover";
-import { CalendarIcon, CheckCircle2, Loader2, UserIcon, UserXIcon } from "lucide-react";
-import { format } from "date-fns";
+import React, { useState } from 'react';
+import { Calendar, Clock, User, UserCheck, Shield, Phone, Mail, Bell, CheckCircle } from 'lucide-react';
 
-// Mock doctor data
-const doctors = [
-  {
-    id: "1",
-    name: "Dr. Nguyen Van A",
-    specialty: "HIV Specialist",
-    experience: "12 years",
-    image: "/doctors/doctor1.jpg",
-    languages: ["Vietnamese", "English"],
-    schedule: "Mon, Wed, Fri",
-  },
-  {
-    id: "2",
-    name: "Dr. Tran Thi B",
-    specialty: "Infectious Disease",
-    experience: "8 years",
-    image: "/doctors/doctor2.jpg",
-    languages: ["Vietnamese", "French"],
-    schedule: "Tue, Thu, Sat",
-  },
-];
-
-const availableTimes = [
-  "08:00 AM", "09:00 AM", "10:00 AM", "11:00 AM",
-  "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM"
-];
-
-const DoctorBooking=({})=> {
-  const [step, setStep] = useState(1);
-  const [bookingData, setBookingData] = useState({
-    anonymous: false,
-    patientInfo: null,
-    doctor: null,
-    date: null,
-    time: null,
-    reason: "",
-    sendReminders: true,
-    reminderMethod: "email",
+const BookingInterface = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    dateOfBirth: '',
+    gender: '',
+    appointmentType: '',
+    preferredDate: '',
+    preferredTime: '',
+    notes: '',
+    smsReminder: true,
+    emailReminder: true,
+    reminderTime: '24h'
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Step handlers
-  const handleBookingType = (type) => {
-    setBookingData({ ...bookingData, anonymous: type === 'anonymous' });
-    setStep(2);
+  const doctors = [
+    {
+      id: 1,
+      name: 'Dr. Nguyễn Văn An',
+      specialty: 'HIV/AIDS Specialist',
+      experience: '15 years',
+      rating: 4.9,
+      availability: 'Available today',
+      image: '/api/placeholder/80/80'
+    },
+    {
+      id: 2,
+      name: 'Dr. Trần Thị Bình',
+      specialty: 'Infectious Disease Specialist',
+      experience: '12 years',
+      rating: 4.8,
+      availability: 'Available tomorrow',
+      image: '/api/placeholder/80/80'
+    },
+    {
+      id: 3,
+      name: 'Dr. Lê Hoàng Cường',
+      specialty: 'Internal Medicine & HIV Care',
+      experience: '18 years',
+      rating: 4.9,
+      availability: 'Available this week',
+      image: '/api/placeholder/80/80'
+    }
+  ];
+
+  const appointmentTypes = [
+    'Initial Consultation',
+    'Follow-up Appointment',
+    'Test Results Review',
+    'Treatment Adjustment',
+    'General Support'
+  ];
+
+  const timeSlots = [
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'
+  ];
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const handlePatientInfo = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const patientInfo = {
-      firstName: formData.get("firstName"),
-      lastName: formData.get("lastName"),
-      email: formData.get("email"),
-      phone: formData.get("phone"),
-      gender: formData.get("gender"),
-      birthdate: formData.get("birthdate"),
-    };
-    setBookingData({ ...bookingData, patientInfo });
-    setStep(3);
+  const nextStep = () => {
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
 
-  const handleDoctorSelection = (doctorId) => {
-    setBookingData({ ...bookingData, doctor: doctorId });
-    setStep(4);
+  const prevStep = () => {
+    if (currentStep > 1) setCurrentStep(currentStep - 1);
   };
 
-  const handleRandomDoctor = () => {
-    setBookingData({ ...bookingData, doctor: null }); // null = random
-    setStep(4);
-  };
-
-  const handleAppointmentDetails = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    setBookingData({
-      ...bookingData,
-      date: formData.get("date"),
-      time: formData.get("time"),
-      reason: formData.get("reason"),
-      sendReminders: formData.get("sendReminders") === "on",
-      reminderMethod: formData.get("reminderMethod"),
-    });
-    setStep(5);
-  };
-
-  const handleConfirm = () => {
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert(`Appointment booked! ${bookingData.anonymous ? "Anonymous" : `For ${bookingData.patientInfo.firstName}`} with ${bookingData.doctor || "random doctor"} on ${bookingData.date} at ${bookingData.time}`);
-    }, 1500);
-  };
-
-  const goBack = () => setStep(step - 1);
-
-  return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
-      {/* Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
-      >
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          HIV Treatment Consultation
-        </h1>
-        <p className="text-muted-foreground">
-          Confidential and secure appointment booking
-        </p>
-      </motion.div>
-
-      {/* Progress Steps */}
-      <div className="mb-8">
-        <div className="flex items-center justify-center">
-          {[1, 2, 3, 4, 5].map((stepNumber) => (
-            <div key={stepNumber} className="flex items-center">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                  stepNumber === step
-                    ? "bg-primary text-white"
-                    : stepNumber < step
-                    ? "bg-green-100 text-green-600"
-                    : "bg-gray-100 text-gray-400"
-                }`}
-              >
-                {stepNumber}
-              </motion.div>
-              {stepNumber < 5 && (
-                <div className={`w-16 h-1 ${stepNumber < step ? "bg-green-100" : "bg-gray-100"}`} />
-              )}
-            </div>
-          ))}
-        </div>
+  // Step 1: Anonymity Options
+  const AnonymityStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <Shield className="mx-auto h-16 w-16 text-blue-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Privacy Options</h2>
+        <p className="text-gray-600">Choose how you'd like to book your appointment</p>
       </div>
 
-      {/* Step Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: step > 1 ? 50 : -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: step > 1 ? -50 : 50 }}
-          transition={{ duration: 0.3 }}
-          className="max-w-2xl mx-auto"
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div 
+          className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
+            !isAnonymous ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setIsAnonymous(false)}
         >
-          {/* STEP 1: Booking Type */}
-          {step === 1 && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Choose Booking Option
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Your privacy is our priority
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <motion.div whileHover={{ scale: 1.02 }}>
-                    <div
-                      onClick={() => handleBookingType('anonymous')}
-                      className={`p-6 border rounded-lg cursor-pointer transition-all ${
-                        bookingData.anonymous
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 hover:border-primary/50'
-                      }`}
-                    >
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
-                        <span className="bg-primary text-white p-1 rounded-full">
-                          <UserXIcon className="h-4 w-4" />
-                        </span>
-                        Book Anonymously
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        No personal information stored. Only contact details for reminders.
-                      </p>
-                    </div>
-                  </motion.div>
+          <User className="h-8 w-8 text-blue-600 mb-3" />
+          <h3 className="font-semibold text-gray-900 mb-2">Regular Booking</h3>
+          <p className="text-sm text-gray-600">Book with your personal information for better care coordination</p>
+        </div>
 
-                  <motion.div whileHover={{ scale: 1.02 }}>
-                    <div
-                      onClick={() => handleBookingType('registered')}
-                      className={`p-6 border rounded-lg cursor-pointer transition-all ${
-                        !bookingData.anonymous
-                          ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 hover:border-primary/50'
-                      }`}
-                    >
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
-                        <span className="bg-primary text-white p-1 rounded-full">
-                          <UserIcon className="h-4 w-4" />
-                        </span>
-                        Book with Patient Information
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-2">
-                        For personalized care and treatment history tracking.
-                      </p>
-                    </div>
-                  </motion.div>
-                </div>
+        <div 
+          className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
+            isAnonymous ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setIsAnonymous(true)}
+        >
+          <Shield className="h-8 w-8 text-green-600 mb-3" />
+          <h3 className="font-semibold text-gray-900 mb-2">Anonymous Booking</h3>
+          <p className="text-sm text-gray-600">Book anonymously for complete privacy and confidentiality</p>
+        </div>
+      </div>
+    </div>
+  );
 
-                <div className="mt-8 flex justify-end">
-                  <Button
-                    onClick={() => handleBookingType(bookingData.anonymous ? 'anonymous' : 'registered')}
-                    className="px-6"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+  // Step 2: Patient Information (conditional)
+  const PatientInfoStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <UserCheck className="mx-auto h-16 w-16 text-blue-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isAnonymous ? 'Anonymous Booking' : 'Patient Information'}
+        </h2>
+        <p className="text-gray-600">
+          {isAnonymous 
+            ? 'You can proceed without providing personal details' 
+            : 'Please provide your information for better care'}
+        </p>
+      </div>
 
-          {/* STEP 2: Patient Info (Conditional) */}
-          {step === 2 && !bookingData.anonymous && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Patient Information
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  All information is encrypted and secure
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePatientInfo}>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="firstName">First Name *</Label>
-                        <Input id="firstName" name="firstName" required />
-                      </div>
-                      <div>
-                        <Label htmlFor="lastName">Last Name *</Label>
-                        <Input id="lastName" name="lastName" required />
-                      </div>
-                    </div>
+      {!isAnonymous && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+            <input
+              type="text"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData.fullName}
+              onChange={(e) => handleInputChange('fullName', e.target.value)}
+              placeholder="Enter your full name"
+            />
+          </div>
 
-                    <div>
-                      <Label htmlFor="email">Email *</Label>
-                      <Input id="email" name="email" type="email" required />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+            <input
+              type="tel"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="Enter your phone number"
+            />
+          </div>
 
-                    <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
-                      <Input id="phone" name="phone" type="tel" required />
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            <input
+              type="email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="Enter your email"
+            />
+          </div>
 
-                    <div>
-                      <Label htmlFor="gender">Gender</Label>
-                      <Select name="gender">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select gender" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                          <SelectItem value="prefer-not-to-say">
-                            Prefer not to say
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+            <input
+              type="date"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={formData.dateOfBirth}
+              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+            />
+          </div>
 
-                    <div>
-                      <Label htmlFor="birthdate">Date of Birth</Label>
-                      <Input id="birthdate" name="birthdate" type="date" />
-                    </div>
-                  </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+            <div className="flex space-x-4">
+              {['Male', 'Female', 'Other', 'Prefer not to say'].map((gender) => (
+                <label key={gender} className="flex items-center">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={gender}
+                    checked={formData.gender === gender}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
+                    className="mr-2"
+                  />
+                  {gender}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
-                  <div className="mt-8 flex justify-between">
-                    <Button variant="outline" onClick={goBack}>
-                      Back
-                    </Button>
-                    <Button type="submit" className="px-6">
-                      Continue
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* STEP 3: Doctor Selection */}
-          {step === 3 && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Select Your Doctor
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Choose a specialist or let us assign one
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <Button 
-                      variant={!bookingData.doctor ? "default" : "outline"}
-                      onClick={handleRandomDoctor}
-                      className="flex-1"
-                    >
-                      Any Available Doctor
-                    </Button>
-                    <Button 
-                      variant={bookingData.doctor ? "default" : "outline"}
-                      disabled
-                      className="flex-1"
-                    >
-                      Choose Specific Doctor
-                    </Button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {doctors.map((doctor) => (
-                      <motion.div
-                        key={doctor.id}
-                        whileHover={{ scale: 1.01 }}
-                        onClick={() => handleDoctorSelection(doctor.id)}
-                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                          bookingData.doctor === doctor.id
-                            ? 'border-primary bg-primary/10'
-                            : 'border-gray-200 hover:border-primary/50'
-                        }`}
-                      >
-                        <div className="flex items-start gap-4">
-                          <Avatar className="h-16 w-16">
-                            <AvatarImage src={doctor.image} />
-                            <AvatarFallback>{doctor.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{doctor.name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              {doctor.specialty} • {doctor.experience} experience
-                            </p>
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <Badge variant="secondary">
-                                {doctor.schedule}
-                              </Badge>
-                              {doctor.languages.map((lang) => (
-                                <Badge key={lang} variant="outline">
-                                  {lang}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <Button variant="outline" onClick={goBack}>
-                    Back
-                  </Button>
-                  <Button
-                    onClick={() => setStep(4)}
-                    disabled={!bookingData.doctor && step === 3}
-                    className="px-6"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* STEP 4: Appointment Details */}
-          {step === 4 && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Appointment Details
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Select your preferred date and time
-                </p>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAppointmentDetails}>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <Label>Preferred Date *</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant={"outline"}
-                              className="w-full justify-start text-left font-normal"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {bookingData.date ? format(new Date(bookingData.date), "PPP") : "Select date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                            <Calendar
-                              mode="single"
-                              selected={bookingData.date ? new Date(bookingData.date) : undefined}
-                              onSelect={(date) => 
-                                setBookingData({...bookingData, date: format(date, "yyyy-MM-dd")})
-                              }
-                              initialFocus
-                              disabled={(date) => date < new Date() || date.getDay() === 0}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      <div>
-                        <Label>Preferred Time *</Label>
-                        <Select 
-                          name="time"
-                          value={bookingData.time}
-                          onValueChange={(value) => setBookingData({...bookingData, time: value})}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select time" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableTimes.map((time) => (
-                              <SelectItem key={time} value={time}>
-                                {time}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="reason">Reason for Visit</Label>
-                      <Textarea
-                        id="reason"
-                        name="reason"
-                        placeholder="Briefly describe your reason (optional)"
-                        value={bookingData.reason}
-                        onChange={(e) => setBookingData({...bookingData, reason: e.target.value})}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label htmlFor="reminders">Send reminders</Label>
-                        <Switch
-                          id="reminders"
-                          name="sendReminders"
-                          checked={bookingData.sendReminders}
-                          onCheckedChange={(checked) => 
-                            setBookingData({...bookingData, sendReminders: checked})
-                          }
-                        />
-                      </div>
-
-                      {bookingData.sendReminders && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <Label>Reminder Method</Label>
-                          <Select
-                            name="reminderMethod"
-                            value={bookingData.reminderMethod}
-                            onValueChange={(value) => 
-                              setBookingData({...bookingData, reminderMethod: value})
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="email">Email</SelectItem>
-                              <SelectItem value="sms">SMS</SelectItem>
-                              <SelectItem value="both">Both</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </motion.div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-8 flex justify-between">
-                    <Button variant="outline" onClick={goBack}>
-                      Back
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={!bookingData.date || !bookingData.time}
-                      className="px-6"
-                    >
-                      Review Appointment
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* STEP 5: Confirmation */}
-          {step === 5 && (
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-2xl font-bold text-primary">
-                  Confirm Your Appointment
-                </CardTitle>
-                <p className="text-muted-foreground">
-                  Please review before confirming
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="p-6 bg-green-50 rounded-lg">
-                    <div className="flex items-center gap-3 text-green-600">
-                      <CheckCircle2 className="h-5 w-5" />
-                      <p className="font-medium">
-                        Your preferred time is available!
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Booking Type:</span>
-                      <span className="font-medium">
-                        {bookingData.anonymous ? "Anonymous" : "Registered"}
-                      </span>
-                    </div>
-
-                    {!bookingData.anonymous && bookingData.patientInfo && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Patient:</span>
-                        <span className="font-medium">
-                          {bookingData.patientInfo.firstName} {bookingData.patientInfo.lastName}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Doctor:</span>
-                      <span className="font-medium">
-                        {bookingData.doctor 
-                          ? doctors.find(d => d.id === bookingData.doctor)?.name 
-                          : "Any available doctor"}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Date & Time:</span>
-                      <span className="font-medium">
-                        {format(new Date(bookingData.date), "PPP")} at {bookingData.time}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Reminders:</span>
-                      <span className="font-medium">
-                        {bookingData.sendReminders ? (
-                          <Badge variant="outline">
-                            {bookingData.reminderMethod === 'email' && 'Email'}
-                            {bookingData.reminderMethod === 'sms' && 'SMS'}
-                            {bookingData.reminderMethod === 'both' && 'Email & SMS'}
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline">None</Badge>
-                        )}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-600">
-                      <strong>Privacy Note:</strong> All information is encrypted and stored securely per healthcare regulations.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-8 flex justify-between">
-                  <Button variant="outline" onClick={goBack}>
-                    Back
-                  </Button>
-                  <Button 
-                    onClick={handleConfirm}
-                    className="px-6 bg-green-600 hover:bg-green-700"
-                  >
-                    Confirm Appointment
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </motion.div>
-      </AnimatePresence>
-
-      {/* Loading Overlay */}
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white p-8 rounded-lg shadow-xl text-center"
-          >
-            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">Booking Your Appointment</h3>
-            <p className="text-muted-foreground">
-              Please wait while we secure your time slot...
-            </p>
-          </motion.div>
+      {isAnonymous && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+          <Shield className="mx-auto h-12 w-12 text-green-600 mb-3" />
+          <h3 className="font-semibold text-green-900 mb-2">Anonymous Booking Active</h3>
+          <p className="text-green-800">Your privacy is protected. No personal information is required.</p>
         </div>
       )}
     </div>
   );
-}
-export default DoctorBooking;
+
+  // Step 3: Doctor Selection
+  const DoctorSelectionStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <User className="mx-auto h-16 w-16 text-blue-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Doctor</h2>
+        <p className="text-gray-600">Select a specialist or let us assign one randomly</p>
+      </div>
+
+      <div className="mb-6">
+        <button
+          className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors"
+          onClick={() => setSelectedDoctor({ id: 'random', name: 'Random Assignment' })}
+        >
+          <div className="text-center">
+            <div className="text-blue-600 font-medium">🎲 Random Doctor Assignment</div>
+            <div className="text-sm text-gray-500 mt-1">Let us match you with an available specialist</div>
+          </div>
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {doctors.map((doctor) => (
+          <div
+            key={doctor.id}
+            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+              selectedDoctor?.id === doctor.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+            }`}
+            onClick={() => setSelectedDoctor(doctor)}
+          >
+            <div className="flex items-center space-x-4">
+              <img
+                src={doctor.image}
+                alt={doctor.name}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900">{doctor.name}</h3>
+                <p className="text-blue-600 text-sm">{doctor.specialty}</p>
+                <p className="text-gray-600 text-sm">{doctor.experience} experience</p>
+                <div className="flex items-center mt-1">
+                  <span className="text-yellow-500">⭐</span>
+                  <span className="text-sm text-gray-600 ml-1">{doctor.rating} • {doctor.availability}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  // Step 4: Appointment Details
+  const AppointmentDetailsStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <Calendar className="mx-auto h-16 w-16 text-blue-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Appointment Details</h2>
+        <p className="text-gray-600">Choose your preferred date, time, and appointment type</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Appointment Type *</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={formData.appointmentType}
+            onChange={(e) => handleInputChange('appointmentType', e.target.value)}
+          >
+            <option value="">Select appointment type</option>
+            {appointmentTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date *</label>
+          <input
+            type="date"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={formData.preferredDate}
+            onChange={(e) => handleInputChange('preferredDate', e.target.value)}
+            min={new Date().toISOString().split('T')[0]}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">Preferred Time *</label>
+        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
+          {timeSlots.map((time) => (
+            <button
+              key={time}
+              className={`p-2 text-sm rounded-lg border transition-all ${
+                formData.preferredTime === time
+                  ? 'bg-blue-500 text-white border-blue-500'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+              }`}
+              onClick={() => handleInputChange('preferredTime', time)}
+            >
+              {time}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+        <textarea
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          rows="3"
+          value={formData.notes}
+          onChange={(e) => handleInputChange('notes', e.target.value)}
+          placeholder="Any specific concerns or information for your doctor..."
+        />
+      </div>
+    </div>
+  );
+
+  // Step 5: Confirmation & Reminders
+  const ConfirmationStep = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <Bell className="mx-auto h-16 w-16 text-blue-600 mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmation & Reminders</h2>
+        <p className="text-gray-600">Review your booking and set up reminders</p>
+      </div>
+
+      {/* Booking Summary */}
+      <div className="bg-gray-50 rounded-lg p-6">
+        <h3 className="font-semibold text-gray-900 mb-4">Booking Summary</h3>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Booking Type:</span>
+            <span className="font-medium">{isAnonymous ? 'Anonymous' : 'Regular'}</span>
+          </div>
+          {!isAnonymous && formData.fullName && (
+            <div className="flex justify-between">
+              <span className="text-gray-600">Patient:</span>
+              <span className="font-medium">{formData.fullName}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-gray-600">Doctor:</span>
+            <span className="font-medium">{selectedDoctor?.name || 'Not selected'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Appointment Type:</span>
+            <span className="font-medium">{formData.appointmentType}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Date & Time:</span>
+            <span className="font-medium">{formData.preferredDate} at {formData.preferredTime}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Reminder Settings */}
+      <div className="space-y-4">
+        <h3 className="font-semibold text-gray-900">Reminder Settings</h3>
+        
+        {!isAnonymous && (
+          <>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Phone className="h-5 w-5 text-gray-400" />
+                <span>SMS Reminders</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.smsReminder}
+                  onChange={(e) => handleInputChange('smsReminder', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Mail className="h-5 w-5 text-gray-400" />
+                <span>Email Reminders</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.emailReminder}
+                  onChange={(e) => handleInputChange('emailReminder', e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+          </>
+        )}
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            value={formData.reminderTime}
+            onChange={(e) => handleInputChange('reminderTime', e.target.value)}
+          >
+            <option value="1h">1 hour before</option>
+            <option value="4h">4 hours before</option>
+            <option value="24h">1 day before</option>
+            <option value="48h">2 days before</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 1: return <AnonymityStep />;
+      case 2: return <PatientInfoStep />;
+      case 3: return <DoctorSelectionStep />;
+      case 4: return <AppointmentDetailsStep />;
+      case 5: return <ConfirmationStep />;
+      default: return <AnonymityStep />;
+    }
+  };
+
+  const handleSubmit = () => {
+    console.log('Booking submitted:', { isAnonymous, selectedDoctor, formData });
+    alert('Appointment booked successfully!');
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6 bg-white min-h-screen">
+      {/* Progress Bar */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          {[1, 2, 3, 4, 5].map((step) => (
+            <div key={step} className="flex items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  step <= currentStep ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
+                {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+              </div>
+              {step < 5 && (
+                <div className={`h-1 w-16 mx-2 ${step < currentStep ? 'bg-blue-500' : 'bg-gray-200'}`} />
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="text-center text-sm text-gray-600">
+          Step {currentStep} of 5
+        </div>
+      </div>
+
+      {/* Step Content */}
+      <div className="mb-8">
+        {renderCurrentStep()}
+      </div>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between">
+        <button
+          onClick={prevStep}
+          disabled={currentStep === 1}
+          className={`px-6 py-2 rounded-lg transition-all ${
+            currentStep === 1
+              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+              : 'bg-gray-500 text-white hover:bg-gray-600'
+          }`}
+        >
+          Previous
+        </button>
+
+        <button
+          onClick={currentStep === 5 ? handleSubmit : nextStep}
+          className="px-8 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+        >
+          {currentStep === 5 ? 'Book Appointment' : 'Next'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default BookingInterface;

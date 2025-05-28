@@ -49,40 +49,15 @@ export default function SideNavbar() {
   };
   const navItems = [
     {
-      name: 'Xem lịch đặt',
-      icon: <Calendar className="h-5 w-5" />,
-      path: '/schedule'
-    },
-    {
-      name: 'Đặt lịch',
-      icon: <CalendarCheck className="h-5 w-5" />,
-      path: '/book'
-    },
-    {
-      name: 'Quản lý blog',
-      icon: <FileText className="h-5 w-5" />,
-      path: '/blog'
-    },
-    {
       name: 'Thông báo',
       icon: <Bell className="h-5 w-5" />,
       path: '/notify'
-    },
-    {
-      name: 'Nhắn tin hỗ trợ',
-      icon: <MessageSquare className="h-5 w-5" />,
-      path: '/chat'
     },
     {
       name: 'Dashboard',
       icon: <MessageSquare className="h-5 w-5" />,
       path: '/Dashboard'
     },
-    {
-      name: 'Patient Requests',
-      icon: <MessageSquare className="h-5 w-5" />,
-      path: '/patient-request'
-    }
   ]
 
   return (

@@ -15,7 +15,6 @@ import ForgotPasswordForm from "components/pages/ForgotPasswordPage/ForgotPasswo
 import ResetPasswordForm from "components/pages/ForgotPasswordPage/ResetPasswordPage";
 import BlogDetail from "components/pages/BlogDetail/BlogDetail";
 import DashboardContent from "components/pages/DashBoard/DashBoard";
-import PatientRequestsManager from "components/pages/PatientRequest/PatientRequest";
 const role = localStorage.getItem("userRole");
 
 const publicRoute = [

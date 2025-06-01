@@ -15,7 +15,6 @@ import ForgotPasswordForm from "components/pages/ForgotPasswordPage/ForgotPasswo
 import ResetPasswordForm from "components/pages/ForgotPasswordPage/ResetPasswordPage";
 import BlogDetail from "components/pages/BlogDetail/BlogDetail";
 import DashboardContent from "components/pages/DashBoard/DashBoard";
-import PatientRequestsManager from "components/pages/PatientRequest/PatientRequest";
 const role = localStorage.getItem("userRole");
 
 const publicRoute = [
@@ -35,7 +34,6 @@ const publicRoute = [
     { path: "/reset-password", component: ResetPasswordForm, layout: null },
     { path: "/blog/1", component: BlogDetail, layout: null },
     { path: "/dashboard", component: DashboardContent, layout: DefaultLayout },
-    { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
 ];
 const privateRoute = [];
 export { publicRoute, privateRoute };

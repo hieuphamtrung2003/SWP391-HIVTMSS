@@ -39,12 +39,13 @@ export default function SideNavbar() {
       });
 
       localStorage.removeItem("access_token");
-      setToken(null); // 🔥 cập nhật lại state để render lại button
+      setToken(null);
       toast.success("Đăng xuất thành công");
       navigate("/login");
     } catch (error) {
       toast.error("Lỗi khi đăng xuất");
       console.error("Logout failed:", error);
+
     }
   };
   const navItems = [

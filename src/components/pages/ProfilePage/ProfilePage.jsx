@@ -22,11 +22,11 @@ const ProfileSettings = () => {
     last_name: '',
     first_name: '',
     email: '',
-    gender: null,
+    gender: '',
     phone: '',
     avatar: null,
     address: '',
-    dob: null,
+    dob: '',
     role_name: ''
   })
 
@@ -53,11 +53,29 @@ const ProfileSettings = () => {
     fetchUserData()
   }, [])
 
-  const handleEditToggle = () => {
+  const handleEditToggle = async () => {
     if (isEditing) {
       // Save changes - you would typically make an API PUT request here
-      setUserData({ ...tempData })
-    } else {
+      try {
+        // Gửi PUT request lên server để cập nhật thông tin
+        await axios.put('api/v1/accounts', {
+          last_name: tempData.last_name,
+          first_name: tempData.first_name,
+          phone: tempData.phone,
+          address: tempData.address,
+          dob: tempData.dob, // ISO format, ví dụ: "1990-01-01"
+          gender: tempData.gender
+        })
+
+        // Cập nhật lại UI
+        setUserData({ ...tempData })
+      } catch (err) {
+        console.error('Error updating user:', err)
+        alert('Cập nhật thất bại. Vui lòng thử lại.')
+        return
+      }
+    }
+    else {
       // Start editing
       setTempData({ ...userData })
     }
@@ -364,15 +382,15 @@ const ProfileSettings = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
                 >
                   <option value="">Chọn giới tính</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
+                  <option value="MALE">Nam</option>
+                  <option value="FEMALE">Nữ</option>
+                  <option value="OTHER">Khác</option>
                 </select>
               ) : (
                 <p className="mt-1 text-gray-700">
-                  {userData.gender === 'male' ? 'Nam' :
-                    userData.gender === 'female' ? 'Nữ' :
-                      userData.gender === 'other' ? 'Khác' : 'Chưa cập nhật'}
+                  {userData.gender === 'MALE' ? 'Nam' :
+                    userData.gender === 'FEMALE' ? 'Nữ' :
+                      userData.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
                 </p>
               )}
             </div>

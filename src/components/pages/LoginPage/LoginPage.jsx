@@ -12,6 +12,7 @@ const LoginForm = () => {
         email: "",
         password: "",
     });
+
     const handleChange = (e) => {
         const { value, name } = e.target;
         setFormValue((prevFormValue) => ({
@@ -49,10 +50,29 @@ const LoginForm = () => {
 
                 // Điều hướng theo phân quyền
                 if (role === "ADMIN") {
-                    navigate("/");
-                } else if (role === "STAFF") {
-                    navigate("/");
-                } else if (role === "CUSTOMER") {
+                    navigate("/admin/dashboard");
+                } else if (role === "MANAGER") {
+                    navigate("/manager");
+                }
+                else if (role === "DOCTOR") {
+                    try {
+                        const degreeRes = await axios.get(`/api/doctor-degrees/account/${decodedToken.id}`);
+
+                        if (degreeRes) {
+                            // Nếu đã có bằng cấp
+                            navigate("/doctor/patient-request");
+                        } else {
+                            // Không có bằng cấp
+                            navigate("/doctor/degree");
+                        }
+                    } catch (err) {
+                        console.error("Error fetching doctor degree:", err);
+                        toast.error("Hãy cập nhật bằng cấp của bạn trước khi tiếp tục!");
+                        navigate("/doctor/degree");
+                        return;
+                    }
+                }
+                else if (role === "CUSTOMER") {
                     navigate("/schedule");
                 } else {
                     toast.error("Vai trò không được hỗ trợ!");
@@ -60,23 +80,15 @@ const LoginForm = () => {
                 }
 
                 toast.success("Đăng nhập thành công!!");
-                // navigate("/");
             } else {
                 toast.error("Vui lòng kiểm tra lại email hoặc mật khẩu !!");
             }
         } catch (error) {
-
             // Password sai
             toast.error("Email hoặc mật khẩu không đúng!");
             console.error("Login failed:", error);
         }
     };
-
-    //hiện password
-    // const [view, setViewPassword] = useState(false);
-    // const icon =
-
-
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">

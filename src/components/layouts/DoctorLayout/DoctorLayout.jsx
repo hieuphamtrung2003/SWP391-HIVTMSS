@@ -1,7 +1,7 @@
-import Footer from "../Footer/Footer.jsx";
-import Header from "../Header/Header.jsx";
-import Navbar from "../Navbar/Navbar.jsx";
-const DefaultLayout = ({ children }) => {
+
+import Header from "../DoctorLayout/Header/Header.jsx";
+import Navbar from "../DoctorLayout/Navbar/Navbar.jsx";
+const DoctorLayout = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -14,4 +14,4 @@ const DefaultLayout = ({ children }) => {
     </div>
   )
 }
-export default DefaultLayout
+export default DoctorLayout

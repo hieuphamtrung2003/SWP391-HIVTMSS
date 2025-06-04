@@ -1,22 +1,44 @@
-import { useState, useEffect } from 'react'
-import axios from "../../../setup/configAxios"
-import { motion } from 'framer-motion'
-import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
-import { Button } from '../../ui/button'
-import { Input } from '../../ui/input'
-import { Label } from '../../ui/label'
-import { Pencil, Lock, Check, X } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import axios from "../../../setup/configAxios";
+import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { Label } from '../../ui/label';
+import { Pencil, Lock, Check, X, GraduationCap, Trash2 } from 'lucide-react';
+import { Badge } from '../../ui/badge';
+import { toast } from 'react-toastify';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../ui/alert-dialog";
 
 const ProfileSettings = () => {
-  const [isEditing, setIsEditing] = useState(false)
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [passwordError, setPasswordError] = useState(null)
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [passwordLoading, setPasswordLoading] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDegree, setIsEditingDegree] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [degreeSaveLoading, setDegreeSaveLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [degreeSaveError, setDegreeSaveError] = useState(null);
+  const [degreeSaveSuccess, setDegreeSaveSuccess] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [doctorDegree, setDoctorDegree] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
 
-  // Initialize with default values matching API structure
   const [userData, setUserData] = useState({
     account_id: '',
     last_name: '',
@@ -28,106 +50,320 @@ const ProfileSettings = () => {
     address: '',
     dob: null,
     role_name: ''
-  })
+  });
 
-  const [tempData, setTempData] = useState({ ...userData })
+  const [tempData, setTempData] = useState({ ...userData });
+  const [tempDegreeData, setTempDegreeData] = useState({
+    name: '',
+    dob: '',
+    graduationDate: '',
+    classification: '',
+    studyMode: '',
+    issueDate: '',
+    schoolName: '',
+    regNo: '',
+    accountId: ''
+  });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: ''
-  })
+  });
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true)
-        const response = await axios.get('api/v1/accounts')
-        setUserData(response.data)
-        setTempData(response.data)
-        setLoading(false)
+        setLoading(true);
+        const response = await axios.get('api/v1/accounts');
+        const data = response.data;
+        setUserData(data);
+        setTempData(data);
+
+        if (data.role_name === 'DOCTOR') {
+          await fetchDoctorDegree(data.account_id);
+        }
+
+        setLoading(false);
       } catch (err) {
-        setError(err.message)
-        setLoading(false)
+        setError(err.message);
+        setLoading(false);
       }
-    }
+    };
 
-    fetchUserData()
-  }, [])
+    const fetchDoctorDegree = async (accountId) => {
+      try {
+        const response = await axios.get(`api/doctor-degrees/account/${accountId}`);
+        setDoctorDegree(response);
+        if (response) {
+          setTempDegreeData({
+            name: response.name || '',
+            dob: response.dob || '',
+            graduationDate: response.graduationDate || '',
+            classification: response.classification || '',
+            studyMode: response.studyMode || '',
+            issueDate: response.issueDate || '',
+            schoolName: response.schoolName || '',
+            regNo: response.regNo || '',
+            accountId: accountId
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching doctor degree:', err);
+      }
+    };
 
-  const handleEditToggle = () => {
+    fetchUserData();
+  }, []);
+
+  const handleEditToggle = async () => {
     if (isEditing) {
-      // Save changes - you would typically make an API PUT request here
-      setUserData({ ...tempData })
+      try {
+        setSaveLoading(true);
+        setSaveError(null);
+
+        const updateData = {
+          address: tempData.address || '',
+          gender: tempData.gender || '',
+          dob: tempData.dob || '',
+          phone: tempData.phone || '',
+          first_name: tempData.first_name || '',
+          last_name: tempData.last_name || ''
+        };
+
+        await axios.put('api/v1/accounts', updateData);
+
+        setUserData({ ...userData, ...updateData });
+        setSaveSuccess(true);
+        setIsEditing(false);
+
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 3000);
+
+      } catch (err) {
+        setSaveError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin');
+      } finally {
+        setSaveLoading(false);
+      }
     } else {
-      // Start editing
-      setTempData({ ...userData })
+      setTempData({ ...userData });
+      setSaveError(null);
+      setSaveSuccess(false);
+      setIsEditing(true);
     }
-    setIsEditing(!isEditing)
-  }
+  };
+
+  const handleDegreeEditToggle = async () => {
+    if (isEditingDegree) {
+      try {
+        setDegreeSaveLoading(true);
+        setDegreeSaveError(null);
+
+        const updateData = {
+          name: tempDegreeData.name,
+          dob: tempDegreeData.dob,
+          graduationDate: tempDegreeData.graduationDate,
+          classification: tempDegreeData.classification,
+          studyMode: tempDegreeData.studyMode,
+          issueDate: tempDegreeData.issueDate,
+          schoolName: tempDegreeData.schoolName,
+          regNo: tempDegreeData.regNo,
+          accountId: tempDegreeData.accountId
+        };
+
+        await axios.put(`api/doctor-degrees/${doctorDegree.id}`, updateData)
+
+        setDoctorDegree({ ...doctorDegree, ...updateData })
+        setDegreeSaveSuccess(true)
+        setIsEditingDegree(false)
+
+        setTimeout(() => {
+          setDegreeSaveSuccess(false);
+        }, 3000);
+
+      } catch (err) {
+        setDegreeSaveError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin bằng cấp');
+      }
+    } else {
+      if (doctorDegree) {
+        setTempDegreeData({
+          name: doctorDegree.name || '',
+          dob: doctorDegree.dob || '',
+          graduationDate: doctorDegree.graduationDate || '',
+          classification: doctorDegree.classification || '',
+          studyMode: doctorDegree.studyMode || '',
+          issueDate: doctorDegree.issueDate || '',
+          schoolName: doctorDegree.schoolName || '',
+          regNo: doctorDegree.regNo || '',
+          accountId: userData.account_id
+        });
+      }
+      setDegreeSaveError(null);
+      setDegreeSaveSuccess(false);
+      setIsEditingDegree(true);
+    }
+  };
+
+  const handleDeleteDegree = async () => {
+    try {
+      setDeleteLoading(true);
+      setDeleteError(null);
+
+      await axios.delete(`/api/doctor-degrees/${doctorDegree.id}`);
+
+      setDoctorDegree(null);
+      setTempDegreeData({
+        name: '',
+        dob: '',
+        graduationDate: '',
+        classification: '',
+        studyMode: '',
+        issueDate: '',
+        schoolName: '',
+        regNo: '',
+        accountId: userData.account_id
+      });
+
+      setDeleteDialogOpen(false);
+      toast.success("Đã xóa thông tin bằng cấp thành công");
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || 'Có lỗi xảy ra khi xóa thông tin bằng cấp');
+      console.error('Error deleting degree:', err);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const handleCancelEdit = () => {
-    setIsEditing(false)
-  }
+    setIsEditing(false);
+    setTempData({ ...userData });
+    setSaveError(null);
+    setSaveSuccess(false);
+  };
+
+  const handleCancelDegreeEdit = () => {
+    setIsEditingDegree(false);
+    if (doctorDegree) {
+      setTempDegreeData({
+        name: doctorDegree.name || '',
+        dob: doctorDegree.dob || '',
+        graduationDate: doctorDegree.graduationDate || '',
+        classification: doctorDegree.classification || '',
+        studyMode: doctorDegree.studyMode || '',
+        issueDate: doctorDegree.issueDate || '',
+        schoolName: doctorDegree.schoolName || '',
+        regNo: doctorDegree.regNo || '',
+        accountId: userData.account_id
+      });
+    }
+    setDegreeSaveError(null);
+    setDegreeSaveSuccess(false);
+  };
 
   const handleInputChange = (e) => {
     setTempData({
       ...tempData,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+    if (saveError) setSaveError(null);
+  };
+
+  const handleDegreeInputChange = (e) => {
+    setTempDegreeData({
+      ...tempDegreeData,
+      [e.target.name]: e.target.value
+    });
+    if (degreeSaveError) setDegreeSaveError(null);
+  };
 
   const handlePasswordChange = (e) => {
     setPasswordData({
       ...passwordData,
       [e.target.name]: e.target.value
-    })
-    // Clear any previous errors when user starts typing
-    if (passwordError) setPasswordError(null)
-    if (passwordSuccess) setPasswordSuccess(false)
-  }
+    });
+    if (passwordError) setPasswordError(null);
+    if (passwordSuccess) setPasswordSuccess(false);
+  };
 
   const handlePasswordSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    // Validate inputs
     if (!passwordData.currentPassword || !passwordData.newPassword) {
-      setPasswordError('Vui lòng điền đầy đủ thông tin')
-      return
+      setPasswordError('Vui lòng điền đầy đủ thông tin');
+      return;
     }
 
     try {
-      setPasswordLoading(true)
-      setPasswordError(null)
+      setPasswordLoading(true);
+      setPasswordError(null);
 
-      // Make API call to change password
       await axios.post(`api/v1/accounts/change-password`, null, {
         params: {
           oldPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword
         }
-      })
+      });
 
-      setPasswordSuccess(true)
-      setPasswordData({ currentPassword: '', newPassword: '' })
+      setPasswordSuccess(true);
+      setPasswordData({ currentPassword: '', newPassword: '' });
 
-      // Auto hide success message and close form after 2 seconds
       setTimeout(() => {
-        setPasswordSuccess(false)
-        setIsChangingPassword(false)
-      }, 2000)
+        setPasswordSuccess(false);
+        setIsChangingPassword(false);
+      }, 2000);
 
     } catch (err) {
-      setPasswordError(err.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu')
+      setPasswordError(err.response?.data?.message || 'Có lỗi xảy ra khi đổi mật khẩu');
     } finally {
-      setPasswordLoading(false)
+      setPasswordLoading(false);
     }
-  }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('vi-VN');
+  };
+
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0];
+  };
+
+  const getClassificationBadge = (classification) => {
+    switch (classification) {
+      case 'EXCELLENT':
+        return <Badge variant="success">Xuất sắc</Badge>;
+      case 'GOOD':
+        return <Badge variant="default">Giỏi</Badge>;
+      case 'AVERAGE':
+        return <Badge variant="secondary">Khá</Badge>;
+      case 'POOR':
+        return <Badge variant="destructive">Trung bình</Badge>;
+      default:
+        return <Badge variant="outline">Không xác định</Badge>;
+    }
+  };
+
+  const getStudyModeText = (studyMode) => {
+    switch (studyMode) {
+      case 'FULL_TIME':
+        return 'Toàn thời gian';
+      case 'PART_TIME':
+        return 'Bán thời gian';
+      case 'DISTANCE':
+        return 'Từ xa';
+      default:
+        return studyMode;
+    }
+  };
 
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto p-6 flex justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -135,10 +371,8 @@ const ProfileSettings = () => {
       <div className="max-w-4xl mx-auto p-6 bg-red-50 text-red-600 rounded-lg">
         Error loading profile: {error}
       </div>
-    )
+    );
   }
-
-  const fullName = `${userData.first_name} ${userData.last_name}`.trim()
 
   return (
     <motion.div
@@ -147,8 +381,73 @@ const ProfileSettings = () => {
       transition={{ duration: 0.5 }}
       className="max-w-4xl mx-auto p-6"
     >
+      {saveSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-green-50 text-green-600 p-4 rounded-lg"
+        >
+          Cập nhật thông tin thành công!
+        </motion.div>
+      )}
+
+      {saveError && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-red-50 text-red-600 p-4 rounded-lg"
+        >
+          {saveError}
+        </motion.div>
+      )}
+
+      {degreeSaveSuccess && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-green-50 text-green-600 p-4 rounded-lg"
+        >
+          Cập nhật thông tin bằng cấp thành công!
+        </motion.div>
+      )}
+
+      {degreeSaveError && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-red-50 text-red-600 p-4 rounded-lg"
+        >
+          {degreeSaveError}
+        </motion.div>
+      )}
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Thao tác này sẽ xóa vĩnh viễn thông tin bằng cấp của bạn và không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteLoading}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteDegree}
+              disabled={deleteLoading}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteLoading ? 'Đang xóa...' : 'Xác nhận xóa'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          {deleteError && (
+            <div className="mt-4 text-sm text-red-600">
+              {deleteError}
+            </div>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Left Column - Avatar */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -186,6 +485,7 @@ const ProfileSettings = () => {
               variant="outline"
               className="w-full flex gap-2"
               onClick={() => setIsChangingPassword(!isChangingPassword)}
+              disabled={isEditing || isEditingDegree}
             >
               <Lock className="h-4 w-4" />
               Đổi mật khẩu
@@ -247,10 +547,10 @@ const ProfileSettings = () => {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        setIsChangingPassword(false)
-                        setPasswordData({ currentPassword: '', newPassword: '' })
-                        setPasswordError(null)
-                        setPasswordSuccess(false)
+                        setIsChangingPassword(false);
+                        setPasswordData({ currentPassword: '', newPassword: '' });
+                        setPasswordError(null);
+                        setPasswordSuccess(false);
                       }}
                       disabled={passwordLoading}
                     >
@@ -263,164 +563,364 @@ const ProfileSettings = () => {
           </motion.div>
         </motion.div>
 
-        {/* Right Column - Profile Info */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="w-full md:w-2/3 bg-white rounded-lg shadow-sm p-6"
-        >
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h2>
-            {!isEditing ? (
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleEditToggle}
-                className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
-              >
-                <Pencil className="h-4 w-4" />
-                Chỉnh sửa
-              </motion.button>
-            ) : (
-              <div className="flex gap-2">
+        <div className="w-full md:w-2/3 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-lg shadow-sm p-6"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Thông tin cá nhân</h2>
+              {!isEditing ? (
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleEditToggle}
-                  className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md"
+                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                  disabled={saveLoading || isEditingDegree}
                 >
-                  <Check className="h-4 w-4" />
-                  Lưu
+                  <Pencil className="h-4 w-4" />
+                  Chỉnh sửa
                 </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleCancelEdit}
-                  className="flex items-center gap-2 bg-gray-200 text-gray-700 px-3 py-1 rounded-md"
-                >
-                  <X className="h-4 w-4" />
-                  Hủy
-                </motion.button>
+              ) : (
+                <div className="flex gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleEditToggle}
+                    disabled={saveLoading}
+                    className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50"
+                  >
+                    <Check className="h-4 w-4" />
+                    {saveLoading ? 'Đang lưu...' : 'Lưu'}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCancelEdit}
+                    disabled={saveLoading}
+                    className="flex items-center gap-2 bg-gray-200 text-gray-700 px-3 py-1 rounded-md disabled:opacity-50"
+                  >
+                    <X className="h-4 w-4" />
+                    Hủy
+                  </motion.button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label>Họ</Label>
+                {isEditing ? (
+                  <Input
+                    name="last_name"
+                    value={tempData.last_name}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-700">{userData.last_name || 'Chưa cập nhật'}</p>
+                )}
               </div>
-            )}
-          </div>
 
-          <div className="space-y-4">
-            <div>
-              <Label>Họ</Label>
-              {isEditing ? (
-                <Input
-                  name="last_name"
-                  value={tempData.last_name}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-gray-700">{userData.last_name || 'Chưa cập nhật'}</p>
-              )}
-            </div>
+              <div>
+                <Label>Tên</Label>
+                {isEditing ? (
+                  <Input
+                    name="first_name"
+                    value={tempData.first_name}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-700">{userData.first_name || 'Chưa cập nhật'}</p>
+                )}
+              </div>
 
-            <div>
-              <Label>Tên</Label>
-              {isEditing ? (
-                <Input
-                  name="first_name"
-                  value={tempData.first_name}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-gray-700">{userData.first_name || 'Chưa cập nhật'}</p>
-              )}
-            </div>
+              <div>
+                <Label>Email</Label>
+                <p className="mt-1 text-gray-700">{userData.email}</p>
+              </div>
 
-            <div>
-              <Label>Email</Label>
-              <p className="mt-1 text-gray-700">{userData.email}</p>
-            </div>
+              <div>
+                <Label>Số điện thoại</Label>
+                {isEditing ? (
+                  <Input
+                    name="phone"
+                    value={tempData.phone}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-700">{userData.phone || 'Chưa cập nhật'}</p>
+                )}
+              </div>
 
-            <div>
-              <Label>Số điện thoại</Label>
-              {isEditing ? (
-                <Input
-                  name="phone"
-                  value={tempData.phone}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-gray-700">{userData.phone || 'Chưa cập nhật'}</p>
-              )}
-            </div>
+              <div>
+                <Label>Giới tính</Label>
+                {isEditing ? (
+                  <select
+                    name="gender"
+                    value={tempData.gender || ''}
+                    onChange={handleInputChange}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                  >
+                    <option value="MALE">Nam</option>
+                    <option value="FEMALE">Nữ</option>
+                    <option value="OTHER">Khác</option>
+                  </select>
+                ) : (
+                  <p className="mt-1 text-gray-700">
+                    {userData.gender === 'MALE' ? 'Nam' :
+                      userData.gender === 'FEMALE' ? 'Nữ' :
+                        userData.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
+                  </p>
+                )}
+              </div>
 
-            <div>
-              <Label>Giới tính</Label>
-              {isEditing ? (
-                <select
-                  name="gender"
-                  value={tempData.gender || ''}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                >
-                  <option value="">Chọn giới tính</option>
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
-                </select>
-              ) : (
+              <div>
+                <Label>Địa chỉ</Label>
+                {isEditing ? (
+                  <Input
+                    name="address"
+                    value={tempData.address}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-700">{userData.address || 'Chưa cập nhật'}</p>
+                )}
+              </div>
+
+              <div>
+                <Label>Ngày sinh</Label>
+                {isEditing ? (
+                  <Input
+                    type="date"
+                    name="dob"
+                    value={tempData.dob || ''}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                ) : (
+                  <p className="mt-1 text-gray-700">
+                    {userData.dob ? formatDate(userData.dob) : 'Chưa cập nhật'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Vai trò</Label>
                 <p className="mt-1 text-gray-700">
-                  {userData.gender === 'male' ? 'Nam' :
-                    userData.gender === 'female' ? 'Nữ' :
-                      userData.gender === 'other' ? 'Khác' : 'Chưa cập nhật'}
+                  {userData.role_name === 'CUSTOMER' ? 'Bệnh nhân' :
+                    userData.role_name === 'DOCTOR' ? 'Bác sĩ' :
+                      userData.role_name === 'ADMIN' ? 'Quản trị viên' : userData.role_name}
                 </p>
-              )}
+              </div>
             </div>
+          </motion.div>
 
-            <div>
-              <Label>Địa chỉ</Label>
-              {isEditing ? (
-                <Input
-                  name="address"
-                  value={tempData.address}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
+          {userData.role_name === 'DOCTOR' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-lg shadow-sm p-6"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="h-6 w-6 text-blue-600" />
+                  <h2 className="text-2xl font-bold text-gray-800">Thông tin bằng cấp</h2>
+                </div>
+
+                {doctorDegree && !isEditingDegree ? (
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleDegreeEditToggle}
+                      className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                      disabled={degreeSaveLoading || isEditing}
+                    >
+                      <Pencil className="h-4 w-4" />
+                      Chỉnh sửa
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setDeleteDialogOpen(true)}
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                      disabled={isEditing}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Xóa
+                    </motion.button>
+                  </div>
+                ) : isEditingDegree ? (
+                  <div className="flex gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleDegreeEditToggle}
+                      disabled={degreeSaveLoading}
+                      className="flex items-center gap-2 bg-blue-600 text-white px-3 py-1 rounded-md disabled:opacity-50"
+                    >
+                      <Check className="h-4 w-4" />
+                      {degreeSaveLoading ? 'Đang lưu...' : 'Lưu'}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleCancelDegreeEdit}
+                      disabled={degreeSaveLoading}
+                      className="flex items-center gap-2 bg-gray-200 text-gray-700 px-3 py-1 rounded-md disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                      Hủy
+                    </motion.button>
+                  </div>
+                ) : null}
+              </div>
+
+              {doctorDegree ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-muted-foreground">Họ tên</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          name="name"
+                          value={tempDegreeData.name}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1 font-medium">{doctorDegree.name || 'Chưa cập nhật'}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Ngày sinh</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          type="date"
+                          name="dob"
+                          value={formatDateForInput(tempDegreeData.dob)}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1">{formatDate(doctorDegree.dob)}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Trường đào tạo</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          name="schoolName"
+                          value={tempDegreeData.schoolName}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1 font-medium">{doctorDegree.schoolName}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Số hiệu bằng</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          name="regNo"
+                          value={tempDegreeData.regNo}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1 font-mono">{doctorDegree.regNo}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-muted-foreground">Ngày tốt nghiệp</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          type="date"
+                          name="graduationDate"
+                          value={formatDateForInput(tempDegreeData.graduationDate)}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1">{formatDate(doctorDegree.graduationDate)}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Ngày cấp bằng</Label>
+                      {isEditingDegree ? (
+                        <Input
+                          type="date"
+                          name="issueDate"
+                          value={formatDateForInput(tempDegreeData.issueDate)}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1"
+                        />
+                      ) : (
+                        <p className="mt-1">{formatDate(doctorDegree.issueDate)}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Xếp loại</Label>
+                      {isEditingDegree ? (
+                        <select
+                          name="classification"
+                          value={tempDegreeData.classification || ''}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                        >
+                          <option value="">Chọn xếp loại</option>
+                          <option value="EXCELLENT">Xuất sắc</option>
+                          <option value="GOOD">Giỏi</option>
+                          <option value="AVERAGE">Khá</option>
+                          <option value="POOR">Trung bình</option>
+                        </select>
+                      ) : (
+                        <div className="mt-1">
+                          {getClassificationBadge(doctorDegree.classification)}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Hình thức đào tạo</Label>
+                      {isEditingDegree ? (
+                        <select
+                          name="studyMode"
+                          value={tempDegreeData.studyMode || ''}
+                          onChange={handleDegreeInputChange}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                        >
+                          <option value="">Chọn hình thức</option>
+                          <option value="FULL_TIME">Toàn thời gian</option>
+                          <option value="PART_TIME">Bán thời gian</option>
+                          <option value="DISTANCE">Từ xa</option>
+                        </select>
+                      ) : (
+                        <p className="mt-1">{getStudyModeText(doctorDegree.studyMode)}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ) : (
-                <p className="mt-1 text-gray-700">{userData.address || 'Chưa cập nhật'}</p>
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>Chưa có thông tin bằng cấp</p>
+                </div>
               )}
-            </div>
-
-            <div>
-              <Label>Ngày sinh</Label>
-              {isEditing ? (
-                <Input
-                  type="date"
-                  name="dob"
-                  value={tempData.dob || ''}
-                  onChange={handleInputChange}
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-gray-700">
-                  {userData.dob ? new Date(userData.dob).toLocaleDateString() : 'Chưa cập nhật'}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label>Vai trò</Label>
-              <p className="mt-1 text-gray-700">
-                {userData.role_name === 'CUSTOMER' ? 'Bệnh nhân' :
-                  userData.role_name === 'DOCTOR' ? 'Bác sĩ' :
-                    userData.role_name === 'ADMIN' ? 'Quản trị viên' : userData.role_name}
-              </p>
-            </div>
-          </div>
-        </motion.div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
-export default ProfileSettings
+export default ProfileSettings;

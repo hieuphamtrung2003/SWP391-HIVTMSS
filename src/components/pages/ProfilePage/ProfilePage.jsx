@@ -111,33 +111,6 @@ const ProfileSettings = () => {
       }
     };
 
-<<<<<<< HEAD
-  const handleEditToggle = async () => {
-    if (isEditing) {
-      // Save changes - you would typically make an API PUT request here
-      try {
-        // Gửi PUT request lên server để cập nhật thông tin
-        await axios.put('api/v1/accounts', {
-          last_name: tempData.last_name,
-          first_name: tempData.first_name,
-          phone: tempData.phone,
-          address: tempData.address,
-          dob: tempData.dob, // ISO format, ví dụ: "1990-01-01"
-          gender: tempData.gender
-        })
-
-        // Cập nhật lại UI
-        setUserData({ ...tempData })
-      } catch (err) {
-        console.error('Error updating user:', err)
-        alert('Cập nhật thất bại. Vui lòng thử lại.')
-        return
-      }
-    }
-    else {
-      // Start editing
-      setTempData({ ...userData })
-=======
     fetchUserData();
   }, []);
 
@@ -176,7 +149,6 @@ const ProfileSettings = () => {
       setSaveError(null);
       setSaveSuccess(false);
       setIsEditing(true);
->>>>>>> 9113404d289e1d2be9074724d2cec74d15aa833d
     }
   };
 
@@ -707,27 +679,6 @@ const ProfileSettings = () => {
                 )}
               </div>
 
-<<<<<<< HEAD
-            <div>
-              <Label>Giới tính</Label>
-              {isEditing ? (
-                <select
-                  name="gender"
-                  value={tempData.gender || ''}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                >
-                  <option value="">Chọn giới tính</option>
-                  <option value="MALE">Nam</option>
-                  <option value="FEMALE">Nữ</option>
-                  <option value="OTHER">Khác</option>
-                </select>
-              ) : (
-                <p className="mt-1 text-gray-700">
-                  {userData.gender === 'MALE' ? 'Nam' :
-                    userData.gender === 'FEMALE' ? 'Nữ' :
-                      userData.gender === 'OTHER' ? 'Khác' : 'Chưa cập nhật'}
-=======
               <div>
                 <Label>Địa chỉ</Label>
                 {isEditing ? (
@@ -765,7 +716,6 @@ const ProfileSettings = () => {
                   {userData.role_name === 'CUSTOMER' ? 'Bệnh nhân' :
                     userData.role_name === 'DOCTOR' ? 'Bác sĩ' :
                       userData.role_name === 'ADMIN' ? 'Quản trị viên' : userData.role_name}
->>>>>>> 9113404d289e1d2be9074724d2cec74d15aa833d
                 </p>
               </div>
             </div>

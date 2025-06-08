@@ -19,7 +19,7 @@ import NotFound from "components/pages/NotFoundPage";
 
 let publicRoute = [];
 const role = localStorage.getItem("role");
-console.log("Role>>>: ", role);
+
 
 if (role === "CUSTOMER") {
     publicRoute = [

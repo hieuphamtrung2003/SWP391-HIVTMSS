@@ -7,7 +7,7 @@ import {
   CircleUser,
 } from 'lucide-react'
 import { Button } from '../../ui/button'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, href, useLocation } from 'react-router-dom'
 import { useState, useEffect } from "react"
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
@@ -42,7 +42,7 @@ export default function SideNavbar() {
       localStorage.removeItem("role");
       setToken(null); // 🔥 cập nhật lại state để render lại button
       toast.success("Đăng xuất thành công");
-      navigate("/login");
+      window.location.href = "/login";
     } catch (error) {
       toast.error("Lỗi khi đăng xuất");
       console.error("Logout failed:", error);

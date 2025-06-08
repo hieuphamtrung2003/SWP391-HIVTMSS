@@ -15,25 +15,67 @@ import ForgotPasswordForm from "components/pages/ForgotPasswordPage/ForgotPasswo
 import ResetPasswordForm from "components/pages/ForgotPasswordPage/ResetPasswordPage";
 import BlogDetail from "components/pages/BlogDetail/BlogDetail";
 import DashboardContent from "components/pages/DashBoard/DashBoard";
-const role = localStorage.getItem("userRole");
+import NotFound from "components/pages/NotFoundPage";
 
-const publicRoute = [
-    { path: "/", component: LandingPage, layout: null },
-    { path: "/login", component: Login, layout: null },
-    { path: "/register", component: RegisterForm, layout: null },
-    { path: "/schedule", component: Schedule, layout: DefaultLayout },
-    { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
-    { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
-    { path: "/blog", component: BlogListPage, layout: DefaultLayout },
-    { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
-    { path: "/chat", component: ChatPage, layout: DefaultLayout },
-    { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
-    { path: "/dashboard", component: AdminDashboard, layout: DefaultLayout },
-    { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
-    { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
-    { path: "/reset-password", component: ResetPasswordForm, layout: null },
-    { path: "/blog/1", component: BlogDetail, layout: null },
-    { path: "/dashboard", component: DashboardContent, layout: DefaultLayout },
-];
+let publicRoute = [];
+const role = localStorage.getItem("role");
+console.log("Role>>>: ", role);
+
+if (role === "CUSTOMER") {
+    publicRoute = [
+        { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
+        { path: "/reset-password", component: ResetPasswordForm, layout: null },
+        { path: "/blog/1", component: BlogDetail, layout: null },
+        { path: "/schedule", component: Schedule, layout: DefaultLayout },
+        { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
+        { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
+        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
+        { path: "/chat", component: ChatPage, layout: DefaultLayout },
+        { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
+        { path: "/login", component: Login, layout: null },
+        { path: "*", component: NotFound, layout: null },
+    ]
+} else if (role === "DOCTOR") {
+    publicRoute = [
+        { path: "/dashboard", component: AdminDashboard, layout: DefaultLayout },
+        { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
+        { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
+        { path: "/reset-password", component: ResetPasswordForm, layout: null },
+        { path: "/blog/1", component: BlogDetail, layout: null },
+        { path: "/schedule", component: Schedule, layout: DefaultLayout },
+        { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
+        { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
+        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
+        { path: "/chat", component: ChatPage, layout: DefaultLayout },
+        { path: "/login", component: Login, layout: null },
+        { path: "*", component: NotFound, layout: null },
+    ]
+} else if (role === "ADMIN") {
+    publicRoute = [
+        { path: "/schedule", component: Schedule, layout: DefaultLayout },
+        { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
+        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
+        { path: "/dashboard", component: DashboardContent, layout: DefaultLayout },
+        { path: "/login", component: Login, layout: null },
+        { path: "*", component: NotFound, layout: null },
+    ]
+} else {
+    publicRoute = [
+        { path: "/", component: LandingPage, layout: null },
+        { path: "/login", component: Login, layout: null },
+        { path: "/register", component: RegisterForm, layout: null },
+        { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
+        { path: "/reset-password", component: ResetPasswordForm, layout: null },
+        { path: "/blog/1", component: BlogDetail, layout: null },
+        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "*", component: NotFound, layout: null },
+    ]
+};
+
+
 const privateRoute = [];
+
 export { publicRoute, privateRoute };

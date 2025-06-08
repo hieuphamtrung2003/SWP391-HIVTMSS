@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios"
 import { toast } from "react-toastify";
 import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const RegisterForm = () => {
 
@@ -56,7 +57,7 @@ const RegisterForm = () => {
     };
 
 
-
+    const [showPassword, setShowPassword] = useState(false);
 
 
 
@@ -116,15 +117,24 @@ const RegisterForm = () => {
                                 value={formValue.email}
                                 onChange={handleChange}
                             />
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="current-password"
-                                value={formValue.password}
-                                onChange={handleChange}
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Password"
+                                    className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none pr-10"
+                                    autoComplete="current-password"
+                                    value={formValue.password}
+                                    onChange={handleChange}
+                                />
+                                <div
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </div>
+                            </div>
 
                             <input
                                 type="tel"

@@ -369,7 +369,8 @@ export default function LandingPage() {
                             >
                                 {[1, 2, 3].map((item) => (
                                     <motion.div key={item} variants={itemVariants}>
-                                        <Card className="hover:shadow-lg transition-shadow">
+                                        <Card className="bg-white hover:shadow-lg transition-shadow">
+
                                             <CardHeader>
                                                 <CardTitle>Tài liệu {item}</CardTitle>
                                             </CardHeader>

@@ -39,6 +39,7 @@ export default function SideNavbar() {
       });
 
       localStorage.removeItem("access_token");
+      localStorage.removeItem("role");
       setToken(null); // 🔥 cập nhật lại state để render lại button
       toast.success("Đăng xuất thành công");
       navigate("/login");

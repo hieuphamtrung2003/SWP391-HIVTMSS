@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { decodeToken } from "../../../utils/tokenUtils";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginForm = () => {
 
@@ -46,26 +47,25 @@ const LoginForm = () => {
                 }
 
                 const role = decodedToken.role;
-
+                localStorage.setItem("role", role)
                 // Điều hướng theo phân quyền
                 if (role === "ADMIN") {
-                    navigate("/");
-                } else if (role === "STAFF") {
-                    navigate("/");
+                    window.location.href = "/";
+                } else if (role === "MANAGER") {
+                    window.location.href = "/";
                 } else if (role === "CUSTOMER") {
-                    navigate("/schedule");
+                    window.location.href = "/schedule";
+                } else if (role === "DOCTOR") {
+                    window.location.href = "/schedule";
                 } else {
                     toast.error("Vai trò không được hỗ trợ!");
                     return;
                 }
-
                 toast.success("Đăng nhập thành công!!");
-                // navigate("/");
             } else {
                 toast.error("Vui lòng kiểm tra lại email hoặc mật khẩu !!");
             }
         } catch (error) {
-
             // Password sai
             toast.error("Email hoặc mật khẩu không đúng!");
             console.error("Login failed:", error);
@@ -73,6 +73,8 @@ const LoginForm = () => {
     };
 
     //hiện password
+    const [showPassword, setShowPassword] = useState(false);
+
     // const [view, setViewPassword] = useState(false);
     // const icon =
 
@@ -115,15 +117,26 @@ const LoginForm = () => {
                                 value={formValue.email}
                                 onChange={handleChange}
                             />
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="current-password"
-                                value={formValue.password}
-                                onChange={handleChange}
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Password"
+                                    className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none pr-10"
+                                    autoComplete="current-password"
+                                    value={formValue.password}
+                                    onChange={handleChange}
+                                />
+                                <div
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </div>
+                            </div>
+
+
 
                             <div className="flex justify-between items-center text-sm mt-2">
                                 <label className="flex items-center text-[#373E79]">

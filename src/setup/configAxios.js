@@ -65,7 +65,7 @@ instance.interceptors.response.use(
       toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
-      // window.location.href = '/login';
+      window.location.href = '/login';
     }
 
     return Promise.reject(error);

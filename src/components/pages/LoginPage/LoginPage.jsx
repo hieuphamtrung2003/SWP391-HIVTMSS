@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { decodeToken } from "../../../utils/tokenUtils";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginForm = () => {
 
@@ -47,12 +48,14 @@ const LoginForm = () => {
                 }
 
                 const role = decodedToken.role;
-
+                localStorage.setItem("role", role)
                 // Điều hướng theo phân quyền
                 if (role === "ADMIN") {
-                    navigate("/admin/dashboard");
+                    window.location.href = "/";
                 } else if (role === "MANAGER") {
-                    navigate("/manager");
+                    window.location.href = "/manager";
+                } else if (role === "CUSTOMER") {
+                    window.location.href = "/schedule";
                 }
                 else if (role === "DOCTOR") {
                     try {
@@ -60,25 +63,21 @@ const LoginForm = () => {
 
                         if (degreeRes) {
                             // Nếu đã có bằng cấp
-                            navigate("/doctor/patient-request");
+                            window.location.href = "/doctor/patient-request";
                         } else {
                             // Không có bằng cấp
-                            navigate("/doctor/degree");
+                            window.location.href = "/doctor/degree";
                         }
                     } catch (err) {
                         console.error("Error fetching doctor degree:", err);
                         toast.error("Hãy cập nhật bằng cấp của bạn trước khi tiếp tục!");
-                        navigate("/doctor/degree");
+                        window.location.href = "/doctor/degree";
                         return;
                     }
-                }
-                else if (role === "CUSTOMER") {
-                    navigate("/schedule");
                 } else {
                     toast.error("Vai trò không được hỗ trợ!");
                     return;
                 }
-
                 toast.success("Đăng nhập thành công!!");
             } else {
                 toast.error("Vui lòng kiểm tra lại email hoặc mật khẩu !!");
@@ -89,10 +88,18 @@ const LoginForm = () => {
             console.error("Login failed:", error);
         }
     };
+
+    //hiện password
+    const [showPassword, setShowPassword] = useState(false);
+
+    // const [view, setViewPassword] = useState(false);
+    // const icon =
+
+
     return (
         <div>
             <div className="w-full h-screen flex items-center justify-center">
-                <div className="flex w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
+                <div className="flex w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden">
 
                     {/* Ảnh */}
                     <div className="w-1/2 hidden md:flex bg-blue-50">
@@ -127,15 +134,26 @@ const LoginForm = () => {
                                 value={formValue.email}
                                 onChange={handleChange}
                             />
-                            <input
-                                type="password"
-                                name="password"
-                                placeholder="Password"
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="current-password"
-                                value={formValue.password}
-                                onChange={handleChange}
-                            />
+                            <div className="relative w-full">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Password"
+                                    className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none pr-10"
+                                    autoComplete="current-password"
+                                    value={formValue.password}
+                                    onChange={handleChange}
+                                />
+                                <div
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </div>
+                            </div>
+
+
 
                             <div className="flex justify-between items-center text-sm mt-2">
                                 <label className="flex items-center text-[#373E79]">

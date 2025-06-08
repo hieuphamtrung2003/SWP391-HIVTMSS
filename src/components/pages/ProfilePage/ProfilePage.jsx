@@ -44,11 +44,11 @@ const ProfileSettings = () => {
     last_name: '',
     first_name: '',
     email: '',
-    gender: null,
+    gender: '',
     phone: '',
     avatar: null,
     address: '',
-    dob: null,
+    dob: '',
     role_name: ''
   });
 

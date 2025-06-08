@@ -5,18 +5,15 @@ import {
   Bell,
   FileText,
   CircleUser,
-  LogOut,
-  CircleGauge,
-  ClipboardList,
 } from 'lucide-react'
-import { Button } from '../../ui/button'
-import { Link, href, useLocation } from 'react-router-dom'
+import { Button } from '../../../ui/button'
+import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from "react"
-import axios from "../../../setup/configAxios";
+import axios from "../../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-export default function SideNavbar() {
+export default function DoctorSideNavbar() {
   const location = useLocation()
 
   // Khai báo token
@@ -42,41 +39,27 @@ export default function SideNavbar() {
       });
 
       localStorage.removeItem("access_token");
-      localStorage.removeItem("role");
-      setToken(null); // 🔥 cập nhật lại state để render lại button
+      setToken(null);
       toast.success("Đăng xuất thành công");
-      window.location.href = "/login";
+      navigate("/login");
     } catch (error) {
       toast.error("Lỗi khi đăng xuất");
       console.error("Logout failed:", error);
+
     }
   };
   const navItems = [
     {
-      name: 'Xem lịch đặt',
-      icon: <Calendar className="h-5 w-5" />,
-      path: '/schedule'
-    },
-    {
-      name: 'Đặt lịch',
-      icon: <CalendarCheck className="h-5 w-5" />,
-      path: '/book'
-    },
-    {
-      name: 'Quản lý blog',
-      icon: <FileText className="h-5 w-5" />,
-      path: '/blog'
+      name: 'Yêu cầu khám bệnh',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/doctor/patient-request'
     },
     {
       name: 'Thông báo',
       icon: <Bell className="h-5 w-5" />,
-      path: '/notify'
+      path: '/doctor/notify'
     },
-    {
-      name: 'Nhắn tin hỗ trợ',
-      icon: <MessageSquare className="h-5 w-5" />,
-      path: '/chat'
-    },
+
   ]
 
   return (
@@ -117,7 +100,7 @@ export default function SideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <Link to="/profile" className="flex items-center gap-3">
+            <Link to="/doctor/profile" className="flex items-center gap-3">
               <CircleUser className="h-5 w-5" />
               <span>Hồ Sơ</span>
             </Link>
@@ -127,10 +110,7 @@ export default function SideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <div className="flex items-center gap-3 cursor-pointer">
-              <LogOut className="h-5 w-5" />
-              <span onClick={handleLogout}>Đăng Xuất</span>
-            </div>
+            <span onClick={handleLogout}>Đăng Xuất</span>
           </Button>
         </div>
       </div>

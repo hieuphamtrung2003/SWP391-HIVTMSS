@@ -13,6 +13,7 @@ const LoginForm = () => {
         email: "",
         password: "",
     });
+
     const handleChange = (e) => {
         const { value, name } = e.target;
         setFormValue((prevFormValue) => ({
@@ -52,11 +53,27 @@ const LoginForm = () => {
                 if (role === "ADMIN") {
                     window.location.href = "/";
                 } else if (role === "MANAGER") {
-                    window.location.href = "/";
+                    window.location.href = "/manager";
                 } else if (role === "CUSTOMER") {
                     window.location.href = "/schedule";
-                } else if (role === "DOCTOR") {
-                    window.location.href = "/schedule";
+                }
+                else if (role === "DOCTOR") {
+                    try {
+                        const degreeRes = await axios.get(`/api/doctor-degrees/account/${decodedToken.id}`);
+
+                        if (degreeRes) {
+                            // Nếu đã có bằng cấp
+                            window.location.href = "/doctor/patient-request";
+                        } else {
+                            // Không có bằng cấp
+                            window.location.href = "/doctor/degree";
+                        }
+                    } catch (err) {
+                        console.error("Error fetching doctor degree:", err);
+                        toast.error("Hãy cập nhật bằng cấp của bạn trước khi tiếp tục!");
+                        window.location.href = "/doctor/degree";
+                        return;
+                    }
                 } else {
                     toast.error("Vai trò không được hỗ trợ!");
                     return;

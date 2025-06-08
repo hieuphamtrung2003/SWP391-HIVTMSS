@@ -190,6 +190,13 @@ export default function LandingPage() {
                             </Button>
                             <Button
                                 variant="ghost"
+                                onClick={() => scrollToSection('faq')}
+                                className="text-gray-700 hover:text-blue-600"
+                            >
+                                Câu hỏi thường gặp
+                            </Button>
+                            <Button
+                                variant="ghost"
                                 onClick={() => scrollToSection('blog')}
                                 className="text-gray-700 hover:text-blue-600"
                             >

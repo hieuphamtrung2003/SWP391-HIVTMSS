@@ -1,10 +1,9 @@
 import { Bell, MessageSquare, Search } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
-import { Input } from '../../ui/input'
-import { Button } from '../../ui/button'
-import { Link } from 'react-router-dom'
+import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar'
+import { Input } from '../../../ui/input'
+import { Button } from '../../../ui/button'
 
-export default function Header() {
+export default function DoctorHeader() {
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -28,19 +27,15 @@ export default function Header() {
           </div>
 
           {/* Notification */}
-          <Link to="/notify">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5 text-gray-600" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5 text-gray-600" />
+            <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+          </Button>
 
           {/* Messages */}
-          <Link to="/chat">
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="h-5 w-5 text-gray-600" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="icon">
+            <MessageSquare className="h-5 w-5 text-gray-600" />
+          </Button>
 
           {/* User Profile */}
           <div className="flex items-center gap-2 ml-2">

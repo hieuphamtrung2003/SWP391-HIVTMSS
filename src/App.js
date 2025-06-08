@@ -1,9 +1,11 @@
-import DefaultLayout from "../src/components/layouts/DefaultLayout";
+import DefaultLayout from "../src/components/layouts/DefaultLayout/DefaultLayout";
 import { Fragment } from "react";
 import { publicRoute } from "./route/Index";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AdminLayout from "components/layouts/AdminLayout/AdminLayout";
+import DoctorLayout from "components/layouts/DoctorLayout/DoctorLayout";
 function App() {
   return (
     <div className="App">
@@ -13,6 +15,12 @@ function App() {
             {publicRoute.map((route, index) => {
               const Page = route.component;
               let Layout = DefaultLayout;
+              if (route.layout == AdminLayout) {
+                Layout = AdminLayout;
+              }
+              if (route.layout == DoctorLayout) {
+                Layout = DoctorLayout;
+              }
               if (route.layout === null) {
                 Layout = Fragment;
               }

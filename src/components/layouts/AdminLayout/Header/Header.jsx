@@ -1,7 +1,7 @@
 import { Bell, MessageSquare, Search } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
-import { Input } from '../../ui/input'
-import { Button } from '../../ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '../../../ui/avatar'
+import { Input } from '../../../ui/input'
+import { Button } from '../../../ui/button'
 
 export default function Header() {
   return (

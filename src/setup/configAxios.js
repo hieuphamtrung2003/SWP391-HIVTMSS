@@ -6,38 +6,6 @@ const instance = axios.create({
   baseURL: 'https://swp391.tinhvv.xyz/',
 });
 instance.defaults.withCredentials = true;
-
-// Hàm refresh token
-// const refreshToken = async () => {
-//   try {
-//     const refresh_token = localStorage.getItem('refresh_token');
-//     if (!refresh_token) {
-//       throw new Error('No refresh token found');
-//     }
-
-//     const response = await axios.post(
-//       'https://souvi-be-v1.onrender.com/auth/refresh-token',
-//       {},
-//       {
-//         headers: {
-//           Authorization: `Bearer ${refresh_token}`,
-//         },
-//       }
-//     );
-
-//     const access_token = response.data.data.access_token;
-
-//     localStorage.setItem('access_token', access_token);
-//     localStorage.setItem('refresh_token', response.data.data.refresh_token);
-
-//     return access_token;
-//   } catch (error) {
-//     console.error('Failed to refresh token:', error);
-//     return null;
-//   }
-// };
-
-// Interceptor cho request
 instance.interceptors.request.use(
   (config) => {
     const access_token = localStorage.getItem('access_token');

@@ -76,6 +76,7 @@ if (role === "CUSTOMER") {
         { path: "*", component: NotFound, layout: null },
     ]
 } else {
+
     publicRoute = [
         { path: "/", component: LandingPage, layout: null },
         { path: "/login", component: Login, layout: null },
@@ -85,6 +86,7 @@ if (role === "CUSTOMER") {
         { path: "/blog/1", component: BlogDetail, layout: null },
         { path: "/blog", component: BlogListPage, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
+
     ]
 };
 

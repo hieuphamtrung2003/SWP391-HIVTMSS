@@ -51,7 +51,7 @@ const LoginForm = () => {
                 localStorage.setItem("role", role)
                 // Điều hướng theo phân quyền
                 if (role === "ADMIN") {
-                    window.location.href = "/";
+                    window.location.href = "/admin/profile";
                 } else if (role === "MANAGER") {
                     window.location.href = "/manager";
                 } else if (role === "CUSTOMER") {

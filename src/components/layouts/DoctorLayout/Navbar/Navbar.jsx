@@ -39,6 +39,7 @@ export default function DoctorSideNavbar() {
       });
 
       localStorage.removeItem("access_token");
+      localStorage.removeItem("role");
       setToken(null);
       toast.success("Đăng xuất thành công");
       navigate("/login");

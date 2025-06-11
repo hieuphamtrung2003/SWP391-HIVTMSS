@@ -1,493 +1,437 @@
+// src/features/booking/BookingPage.js
 import React, { useState } from 'react';
-import { Calendar, Clock, User, UserCheck, Shield, Phone, Mail, Bell, CheckCircle } from 'lucide-react';
+import { Calendar, Clock, User, Shield, Heart, Phone, AlertCircle, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast, Toast } from 'react-toastify';
+import useBookingStore from '../stores/bookingStore';
 
-const BookingInterface = () => {
+const BookingPage = () => {
+  const {
+    availableDoctors,
+    selectedDoctor,
+    appointmentData,
+    isLoading,
+    error,
+    setSelectedDoctor,
+    updateAppointmentData,
+    fetchAvailableDoctors,
+    createAppointment
+  } = useBookingStore();
+
   const [currentStep, setCurrentStep] = useState(1);
-  const [isAnonymous, setIsAnonymous] = useState(false);
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    dateOfBirth: '',
-    gender: '',
-    appointmentType: '',
-    preferredDate: '',
-    preferredTime: '',
-    notes: '',
-    smsReminder: true,
-    emailReminder: true,
-    reminderTime: '24h'
-  });
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  const doctors = [
-    {
-      id: 1,
-      name: 'Dr. Nguyễn Văn An',
-      specialty: 'HIV/AIDS Specialist',
-      experience: '15 years',
-      rating: 4.9,
-      availability: 'Available today',
-      image: '/api/placeholder/80/80'
-    },
-    {
-      id: 2,
-      name: 'Dr. Trần Thị Bình',
-      specialty: 'Infectious Disease Specialist',
-      experience: '12 years',
-      rating: 4.8,
-      availability: 'Available tomorrow',
-      image: '/api/placeholder/80/80'
-    },
-    {
-      id: 3,
-      name: 'Dr. Lê Hoàng Cường',
-      specialty: 'Internal Medicine & HIV Care',
-      experience: '18 years',
-      rating: 4.9,
-      availability: 'Available this week',
-      image: '/api/placeholder/80/80'
-    }
-  ];
-
-  const appointmentTypes = [
-    'Initial Consultation',
-    'Follow-up Appointment',
-    'Test Results Review',
-    'Treatment Adjustment',
-    'General Support'
-  ];
-
-  const timeSlots = [
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00'
-  ];
-
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const nextStep = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) setCurrentStep(currentStep - 1);
-  };
-
-  // Step 1: Anonymity Options
-  const AnonymityStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <Shield className="mx-auto h-16 w-16 text-blue-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Privacy Options</h2>
-        <p className="text-gray-600">Choose how you'd like to book your appointment</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div 
-          className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
-            !isAnonymous ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => setIsAnonymous(false)}
-        >
-          <User className="h-8 w-8 text-blue-600 mb-3" />
-          <h3 className="font-semibold text-gray-900 mb-2">Regular Booking</h3>
-          <p className="text-sm text-gray-600">Book with your personal information for better care coordination</p>
-        </div>
-
-        <div 
-          className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
-            isAnonymous ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => setIsAnonymous(true)}
-        >
-          <Shield className="h-8 w-8 text-green-600 mb-3" />
-          <h3 className="font-semibold text-gray-900 mb-2">Anonymous Booking</h3>
-          <p className="text-sm text-gray-600">Book anonymously for complete privacy and confidentiality</p>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Step 2: Patient Information (conditional)
-  const PatientInfoStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <UserCheck className="mx-auto h-16 w-16 text-blue-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {isAnonymous ? 'Anonymous Booking' : 'Patient Information'}
-        </h2>
-        <p className="text-gray-600">
-          {isAnonymous 
-            ? 'You can proceed without providing personal details' 
-            : 'Please provide your information for better care'}
-        </p>
-      </div>
-
-      {!isAnonymous && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={formData.fullName}
-              onChange={(e) => handleInputChange('fullName', e.target.value)}
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-            <input
-              type="tel"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="Enter your phone number"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-            <input
-              type="email"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="Enter your email"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={formData.dateOfBirth}
-              onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-            <div className="flex space-x-4">
-              {['Male', 'Female', 'Other', 'Prefer not to say'].map((gender) => (
-                <label key={gender} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="gender"
-                    value={gender}
-                    checked={formData.gender === gender}
-                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="mr-2"
-                  />
-                  {gender}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isAnonymous && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-          <Shield className="mx-auto h-12 w-12 text-green-600 mb-3" />
-          <h3 className="font-semibold text-green-900 mb-2">Anonymous Booking Active</h3>
-          <p className="text-green-800">Your privacy is protected. No personal information is required.</p>
-        </div>
-      )}
-    </div>
-  );
-
-  // Step 3: Doctor Selection
-  const DoctorSelectionStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <User className="mx-auto h-16 w-16 text-blue-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose Your Doctor</h2>
-        <p className="text-gray-600">Select a specialist or let us assign one randomly</p>
-      </div>
-
-      <div className="mb-6">
-        <button
-          className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition-colors"
-          onClick={() => setSelectedDoctor({ id: 'random', name: 'Random Assignment' })}
-        >
-          <div className="text-center">
-            <div className="text-blue-600 font-medium">🎲 Random Doctor Assignment</div>
-            <div className="text-sm text-gray-500 mt-1">Let us match you with an available specialist</div>
-          </div>
-        </button>
-      </div>
-
-      <div className="grid gap-4">
-        {doctors.map((doctor) => (
-          <div
-            key={doctor.id}
-            className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-              selectedDoctor?.id === doctor.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-            }`}
-            onClick={() => setSelectedDoctor(doctor)}
-          >
-            <div className="flex items-center space-x-4">
-              <img
-                src={doctor.image}
-                alt={doctor.name}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{doctor.name}</h3>
-                <p className="text-blue-600 text-sm">{doctor.specialty}</p>
-                <p className="text-gray-600 text-sm">{doctor.experience} experience</p>
-                <div className="flex items-center mt-1">
-                  <span className="text-yellow-500">⭐</span>
-                  <span className="text-sm text-gray-600 ml-1">{doctor.rating} • {doctor.availability}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Step 4: Appointment Details
-  const AppointmentDetailsStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <Calendar className="mx-auto h-16 w-16 text-blue-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Appointment Details</h2>
-        <p className="text-gray-600">Choose your preferred date, time, and appointment type</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Appointment Type *</label>
-          <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={formData.appointmentType}
-            onChange={(e) => handleInputChange('appointmentType', e.target.value)}
-          >
-            <option value="">Select appointment type</option>
-            {appointmentTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Date *</label>
-          <input
-            type="date"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={formData.preferredDate}
-            onChange={(e) => handleInputChange('preferredDate', e.target.value)}
-            min={new Date().toISOString().split('T')[0]}
-          />
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Preferred Time *</label>
-        <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-          {timeSlots.map((time) => (
-            <button
-              key={time}
-              className={`p-2 text-sm rounded-lg border transition-all ${
-                formData.preferredTime === time
-                  ? 'bg-blue-500 text-white border-blue-500'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-300'
-              }`}
-              onClick={() => handleInputChange('preferredTime', time)}
-            >
-              {time}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
-        <textarea
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-          rows="3"
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
-          placeholder="Any specific concerns or information for your doctor..."
-        />
-      </div>
-    </div>
-  );
-
-  // Step 5: Confirmation & Reminders
-  const ConfirmationStep = () => (
-    <div className="space-y-6">
-      <div className="text-center">
-        <Bell className="mx-auto h-16 w-16 text-blue-600 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirmation & Reminders</h2>
-        <p className="text-gray-600">Review your booking and set up reminders</p>
-      </div>
-
-      {/* Booking Summary */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Booking Summary</h3>
-        <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Booking Type:</span>
-            <span className="font-medium">{isAnonymous ? 'Anonymous' : 'Regular'}</span>
-          </div>
-          {!isAnonymous && formData.fullName && (
-            <div className="flex justify-between">
-              <span className="text-gray-600">Patient:</span>
-              <span className="font-medium">{formData.fullName}</span>
-            </div>
-          )}
-          <div className="flex justify-between">
-            <span className="text-gray-600">Doctor:</span>
-            <span className="font-medium">{selectedDoctor?.name || 'Not selected'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Appointment Type:</span>
-            <span className="font-medium">{formData.appointmentType}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Date & Time:</span>
-            <span className="font-medium">{formData.preferredDate} at {formData.preferredTime}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Reminder Settings */}
-      <div className="space-y-4">
-        <h3 className="font-semibold text-gray-900">Reminder Settings</h3>
-        
-        {!isAnonymous && (
-          <>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Phone className="h-5 w-5 text-gray-400" />
-                <span>SMS Reminders</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.smsReminder}
-                  onChange={(e) => handleInputChange('smsReminder', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-5 w-5 text-gray-400" />
-                <span>Email Reminders</span>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.emailReminder}
-                  onChange={(e) => handleInputChange('emailReminder', e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-          </>
-        )}
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
-          <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            value={formData.reminderTime}
-            onChange={(e) => handleInputChange('reminderTime', e.target.value)}
-          >
-            <option value="1h">1 hour before</option>
-            <option value="4h">4 hours before</option>
-            <option value="24h">1 day before</option>
-            <option value="48h">2 days before</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCurrentStep = () => {
-    switch (currentStep) {
-      case 1: return <AnonymityStep />;
-      case 2: return <PatientInfoStep />;
-      case 3: return <DoctorSelectionStep />;
-      case 4: return <AppointmentDetailsStep />;
-      case 5: return <ConfirmationStep />;
-      default: return <AnonymityStep />;
+  // Handle date/time change to fetch available doctors
+  const handleDateTimeChange = async (dateTime) => {
+    updateAppointmentData({ start_time: dateTime });
+    if (dateTime) {
+      await fetchAvailableDoctors(dateTime);
     }
   };
 
-  const handleSubmit = () => {
-    console.log('Booking submitted:', { isAnonymous, selectedDoctor, formData });
-    alert('Appointment booked successfully!');
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await createAppointment();
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        setCurrentStep(1);
+        // Reset form
+        updateAppointmentData({
+          gender: '',
+          dob: '',
+          first_name: '',
+          last_name: '',
+          start_time: '',
+          chief_complaint: '',
+          is_pregnant: false,
+          is_anonymous: false
+        });
+        setSelectedDoctor(null);
+      }, 3000);
+    } catch (error) {
+      toast.error('đặt lịch thất bại:');
+    }
   };
+
+  // Get minimum date (today)
+  const getMinDate = () => {
+    return new Date().toISOString().split('T')[0];
+  };
+
+  // Get minimum datetime for appointment
+  const getMinDateTime = () => {
+    const now = new Date();
+    now.setHours(now.getHours() + 1); // At least 1 hour from now
+    return now.toISOString().slice(0, 16);
+  };
+
+  if (showSuccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white rounded-2xl shadow-2xl p-8 text-center"
+        >
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Đặt lịch thành công!</h2>
+          <p className="text-gray-600">Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white min-h-screen">
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          {[1, 2, 3, 4, 5].map((step) => (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-center mb-8"
+        >
+          <div className="flex items-center justify-center mb-4">
+            <Heart className="w-8 h-8 text-red-500 mr-2" />
+            <h1 className="text-3xl font-bold text-gray-900">Đặt Lịch Khám HIV</h1>
+          </div>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Đặt lịch hẹn với bác sĩ chuyên khoa để được tư vấn và điều trị HIV một cách an toàn, bảo mật
+          </p>
+        </motion.div>
+
+        {/* Progress Steps */}
+        <div className="flex items-center justify-center mb-8">
+          {[1, 2, 3].map((step) => (
             <div key={step} className="flex items-center">
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                  step <= currentStep ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
-                }`}
-              >
-                {step < currentStep ? <CheckCircle className="w-5 h-5" /> : step}
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold
+                ${currentStep >= step ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+                {step}
               </div>
-              {step < 5 && (
-                <div className={`h-1 w-16 mx-2 ${step < currentStep ? 'bg-blue-500' : 'bg-gray-200'}`} />
+              {step < 3 && (
+                <div className={`w-16 h-1 mx-2 ${currentStep > step ? 'bg-blue-600' : 'bg-gray-200'}`} />
               )}
             </div>
           ))}
         </div>
-        <div className="text-center text-sm text-gray-600">
-          Step {currentStep} of 5
-        </div>
-      </div>
 
-      {/* Step Content */}
-      <div className="mb-8">
-        {renderCurrentStep()}
-      </div>
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between">
-        <button
-          onClick={prevStep}
-          disabled={currentStep === 1}
-          className={`px-6 py-2 rounded-lg transition-all ${
-            currentStep === 1
-              ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-500 text-white hover:bg-gray-600'
-          }`}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl shadow-xl overflow-hidden"
         >
-          Previous
-        </button>
+          <form onSubmit={handleSubmit} className="p-8">
+            {/* Step 1: Personal Information */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <User className="w-6 h-6 mr-2 text-blue-600" />
+                  Thông Tin Cá Nhân
+                </h2>
 
-        <button
-          onClick={currentStep === 5 ? handleSubmit : nextStep}
-          className="px-8 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Họ *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={appointmentData.first_name}
+                      onChange={(e) => updateAppointmentData({ first_name: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nhập họ của bạn"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tên *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={appointmentData.last_name}
+                      onChange={(e) => updateAppointmentData({ last_name: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Nhập tên của bạn"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Giới tính *
+                    </label>
+                    <select
+                      required
+                      value={appointmentData.gender}
+                      onChange={(e) => updateAppointmentData({ gender: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="">Chọn giới tính</option>
+                      <option value="MALE">Nam</option>
+                      <option value="FEMALE">Nữ</option>
+                      <option value="OTHER">Khác</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngày sinh *
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      max={getMinDate()}
+                      value={appointmentData.dob}
+                      onChange={(e) => updateAppointmentData({ dob: e.target.value })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Triệu chứng chính / Lý do khám
+                  </label>
+                  <textarea
+                    value={appointmentData.chief_complaint}
+                    onChange={(e) => updateAppointmentData({ chief_complaint: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Mô tả triệu chứng hoặc lý do muốn khám..."
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  {appointmentData.gender === 'FEMALE' && (
+                    <label className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={appointmentData.is_pregnant}
+                        onChange={(e) => updateAppointmentData({ is_pregnant: e.target.checked })}
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Tôi đang mang thai</span>
+                    </label>
+                  )}
+
+                  <label className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      checked={appointmentData.is_anonymous}
+                      onChange={(e) => updateAppointmentData({ is_anonymous: e.target.checked })}
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 flex items-center">
+                      <Shield className="w-4 h-4 mr-1" />
+                      Tôi muốn đặt lịch ẩn danh
+                    </span>
+                  </label>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(2)}
+                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Tiếp theo
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Date, Time & Doctor Selection */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <Calendar className="w-6 h-6 mr-2 text-blue-600" />
+                  Chọn Thời Gian & Bác Sĩ
+                </h2>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Thời gian khám *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    required
+                    min={getMinDateTime()}
+                    value={appointmentData.start_time}
+                    onChange={(e) => handleDateTimeChange(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                {isLoading && (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-2">Đang tải danh sách bác sĩ...</p>
+                  </div>
+                )}
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center">
+                    <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
+                    <span className="text-red-700">{error}</span>
+                  </div>
+                )}
+
+                {availableDoctors.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                      Chọn bác sĩ *
+                    </label>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {availableDoctors.map((doctor) => (
+                        <motion.div
+                          key={doctor.doctor_id}
+                          whileHover={{ scale: 1.02 }}
+                          className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedDoctor?.doctor_id === doctor.doctor_id
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          onClick={() => setSelectedDoctor(doctor)}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                              <User className="w-6 h-6 text-gray-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900">{doctor.full_name}</h3>
+                              <p className="text-sm text-gray-600 flex items-center">
+                                <Phone className="w-3 h-3 mr-1" />
+                                {doctor.phone}
+                              </p>
+                              <p className="text-sm text-gray-500 capitalize">{doctor.gender.toLowerCase()}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    Quay lại
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(3)}
+                    disabled={!selectedDoctor}
+                    className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    Tiếp theo
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Confirmation */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <Check className="w-6 h-6 mr-2 text-blue-600" />
+                  Xác Nhận Thông Tin
+                </h2>
+
+                <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Thông tin bệnh nhân</h4>
+                      <p className="text-gray-600">
+                        {appointmentData.first_name} {appointmentData.last_name}
+                      </p>
+                      <p className="text-gray-600">
+                        {appointmentData.gender === 'MALE' ? 'Nam' : appointmentData.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
+                      </p>
+                      <p className="text-gray-600">Sinh: {appointmentData.dob}</p>
+                      {appointmentData.is_anonymous && (
+                        <p className="text-blue-600 flex items-center">
+                          <Shield className="w-4 h-4 mr-1" />
+                          Khám ẩn danh
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Thông tin khám</h4>
+                      <p className="text-gray-600">
+                        {new Date(appointmentData.start_time).toLocaleString('vi-VN')}
+                      </p>
+                      <p className="text-gray-600">Bác sĩ: {selectedDoctor?.full_name}</p>
+                      <p className="text-gray-600">SĐT: {selectedDoctor?.phone}</p>
+                    </div>
+                  </div>
+
+                  {appointmentData.chief_complaint && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900">Triệu chứng/Lý do khám</h4>
+                      <p className="text-gray-600">{appointmentData.chief_complaint}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <AlertCircle className="w-5 h-5 text-blue-600 mr-2 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <p className="font-semibold mb-1">Lưu ý quan trọng:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Vui lòng đến trước giờ hẹn 15 phút</li>
+                        <li>Mang theo CCCD/CMND và sổ khám bệnh (nếu có)</li>
+                        <li>Thông tin của bạn được bảo mật tuyệt đối</li>
+                        <li>Có thể hủy/đổi lịch trước 2 giờ</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(2)}
+                    className="flex-1 bg-gray-200 text-gray-800 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    Quay lại
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Đang đặt lịch...' : 'Xác nhận đặt lịch'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </form>
+        </motion.div>
+
+        {/* Privacy Notice */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+          className="text-center mt-8 text-sm text-gray-600"
         >
-          {currentStep === 5 ? 'Book Appointment' : 'Next'}
-        </button>
+          <div className="flex items-center justify-center mb-2">
+            <Shield className="w-4 h-4 mr-1" />
+            <span>Thông tin của bạn được bảo vệ bởi chính sách bảo mật nghiêm ngặt</span>
+          </div>
+          <p>Chúng tôi cam kết không chia sẻ thông tin cá nhân với bên thứ ba</p>
+        </motion.div>
       </div>
     </div>
   );
 };
 
-export default BookingInterface;
+export default BookingPage;

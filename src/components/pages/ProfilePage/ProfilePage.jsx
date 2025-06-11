@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
-import { Pencil, Lock, Check, X, GraduationCap, Trash2 } from 'lucide-react';
+import { Pencil, Lock, Check, X, GraduationCap, Trash2, Upload, Image as ImageIcon } from 'lucide-react';
 import { Badge } from '../../ui/badge';
 import { toast } from 'react-toastify';
 import {
@@ -38,6 +38,11 @@ const ProfileSettings = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [deleteImageDialogOpen, setDeleteImageDialogOpen] = useState(false);
 
   const [userData, setUserData] = useState({
     account_id: '',
@@ -91,20 +96,25 @@ const ProfileSettings = () => {
 
     const fetchDoctorDegree = async (accountId) => {
       try {
-        const response = await axios.get(`api/doctor-degrees/account/${accountId}`);
-        setDoctorDegree(response);
-        if (response) {
+        const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${accountId}`);
+        const degreeData = response.data;
+        setDoctorDegree(degreeData);
+        if (degreeData) {
           setTempDegreeData({
-            name: response.name || '',
-            dob: response.dob || '',
-            graduationDate: response.graduationDate || '',
-            classification: response.classification || '',
-            studyMode: response.studyMode || '',
-            issueDate: response.issueDate || '',
-            schoolName: response.schoolName || '',
-            regNo: response.regNo || '',
+            name: degreeData.name || '',
+            dob: degreeData.dob || '',
+            graduationDate: degreeData.graduationDate || '',
+            classification: degreeData.classification || '',
+            studyMode: degreeData.studyMode || '',
+            issueDate: degreeData.issueDate || '',
+            schoolName: degreeData.schoolName || '',
+            regNo: degreeData.regNo || '',
             accountId: accountId
           });
+          
+          if (degreeData.imageUrls && degreeData.imageUrls.length > 0) {
+            setImagePreview(degreeData.imageUrls[0]);
+          }
         }
       } catch (err) {
         console.error('Error fetching doctor degree:', err);
@@ -113,6 +123,83 @@ const ProfileSettings = () => {
 
     fetchUserData();
   }, []);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setImageUploadError('Kích thước file không được vượt quá 5MB');
+        return;
+      }
+      setSelectedImage(file);
+      setImageUploadError(null);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadDegreeImage = async () => {
+    if (!selectedImage || !doctorDegree?.id) return;
+
+    try {
+      setUploadingImage(true);
+      setImageUploadError(null);
+
+      const formData = new FormData();
+      formData.append('files', selectedImage);
+
+      await axios.post(`/api/v1/doctor-degrees/images?id=${doctorDegree.id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      // Refresh degree data to get updated image
+      const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
+      const updatedDegree = response.data;
+      setDoctorDegree(updatedDegree);
+      
+      if (updatedDegree.imageUrls && updatedDegree.imageUrls.length > 0) {
+        setImagePreview(updatedDegree.imageUrls[0]);
+      }
+
+      toast.success("Đã tải lên ảnh bằng cấp thành công");
+      setSelectedImage(null);
+    } catch (err) {
+      setImageUploadError(err.response?.data?.message || 'Có lỗi xảy ra khi tải lên ảnh');
+      console.error('Error uploading degree image:', err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const deleteDegreeImage = async () => {
+    if (!doctorDegree?.id) return;
+
+    try {
+      setUploadingImage(true);
+      setImageUploadError(null);
+
+      await axios.delete(`/api/v1/doctor-degrees/images?id=${doctorDegree.id}`);
+
+      // Refresh degree data to remove the image
+      const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
+      const updatedDegree = response.data;
+      setDoctorDegree(updatedDegree);
+      setImagePreview(null);
+      setDeleteImageDialogOpen(false);
+
+      toast.success("Đã xóa ảnh bằng cấp thành công");
+    } catch (err) {
+      setImageUploadError(err.response?.data?.message || 'Có lỗi xảy ra khi xóa ảnh');
+      console.error('Error deleting degree image:', err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleEditToggle = async () => {
     if (isEditing) {
@@ -170,11 +257,12 @@ const ProfileSettings = () => {
           accountId: tempDegreeData.accountId
         };
 
-        await axios.put(`api/doctor-degrees/${doctorDegree.id}`, updateData)
+        await axios.put(`api/v1/doctor-degrees/update?id=${doctorDegree.id}`, updateData)
 
-        setDoctorDegree({ ...doctorDegree, ...updateData })
-        setDegreeSaveSuccess(true)
-        setIsEditingDegree(false)
+        const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
+        setDoctorDegree(response.data);
+        setDegreeSaveSuccess(true);
+        setIsEditingDegree(false);
 
         setTimeout(() => {
           setDegreeSaveSuccess(false);
@@ -182,6 +270,8 @@ const ProfileSettings = () => {
 
       } catch (err) {
         setDegreeSaveError(err.response?.data?.message || 'Có lỗi xảy ra khi cập nhật thông tin bằng cấp');
+      } finally {
+        setDegreeSaveLoading(false);
       }
     } else {
       if (doctorDegree) {
@@ -208,7 +298,7 @@ const ProfileSettings = () => {
       setDeleteLoading(true);
       setDeleteError(null);
 
-      await axios.delete(`/api/doctor-degrees/${doctorDegree.id}`);
+      await axios.delete(`/api/v1/doctor-degrees/delete?id=${doctorDegree.id}`);
 
       setDoctorDegree(null);
       setTempDegreeData({
@@ -222,6 +312,7 @@ const ProfileSettings = () => {
         regNo: '',
         accountId: userData.account_id
       });
+      setImagePreview(null);
 
       setDeleteDialogOpen(false);
       toast.success("Đã xóa thông tin bằng cấp thành công");
@@ -422,7 +513,7 @@ const ProfileSettings = () => {
       )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Bạn có chắc chắn muốn xóa?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -442,6 +533,32 @@ const ProfileSettings = () => {
           {deleteError && (
             <div className="mt-4 text-sm text-red-600">
               {deleteError}
+            </div>
+          )}
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteImageDialogOpen} onOpenChange={setDeleteImageDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Bạn có chắc chắn muốn xóa ảnh bằng cấp?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Thao tác này sẽ xóa vĩnh viễn ảnh bằng cấp của bạn và không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={uploadingImage}>Hủy</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteDegreeImage}
+              disabled={uploadingImage}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {uploadingImage ? 'Đang xóa...' : 'Xác nhận xóa'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+          {imageUploadError && (
+            <div className="mt-4 text-sm text-red-600">
+              {imageUploadError}
             </div>
           )}
         </AlertDialogContent>
@@ -784,129 +901,196 @@ const ProfileSettings = () => {
               </div>
 
               {doctorDegree ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-muted-foreground">Họ tên</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          name="name"
-                          value={tempDegreeData.name}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1 font-medium">{doctorDegree.name || 'Chưa cập nhật'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Ngày sinh</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          type="date"
-                          name="dob"
-                          value={formatDateForInput(tempDegreeData.dob)}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1">{formatDate(doctorDegree.dob)}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Trường đào tạo</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          name="schoolName"
-                          value={tempDegreeData.schoolName}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1 font-medium">{doctorDegree.schoolName}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Số hiệu bằng</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          name="regNo"
-                          value={tempDegreeData.regNo}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1 font-mono">{doctorDegree.regNo}</p>
-                      )}
+                <div>
+                  {/* Degree Image Section */}
+                  <div className="mb-6">
+                    <Label className="block mb-2">Ảnh bằng cấp</Label>
+                    <div className="flex items-start gap-4">
+                      <div className="relative w-48 h-32 border rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {imagePreview ? (
+                          <>
+                            <img 
+                              src={imagePreview} 
+                              alt="Degree" 
+                              className="object-contain w-full h-full"
+                            />
+                            <button
+                              onClick={() => setDeleteImageDialogOpen(true)}
+                              className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                              title="Xóa ảnh"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="text-gray-400 flex flex-col items-center">
+                            <ImageIcon className="h-8 w-8 mb-1" />
+                            <span className="text-sm">Chưa có ảnh</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex gap-2 mb-2">
+                          <Label
+                            htmlFor="degreeImage"
+                            className="cursor-pointer flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50"
+                          >
+                            <Upload className="h-4 w-4" />
+                            Chọn ảnh
+                          </Label>
+                          <Input
+                            id="degreeImage"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                          <Button
+                            onClick={uploadDegreeImage}
+                            disabled={!selectedImage || uploadingImage}
+                            className="flex items-center gap-2"
+                          >
+                            {uploadingImage ? 'Đang tải lên...' : 'Tải lên'}
+                          </Button>
+                        </div>
+                        {selectedImage && (
+                          <p className="text-sm text-gray-600">{selectedImage.name}</p>
+                        )}
+                        {imageUploadError && (
+                          <p className="text-sm text-red-600 mt-1">{imageUploadError}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          Chỉ chấp nhận file ảnh (JPEG, PNG). Kích thước tối đa 5MB.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="text-muted-foreground">Ngày tốt nghiệp</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          type="date"
-                          name="graduationDate"
-                          value={formatDateForInput(tempDegreeData.graduationDate)}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1">{formatDate(doctorDegree.graduationDate)}</p>
-                      )}
+
+                  {/* Degree Information */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-muted-foreground">Họ tên</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            name="name"
+                            value={tempDegreeData.name}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1 font-medium">{doctorDegree.name || 'Chưa cập nhật'}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Ngày sinh</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            type="date"
+                            name="dob"
+                            value={formatDateForInput(tempDegreeData.dob)}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1">{formatDate(doctorDegree.dob)}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Trường đào tạo</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            name="schoolName"
+                            value={tempDegreeData.schoolName}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1 font-medium">{doctorDegree.schoolName}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Số hiệu bằng</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            name="regNo"
+                            value={tempDegreeData.regNo}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1 font-mono">{doctorDegree.regNo}</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <Label className="text-muted-foreground">Ngày cấp bằng</Label>
-                      {isEditingDegree ? (
-                        <Input
-                          type="date"
-                          name="issueDate"
-                          value={formatDateForInput(tempDegreeData.issueDate)}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1"
-                        />
-                      ) : (
-                        <p className="mt-1">{formatDate(doctorDegree.issueDate)}</p>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Xếp loại</Label>
-                      {isEditingDegree ? (
-                        <select
-                          name="classification"
-                          value={tempDegreeData.classification || ''}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                        >
-                          <option value="">Chọn xếp loại</option>
-                          <option value="EXCELLENT">Xuất sắc</option>
-                          <option value="GOOD">Giỏi</option>
-                          <option value="AVERAGE">Khá</option>
-                          <option value="POOR">Trung bình</option>
-                        </select>
-                      ) : (
-                        <div className="mt-1">
-                          {getClassificationBadge(doctorDegree.classification)}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <Label className="text-muted-foreground">Hình thức đào tạo</Label>
-                      {isEditingDegree ? (
-                        <select
-                          name="studyMode"
-                          value={tempDegreeData.studyMode || ''}
-                          onChange={handleDegreeInputChange}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
-                        >
-                          <option value="">Chọn hình thức</option>
-                          <option value="FULL_TIME">Toàn thời gian</option>
-                          <option value="PART_TIME">Bán thời gian</option>
-                          <option value="DISTANCE">Từ xa</option>
-                        </select>
-                      ) : (
-                        <p className="mt-1">{getStudyModeText(doctorDegree.studyMode)}</p>
-                      )}
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-muted-foreground">Ngày tốt nghiệp</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            type="date"
+                            name="graduationDate"
+                            value={formatDateForInput(tempDegreeData.graduationDate)}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1">{formatDate(doctorDegree.graduationDate)}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Ngày cấp bằng</Label>
+                        {isEditingDegree ? (
+                          <Input
+                            type="date"
+                            name="issueDate"
+                            value={formatDateForInput(tempDegreeData.issueDate)}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1"
+                          />
+                        ) : (
+                          <p className="mt-1">{formatDate(doctorDegree.issueDate)}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Xếp loại</Label>
+                        {isEditingDegree ? (
+                          <select
+                            name="classification"
+                            value={tempDegreeData.classification || ''}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                          >
+                            <option value="">Chọn xếp loại</option>
+                            <option value="EXCELLENT">Xuất sắc</option>
+                            <option value="GOOD">Giỏi</option>
+                            <option value="AVERAGE">Khá</option>
+                            <option value="POOR">Trung bình</option>
+                          </select>
+                        ) : (
+                          <div className="mt-1">
+                            {getClassificationBadge(doctorDegree.classification)}
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Hình thức đào tạo</Label>
+                        {isEditingDegree ? (
+                          <select
+                            name="studyMode"
+                            value={tempDegreeData.studyMode || ''}
+                            onChange={handleDegreeInputChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border"
+                          >
+                            <option value="">Chọn hình thức</option>
+                            <option value="FULL_TIME">Toàn thời gian</option>
+                            <option value="PART_TIME">Bán thời gian</option>
+                            <option value="DISTANCE">Từ xa</option>
+                          </select>
+                        ) : (
+                          <p className="mt-1">{getStudyModeText(doctorDegree.studyMode)}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

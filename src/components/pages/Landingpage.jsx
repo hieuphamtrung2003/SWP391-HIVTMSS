@@ -111,10 +111,6 @@ const carouselImages = [
 
 export default function LandingPage() {
 
-
-    //Cách ban đầu
-    // const token = localStorage.getItem("access_token");
-
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
@@ -473,35 +469,37 @@ export default function LandingPage() {
                             <div className="grid md:grid-cols-3 gap-8">
                                 {/* === Blog lớn === */}
                                 <div className="md:col-span-2">
-                                    <Card className="hover:shadow-lg transition-shadow hover:bg-gray-50">
-                                        <div className="bg-gray-100 h-64 rounded-t-lg overflow-hidden">
-                                            <img
-                                                src="https://www.huggies.com.vn/-/media/Project/be-6-thang-an-duoc-trai-cay-gi-thumb.jpeg"
-                                                alt="Blog nổi bật"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                        <CardHeader>
-                                            <CardTitle>Kinh nghiệm điều trị HIV hiệu quả</CardTitle>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <p className="text-gray-600 mb-4">
-                                                Chia sẻ từ bệnh nhân đã điều trị thành công và có cuộc sống khỏe mạnh.
-                                            </p>
 
-                                            <Link to="/blog/1">
+                                    <Card className="bg-white hover:shadow-lg transition-shadow hover:bg-gray-50">
+                                        <Link to="/blog/1">
+                                            <div className="bg-gray-100 h-64 rounded-t-lg overflow-hidden">
+                                                <img
+                                                    src="https://www.huggies.com.vn/-/media/Project/be-6-thang-an-duoc-trai-cay-gi-thumb.jpeg"
+                                                    alt="Blog nổi bật"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <CardHeader>
+                                                <CardTitle>Kinh nghiệm điều trị HIV hiệu quả</CardTitle>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-gray-600 mb-4">
+                                                    Chia sẻ từ bệnh nhân đã điều trị thành công và có cuộc sống khỏe mạnh.
+                                                </p>
+
+
                                                 <Button variant="link" className="px-0">
                                                     Đọc thêm →
                                                 </Button>
-                                            </Link>
-                                        </CardContent>
+                                            </CardContent>
+                                        </Link>
                                     </Card>
                                 </div>
 
                                 {/* === Blog nhỏ === */}
                                 <div className="flex flex-col gap-6">
                                     {[1, 2, 3].map((post) => (
-                                        <div key={post} className="flex gap-4 items-start hover:bg-gray-50 p-2 rounded-lg transition">
+                                        <div key={post} className="bg-white hover:shadow-lg transition-shadow flex gap-4 items-start hover:bg-gray-50 p-3 rounded-lg transition">
                                             <img
                                                 src="https://i.ytimg.com/vi/HmIMmFAV4BY/maxresdefault.jpg"
                                                 alt={`Blog ${post}`}

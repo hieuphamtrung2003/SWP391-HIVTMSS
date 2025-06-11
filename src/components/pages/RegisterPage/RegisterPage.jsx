@@ -38,7 +38,7 @@ const RegisterForm = () => {
         }
 
         try {
-            const res = await axios.post("http://103.179.185.77:8080/api/v1/auth/register", formValue);
+            const res = await axios.post("/api/v1/auth/register", formValue);
             if (res?.http_status === 200) {
                 toast.success("Đăng ký thành công!");
                 navigate("/login");

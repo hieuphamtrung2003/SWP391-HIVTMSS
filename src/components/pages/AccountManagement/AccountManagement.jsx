@@ -19,7 +19,7 @@ import { Input } from "../../../components/ui/input";
 import { Button } from "../../../components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "../../../components/ui/pagination";
 import { toast } from 'react-toastify';
-import { Loader2, Search, PlusCircle, RefreshCw, Eye, ChevronDown, ChevronUp } from 'lucide-react';
+import { Loader2, Search, PlusCircle, RefreshCw, Eye, ChevronDown, ChevronUp, User } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -31,6 +31,8 @@ import { Badge } from "../../../components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../components/ui/card";
 import { Separator } from "../../../components/ui/separator";
 import { Label } from 'recharts';
+import { Link, useNavigate } from "react-router-dom";
+
 const AccountManagementPage = () => {
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -60,6 +62,65 @@ const AccountManagementPage = () => {
     role_id: 1, // Default to CUSTOMER
   });
 
+
+  //Navigate
+  const navigate = useNavigate();
+  //Create staff
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [formValue, setFormValue] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    address: "",
+    role_name: "",
+  });
+
+  const handleChange = (e) => {
+    const { value, name } = e.target;
+    setFormValue((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+
+  const handleCreateStaff = async (e) => {
+    e.preventDefault();
+
+    const { first_name, last_name, email, phone, address, role_name } = formValue;
+
+    // Kiểm tra rỗng
+    if (!first_name.trim() || !last_name.trim() || !email.trim()) {
+      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
+      return;
+    }
+
+    try {
+      const res = await axios.post("/api/v1/accounts/admin/new-account", formValue);
+      if (res?.http_status === 201) {
+        toast.success("Đăng ký thành công!");
+        setIsCreateOpen(false);
+        navigate("/admin/accounts");
+      } else {
+        toast.error("Đăng ký không thành công. Vui lòng thử lại!");
+      }
+    } catch (error) {
+      if (error.response) {
+        const { message } = error.response.data;
+        toast.error(message || "Lỗi từ máy chủ. Đăng ký thất bại!");
+      } else {
+        toast.error("Không thể kết nối đến máy chủ!");
+      }
+      console.error("Đăng ký thất bại:", error);
+    }
+  };
+
+
+
+
+
+  //
   const fetchAccounts = async () => {
     try {
       setLoading(true);
@@ -204,6 +265,8 @@ const AccountManagementPage = () => {
     </Badge>
   );
 
+
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col space-y-6">
@@ -216,10 +279,18 @@ const AccountManagementPage = () => {
             </p>
           </div>
           <div className="flex gap-2">
+
+            <Button variant="outline" onClick={() => setIsCreateOpen(true)}>
+              <User className="h-4 w-4 mr-2" />
+              Create Staff
+            </Button>
+
             <Button variant="outline" onClick={handleResetFilters}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
+
+
           </div>
         </div>
 
@@ -620,6 +691,93 @@ const AccountManagementPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Create Doctor/Manager Account Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-2xl bg-white">
+          <DialogHeader>
+            <DialogTitle>Register New Staff</DialogTitle>
+            <DialogDescription>
+              Create a new Doctor or Manager account. Password will be auto-generated.
+            </DialogDescription>
+          </DialogHeader>
+          <form className="space-y-4" onSubmit={handleCreateStaff}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>First Name</Label>
+                <Input
+                  name="first_name"
+                  placeholder="First Name"
+                  value={formValue.first_name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Last Name</Label>
+                <Input
+                  name="last_name"
+                  placeholder="Last Name"
+                  value={formValue.last_name}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={formValue.email}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Phone</Label>
+                <Input
+                  name="phone"
+                  placeholder="Phone Number"
+                  value={formValue.phone}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Address</Label>
+                <Input
+                  name="address"
+                  placeholder="Address"
+                  value={formValue.address}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Role</Label>
+                <Select
+                  value={formValue.role_name}
+                  onValueChange={(value) => setFormValue({ ...formValue, role_name: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DOCTOR">Doctor</SelectItem>
+                    <SelectItem value="MANAGER">Manager</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Register
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };

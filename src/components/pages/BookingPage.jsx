@@ -52,7 +52,7 @@ const BookingPage = () => {
         setSelectedDoctor(null);
       }, 3000);
     } catch (error) {
-      toast.error('đặt lịch thất bại:');
+      toast.error( error.response?.data?.message);
     }
   };
 
@@ -306,7 +306,7 @@ const BookingPage = () => {
                                 <Phone className="w-3 h-3 mr-1" />
                                 {doctor.phone}
                               </p>
-                              <p className="text-sm text-gray-500 capitalize">{doctor.gender.toLowerCase()}</p>
+                              <p className="text-sm text-gray-500 capitalize">{doctor.gender}</p>
                             </div>
                           </div>
                         </motion.div>

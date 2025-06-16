@@ -111,7 +111,7 @@ const ProfileSettings = () => {
             regNo: degreeData.regNo || '',
             accountId: accountId
           });
-          
+
           if (degreeData.imageUrls && degreeData.imageUrls.length > 0) {
             setImagePreview(degreeData.imageUrls[0]);
           }
@@ -161,7 +161,7 @@ const ProfileSettings = () => {
       const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
       const updatedDegree = response.data;
       setDoctorDegree(updatedDegree);
-      
+
       if (updatedDegree.imageUrls && updatedDegree.imageUrls.length > 0) {
         setImagePreview(updatedDegree.imageUrls[0]);
       }
@@ -909,9 +909,9 @@ const ProfileSettings = () => {
                       <div className="relative w-48 h-32 border rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
                         {imagePreview ? (
                           <>
-                            <img 
-                              src={imagePreview} 
-                              alt="Degree" 
+                            <img
+                              src={imagePreview}
+                              alt="Degree"
                               className="object-contain w-full h-full"
                             />
                             <button
@@ -1085,7 +1085,6 @@ const ProfileSettings = () => {
                             <option value="">Chọn hình thức</option>
                             <option value="FULL_TIME">Toàn thời gian</option>
                             <option value="PART_TIME">Bán thời gian</option>
-                            <option value="DISTANCE">Từ xa</option>
                           </select>
                         ) : (
                           <p className="mt-1">{getStudyModeText(doctorDegree.studyMode)}</p>

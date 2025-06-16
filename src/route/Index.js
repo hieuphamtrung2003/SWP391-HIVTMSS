@@ -39,6 +39,7 @@ if (role === "CUSTOMER") {
         { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
         { path: "*", component: NotFound, layout: null },
+        { path: "/blog/edit/1", component: BlogListPage, layout: DefaultLayout },
     ]
 } else if (role === "DOCTOR") {
     publicRoute = [

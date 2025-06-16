@@ -70,7 +70,6 @@ const LoginForm = () => {
                         }
                     } catch (err) {
                         console.error("Error fetching doctor degree:", err);
-                        toast.error("Hãy cập nhật bằng cấp của bạn trước khi tiếp tục!");
                         window.location.href = "/doctor/degree";
                         return;
                     }

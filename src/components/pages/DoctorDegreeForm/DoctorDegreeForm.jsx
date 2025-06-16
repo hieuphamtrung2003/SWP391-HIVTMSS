@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { decodeToken } from "../../../utils/tokenUtils";
-import { Upload, Image as ImageIcon } from 'lucide-react';
+
 
 const DoctorDegree = () => {
     const navigate = useNavigate();
@@ -19,10 +19,6 @@ const DoctorDegree = () => {
     });
     const [loading, setLoading] = useState(true);
     const [hasDegree, setHasDegree] = useState(false);
-    const [uploadingImage, setUploadingImage] = useState(false);
-    const [imageUploadError, setImageUploadError] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
 
     useEffect(() => {
         const checkDegreeInfo = async () => {
@@ -70,49 +66,6 @@ const DoctorDegree = () => {
         }));
     };
 
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 5 * 1024 * 1024) {
-                setImageUploadError('Kích thước file không được vượt quá 5MB');
-                return;
-            }
-            setSelectedImage(file);
-            setImageUploadError(null);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const uploadDegreeImage = async (degreeId) => {
-        if (!selectedImage || !degreeId) return;
-
-        try {
-            setUploadingImage(true);
-            setImageUploadError(null);
-
-            const formData = new FormData();
-            formData.append('files', selectedImage);
-
-            await axios.post(`/api/v1/doctor-degrees/images?id=${degreeId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-
-            toast.success("Đã tải lên ảnh bằng cấp thành công");
-            setSelectedImage(null);
-        } catch (err) {
-            setImageUploadError(err.response?.data?.message || 'Có lỗi xảy ra khi tải lên ảnh');
-            console.error('Error uploading degree image:', err);
-        } finally {
-            setUploadingImage(false);
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -135,12 +88,6 @@ const DoctorDegree = () => {
 
             // First create the degree record
             const response = await axios.post("/api/v1/doctor-degrees", payload);
-            const degreeId = response.data.id;
-
-            // Then upload image if selected
-            if (selectedImage) {
-                await uploadDegreeImage(degreeId);
-            }
 
             toast.success("Thông tin bằng cấp đã được lưu thành công");
             navigate("/doctor/patient-request");
@@ -167,51 +114,6 @@ const DoctorDegree = () => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Degree Image Upload Section */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Ảnh bằng cấp (tùy chọn)</label>
-                        <div className="flex items-start gap-4">
-                            <div className="w-48 h-32 border rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                                {imagePreview ? (
-                                    <img
-                                        src={imagePreview}
-                                        alt="Degree Preview"
-                                        className="object-contain w-full h-full"
-                                    />
-                                ) : (
-                                    <div className="text-gray-400 flex flex-col items-center">
-                                        <ImageIcon className="h-8 w-8 mb-1" />
-                                        <span className="text-sm">Chưa có ảnh</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex gap-2 mb-2">
-                                    <label
-                                        htmlFor="degreeImage"
-                                        className="cursor-pointer flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50"
-                                    >
-                                        <Upload className="h-4 w-4" />
-                                        Chọn ảnh
-                                    </label>
-                                    <input
-                                        id="degreeImage"
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
-                                </div>
-                                {selectedImage && (
-                                    <p className="text-sm text-gray-600">{selectedImage.name}</p>
-                                )}
-                                {imageUploadError && (
-                                    <p className="text-sm text-red-600 mt-1">{imageUploadError}</p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -344,9 +246,8 @@ const DoctorDegree = () => {
                         <button
                             type="submit"
                             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            disabled={uploadingImage}
                         >
-                            {uploadingImage ? 'Đang lưu...' : 'Lưu thông tin'}
+                            Lưu thông tin
                         </button>
                         <Link to={"/login"}>
                             <button

@@ -43,13 +43,15 @@ const AccountManagementPage = () => {
   const [pagination, setPagination] = useState({
     pageNo: 0,
     pageSize: 10,
-    totalPages: 1,
     totalElements: 0,
+    totalPages: 1,
+    last: false
   });
   const [filters, setFilters] = useState({
     role: 'ALL',
     searchTerm: '',
     sortDir: 'asc',
+    sortBy: 'id',
   });
   const [isEditMode, setIsEditMode] = useState(false);
   const [editFormData, setEditFormData] = useState({
@@ -61,7 +63,6 @@ const AccountManagementPage = () => {
     dob: '',
     role_id: 1, // Default to CUSTOMER
   });
-
 
   //Navigate
   const navigate = useNavigate();
@@ -84,7 +85,6 @@ const AccountManagementPage = () => {
     }));
   };
 
-
   const handleCreateStaff = async (e) => {
     e.preventDefault();
 
@@ -101,7 +101,7 @@ const AccountManagementPage = () => {
       if (res?.http_status === 201) {
         toast.success("Đăng ký thành công!");
         setIsCreateOpen(false);
-        navigate("/admin/accounts");
+        fetchAccounts(); // Refresh the account list
       } else {
         toast.error("Đăng ký không thành công. Vui lòng thử lại!");
       }
@@ -116,11 +116,6 @@ const AccountManagementPage = () => {
     }
   };
 
-
-
-
-
-  //
   const fetchAccounts = async () => {
     try {
       setLoading(true);
@@ -129,16 +124,19 @@ const AccountManagementPage = () => {
           pageNo: pagination.pageNo,
           pageSize: pagination.pageSize,
           role: filters.role,
+          sortBy: filters.sortBy,
           sortDir: filters.sortDir,
-          search: filters.searchTerm,
+          keyword: filters.searchTerm,
         },
       });
 
       setAccounts(response.data.content);
       setPagination({
-        ...pagination,
-        totalPages: response.data.totalPages,
-        totalElements: response.data.totalElements,
+        pageNo: response.data.page_no,
+        pageSize: response.data.page_size,
+        totalElements: response.data.total_elements,
+        totalPages: response.data.total_pages,
+        last: response.data.last
       });
     } catch (error) {
       toast.error('Failed to fetch accounts');
@@ -163,13 +161,13 @@ const AccountManagementPage = () => {
 
   useEffect(() => {
     fetchAccounts();
-  }, [pagination.pageNo, filters.role, filters.sortDir]);
+  }, [pagination.pageNo, filters.role, filters.sortDir, filters.sortBy]);
 
   const handleViewDetails = (account) => {
     setSelectedAccount(account);
     fetchAccountDetails(account.account_id);
     setIsDetailsOpen(true);
-    setIsEditMode(false); // Reset edit mode when opening dialog
+    setIsEditMode(false);
   };
 
   const handlePageChange = (newPage) => {
@@ -185,6 +183,7 @@ const AccountManagementPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setPagination({ ...pagination, pageNo: 0 });
     fetchAccounts();
   };
 
@@ -193,22 +192,25 @@ const AccountManagementPage = () => {
       role: 'ALL',
       searchTerm: '',
       sortDir: 'asc',
+      sortBy: 'created_date',
     });
     setPagination({
       pageNo: 0,
       pageSize: 10,
       totalPages: 1,
       totalElements: 0,
+      last: false,
     });
     fetchAccounts();
   };
+
   const handleUpdateAccount = async () => {
     try {
       setDetailsLoading(true);
       await axios.put(`/api/v1/accounts/admin?id=${accountDetails.account_id}`, editFormData);
       toast.success('Account updated successfully');
-      fetchAccounts(); // Refresh the account list
-      fetchAccountDetails(accountDetails.account_id); // Refresh the details
+      fetchAccounts();
+      fetchAccountDetails(accountDetails.account_id);
       setIsEditMode(false);
     } catch (error) {
       toast.error('Failed to update account');
@@ -242,6 +244,7 @@ const AccountManagementPage = () => {
       default: return role;
     }
   };
+
   const StatusBadge = ({ status }) => (
     <Badge
       variant={status === 'ACTIVE' ? 'success' : 'destructive'}
@@ -251,7 +254,6 @@ const AccountManagementPage = () => {
     </Badge>
   );
 
-  // Role badge component
   const RoleBadge = ({ role }) => (
     <Badge
       variant="outline"
@@ -265,8 +267,6 @@ const AccountManagementPage = () => {
     </Badge>
   );
 
-
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col space-y-6">
@@ -279,18 +279,14 @@ const AccountManagementPage = () => {
             </p>
           </div>
           <div className="flex gap-2">
-
             <Button variant="outline" onClick={() => setIsCreateOpen(true)}>
               <User className="h-4 w-4 mr-2" />
               Create Staff
             </Button>
-
             <Button variant="outline" onClick={handleResetFilters}>
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
-
-
           </div>
         </div>
 
@@ -311,6 +307,25 @@ const AccountManagementPage = () => {
                     <SelectItem value="ALL">All Roles</SelectItem>
                     <SelectItem value="CUSTOMER">Patients</SelectItem>
                     <SelectItem value="DOCTOR">Doctors</SelectItem>
+                    <SelectItem value="MANAGER">Managers</SelectItem>
+                    <SelectItem value="ADMIN">Admins</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground">Sort By</label>
+                <Select
+                  value={filters.sortBy}
+                  onValueChange={(value) => setFilters({ ...filters, sortBy: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select field" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="created_date">Created Date</SelectItem>
+                    <SelectItem value="last_name">Last Name</SelectItem>
+                    <SelectItem value="first_name">First Name</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -341,7 +356,7 @@ const AccountManagementPage = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Search</label>
                 <div className="flex gap-2">
                   <Input
@@ -404,7 +419,7 @@ const AccountManagementPage = () => {
                               <RoleBadge role={account.role_name} />
                             </TableCell>
                             <TableCell>
-                              <StatusBadge status={account.status} />
+                              <StatusBadge status={account.is_locked ? 'LOCKED' : 'ACTIVE'} />
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col">
@@ -471,7 +486,7 @@ const AccountManagementPage = () => {
                         <PaginationItem>
                           <PaginationNext
                             onClick={() => handlePageChange(pagination.pageNo + 1)}
-                            disabled={pagination.pageNo === pagination.totalPages - 1}
+                            disabled={pagination.pageNo === pagination.totalPages - 1 || pagination.last}
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -608,6 +623,8 @@ const AccountManagementPage = () => {
                             <SelectContent>
                               <SelectItem value="1">Patient</SelectItem>
                               <SelectItem value="2">Doctor</SelectItem>
+                              <SelectItem value="3">Manager</SelectItem>
+                              <SelectItem value="4">Admin</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
@@ -677,7 +694,7 @@ const AccountManagementPage = () => {
                             phone: accountDetails.phone || '',
                             address: accountDetails.address || '',
                             dob: accountDetails.dob || '',
-                            role_id: accountDetails.role_name === 'CUSTOMER' ? 1 : 2,
+                            role_id: accountDetails.role_id,
                           });
                         }}
                       >
@@ -692,7 +709,7 @@ const AccountManagementPage = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Create Doctor/Manager Account Dialog */}
+      {/* Create Staff Account Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-2xl bg-white">
           <DialogHeader>
@@ -710,6 +727,7 @@ const AccountManagementPage = () => {
                   placeholder="First Name"
                   value={formValue.first_name}
                   onChange={handleChange}
+                  required
                 />
               </div>
               <div className="space-y-2">
@@ -719,6 +737,7 @@ const AccountManagementPage = () => {
                   placeholder="Last Name"
                   value={formValue.last_name}
                   onChange={handleChange}
+                  required
                 />
               </div>
               <div className="space-y-2 col-span-2">
@@ -729,9 +748,10 @@ const AccountManagementPage = () => {
                   placeholder="Email"
                   value={formValue.email}
                   onChange={handleChange}
+                  required
                 />
               </div>
-              <div className="space-y-2 col-span-2">
+              <div className="space-y-2">
                 <Label>Phone</Label>
                 <Input
                   name="phone"
@@ -777,7 +797,6 @@ const AccountManagementPage = () => {
           </form>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };

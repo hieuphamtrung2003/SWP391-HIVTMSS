@@ -66,7 +66,11 @@ export default function SideNavbar() {
       icon: <Bell className="h-5 w-5" />,
       path: '/admin/notify'
     },
-
+    {
+      name: 'Xét Nghiệm',
+      icon: <Bell className="h-5 w-5" />,
+      path: '/admin/test-types'
+    },
   ]
 
   return (

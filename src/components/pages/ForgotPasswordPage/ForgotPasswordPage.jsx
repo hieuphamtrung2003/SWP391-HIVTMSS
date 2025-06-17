@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -13,7 +15,10 @@ const ForgotPasswordForm = () => {
         e.preventDefault();
 
         if (!email) {
-            toast.error("Please enter your email");
+            toast.error("Vui lòng nhập email của bạn", {
+                position: "top-right",
+                autoClose: 5000,
+            });
             return;
         }
 
@@ -29,15 +34,23 @@ const ForgotPasswordForm = () => {
                 }
             );
 
-            if (response.data) {
-                toast.success(response.data.message);
+            if (response.http_status === 200) {
+                toast.success("Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!", {
+                    position: "top-right",
+                    autoClose: 5000,
+                });
                 setEmail("");
+                // Navigate to reset password page after successful request
+                navigate("/reset-password");
             }
         } catch (error) {
             console.error("Forgot password error:", error);
-            const errorMessage = error.response?.data?.message || "An error occurred. Please try again.";
-
-            toast.error(errorMessage);
+            const errorMessage = error.response?.data?.message || "Đã xảy ra lỗi. Vui lòng thử lại.";
+            
+            toast.error(errorMessage, {
+                position: "top-right",
+                autoClose: 5000,
+            });
         } finally {
             setLoading(false);
         }
@@ -63,12 +76,14 @@ const ForgotPasswordForm = () => {
                                 <span className="text-blue-800">HIV</span>
                                 <span className="text-blue-600">TMSS</span>
                             </h1>
-                            <p className="text-sm">Bệnh viện chữa bệnh HIV tệ nhất</p>
+                            <p className="text-sm">Bệnh viện chữa bệnh HIV tốt nhất</p>
                         </Link>
 
                         <div className="mb-4">
                             <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Quên mật khẩu?</h3>
-                            <p className="text-sm text-[#373E79]">Vui lòng điền thông tin email của bạn để xác nhận.</p>
+                            <p className="text-sm text-[#373E79]">
+                                Vui lòng nhập email của bạn để nhận liên kết đặt lại mật khẩu
+                            </p>
                         </div>
 
                         <form className="flex flex-col" onSubmit={handleSubmit}>
@@ -88,7 +103,7 @@ const ForgotPasswordForm = () => {
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition disabled:opacity-50"
                                 disabled={loading}
                             >
-                                {loading ? "Processing..." : "Xác nhận"}
+                                {loading ? "Đang xử lý..." : "Gửi liên kết"}
                             </button>
                         </form>
 

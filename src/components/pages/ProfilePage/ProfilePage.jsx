@@ -832,7 +832,7 @@ const ProfileSettings = () => {
                 <p className="mt-1 text-gray-700">
                   {userData.role_name === 'CUSTOMER' ? 'Bệnh nhân' :
                     userData.role_name === 'DOCTOR' ? 'Bác sĩ' :
-                      userData.role_name === 'ADMIN' ? 'Quản trị viên' : userData.role_name}
+                      userData.role_name === 'ADMIN' ? 'Admin' : userData.role_name}
                 </p>
               </div>
             </div>

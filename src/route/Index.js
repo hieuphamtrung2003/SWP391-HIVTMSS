@@ -20,7 +20,8 @@ import DoctorLayout from "components/layouts/DoctorLayout/DoctorLayout";
 import AccountManagement from "components/pages/AccountManagement/AccountManagement";
 import DoctorDegreeForm from "components/pages/DoctorDegreeForm/DoctorDegreeForm";
 import NotFound from "components/pages/NotFoundPage";
-import TreatmentPage from "components/pages/TreatmentPage/TreatmentPage";
+import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
+import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
 
 let publicRoute = [];
 const role = localStorage.getItem("role");
@@ -60,7 +61,7 @@ if (role === "CUSTOMER") {
         { path: "/doctor/notify", component: NotificationsPage, layout: DoctorLayout },
         { path: "/doctor/profile", component: ProfileSettings, layout: DoctorLayout },
         { path: "/doctor/degree", component: DoctorDegreeForm, layout: null },
-        { path: "/doctor/treatment/:appointmentId", component: TreatmentPage, layout: DoctorLayout },
+        { path: "/doctor/treatment/:appointmentId", component: DoctorDiagnosisPage, layout: DoctorLayout },
         { path: "*", component: NotFound, layout: null },
 
     ]
@@ -76,6 +77,7 @@ if (role === "CUSTOMER") {
         { path: "/admin/notify", component: NotificationsPage, layout: AdminLayout },
         { path: "/admin/profile", component: ProfileSettings, layout: AdminLayout },
         { path: "/admin/accounts", component: AccountManagement, layout: AdminLayout },
+        { path: "/admin/test-types", component: TestTypeManagement, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else {

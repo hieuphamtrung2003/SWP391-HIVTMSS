@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -7,17 +7,19 @@ import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link } from "react-router-dom";
 
 const ResetPasswordForm = () => {
-    const [searchParams] = useSearchParams();
+    const [email, setEmail] = useState("");
+    const [verificationCode, setVerificationCode] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Validate inputs
-        if (!password || !confirmPassword) {
-            toast.error("Please fill in all fields", {
+        if (!email || !verificationCode || !password || !confirmPassword) {
+            toast.error("Vui lòng điền đầy đủ các trường", {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -25,18 +27,15 @@ const ResetPasswordForm = () => {
         }
 
         if (password !== confirmPassword) {
-            toast.error("Passwords do not match", {
+            toast.error("Mật khẩu không khớp", {
                 position: "top-right",
                 autoClose: 5000,
             });
             return;
         }
 
-        const token = searchParams.get("token");
-        const email = searchParams.get("email");
-
-        if (!token || !email) {
-            toast.error("Invalid reset link. Please request a new one.", {
+        if (password.length < 6) {
+            toast.error("Mật khẩu phải có ít nhất 6 ký tự", {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -46,30 +45,36 @@ const ResetPasswordForm = () => {
         setLoading(true);
         try {
             const response = await axios.post(
-                "http://103.179.185.77:8080/api/v1/auth/reset-password",
-                null, // No request body needed since we're using query params
+                "api/v1/auth/reset-password",
+                null, // No request body
                 {
                     params: {
                         Email: email,
                         Password: password,
-                        token: token
+                        token: verificationCode
                     }
                 }
             );
 
-            if (response.data) {
-                toast.success("Password has been reset successfully!", {
+            if (response.http_status === 200) {
+                toast.success("Đặt lại mật khẩu thành công! Vui lòng đăng nhập bằng mật khẩu mới.", {
                     position: "top-right",
                     autoClose: 5000,
                 });
-                // Clear form
-                setPassword("");
-                setConfirmPassword("");
+                navigate("/login");
             }
         } catch (error) {
             console.error("Reset password error:", error);
-            const errorMessage = error.response?.data?.message || "An error occurred. Please try again.";
+            let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
             
+            if (error.response) {
+                if (error.response.status === 400) {
+                    errorMessage = "Mã xác minh không hợp lệ hoặc đã hết hạn";
+                } else if (error.response.data?.message) {
+                    errorMessage = error.response.data.message;
+                }
+            }
+
             toast.error(errorMessage, {
                 position: "top-right",
                 autoClose: 5000,
@@ -92,7 +97,7 @@ const ResetPasswordForm = () => {
                             alt="Pet Dog"
                         />
                     </div>
-                    
+
                     {/* Form content */}
                     <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
                         <Link to="/" className="text-left mb-6 text-xl font-semibold text-[#373E79]">
@@ -104,37 +109,59 @@ const ResetPasswordForm = () => {
                         </Link>
 
                         <div className="mb-4">
-                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Cài đặt lại mật khẩu</h3>
-                            <p className="text-sm text-[#373E79]">Nhập mật khẩu mới của bạn</p>
+                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Đặt lại mật khẩu</h3>
+                            <p className="text-sm text-[#373E79]">Nhập thông tin để đặt lại mật khẩu</p>
                         </div>
 
                         <form className="flex flex-col" onSubmit={handleSubmit}>
                             <input
+                                type="email"
+                                name="email"
+                                placeholder="Email đã đăng ký"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
+                                autoComplete="email"
+                                required
+                            />
+                            <input
+                                type="text"
+                                name="verificationCode"
+                                placeholder="Mã xác nhận (6 ký tự)"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value)}
+                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
+                                required
+                                maxLength={6}
+                            />
+                            <input
                                 type="password"
                                 name="newPassword"
-                                placeholder="Mật khẩu mới"
+                                placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="new-password"
                                 required
+                                minLength={6}
                             />
                             <input
                                 type="password"
                                 name="confirmPassword"
-                                placeholder="Xác nhận mật khẩu mới"
+                                placeholder="Nhập lại mật khẩu mới"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="confirm-new-password"
                                 required
+                                minLength={6}
                             />
                             <button
                                 type="submit"
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition disabled:opacity-50"
                                 disabled={loading}
                             >
-                                {loading ? "Processing..." : "Xác nhận"}
+                                {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
                             </button>
                         </form>
 

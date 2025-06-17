@@ -2,11 +2,12 @@ import { useState } from "react";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import LoginImage from "../../../assets/loginmiage.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ForgotPasswordForm = () => {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();

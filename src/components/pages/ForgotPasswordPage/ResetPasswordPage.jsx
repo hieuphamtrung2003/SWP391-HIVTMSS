@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginImage from "../../../assets/loginmiage.jpg";
 import { Link } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const ResetPasswordForm = () => {
     const [email, setEmail] = useState("");
@@ -66,7 +67,7 @@ const ResetPasswordForm = () => {
         } catch (error) {
             console.error("Reset password error:", error);
             let errorMessage = "Đã xảy ra lỗi. Vui lòng thử lại.";
-            
+
             if (error.response) {
                 if (error.response.status === 400) {
                     errorMessage = "Mã xác minh không hợp lệ hoặc đã hết hạn";
@@ -83,6 +84,8 @@ const ResetPasswordForm = () => {
             setLoading(false);
         }
     };
+    //hiện password
+    const [showPassword, setShowPassword] = useState(false);
 
     return (
         <div>
@@ -156,6 +159,13 @@ const ResetPasswordForm = () => {
                                 required
                                 minLength={6}
                             />
+                            <div
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
+                                onClick={() => setShowPassword(!showPassword)}
+                                onMouseDown={(e) => e.preventDefault()}
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </div>
                             <button
                                 type="submit"
                                 className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition disabled:opacity-50"

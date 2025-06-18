@@ -1,21 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Image, Bold, Italic, List, ListOrdered } from 'lucide-react'
+import { Save, ArrowLeft, Image, Bold, Italic, List, ListOrdered } from 'lucide-react';
 import { Button } from '../../ui/button';
-import axios from "../../../setup/configAxios";
-import { toast } from "react-toastify";
-import { decodeToken } from "../../../utils/tokenUtils";
+import axios from '../../../setup/configAxios';
+import { toast } from 'react-toastify';
 
-const BlogEditorPage = () => {
+const EditBlogPage = () => {
+    const { blogId } = useParams();
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         title: '',
         content: '',
-        imageUrl: '', // giữ lại để đúng format payload nhưng không dùng
-        featuredImage: ''
+        imageUrl: '',
+        featuredImage: null,
+        status: '',
+        isHidden: false
     });
+    const [loading, setLoading] = useState(true);
 
-    const navigate = useNavigate();
+    useEffect(() => {
+        const fetchBlog = async () => {
+            try {
+                const res = await axios.get(`/api/v1/blogs?id=${blogId}`);
+                const blog = res.data?.data;
+
+                if (!blog) throw new Error('Blog not found');
+
+                setFormData({
+                    title: blog.title,
+                    content: blog.content,
+                    imageUrl: blog.imageUrl || '',
+                    featuredImage: null,
+                    status: blog.status,
+                    isHidden: blog.isHidden
+                });
+                setLoading(false);
+            } catch (error) {
+                console.error(error);
+                toast.error('Không thể tải thông tin blog.');
+                navigate('/blog');
+            }
+        };
+
+        fetchBlog();
+    }, [blogId, navigate]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -24,44 +53,27 @@ const BlogEditorPage = () => {
 
     const handleSubmit = async () => {
         try {
-            const token = localStorage.getItem('access_token');
-            const decodedToken = decodeToken(token);
-            if (!decodedToken) {
-                toast.error('Token không hợp lệ hoặc đã hết hạn!');
-                return;
-            }
-
-            const accountId = decodedToken.id;
-
-            const payload = {
+            await axios.put(`/api/v1/blogs?id=${blogId}`, {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: '', // bỏ qua phần ảnh
-                accountID: accountId
-            };
+                status: formData.status,
+                imageUrl: formData.imageUrl,
+                isHidden: formData.isHidden,
+                featuredImage: null
+            });
 
-            const res = await axios.post('/api/v1/blogs', payload);
-
-            if (res.http_status === 200) {
-                toast.success('Tạo blog thành công!');
-                navigate('/blog');
-            } else {
-                toast.error('Tạo blog thất bại!');
-            }
-        } catch (error) {
-            console.error(error);
-            toast.error('Đã xảy ra lỗi khi gửi bài viết.');
+            toast.success('Cập nhật blog thành công!');
+            navigate('/blog');
+        } catch (err) {
+            console.error(err);
+            toast.error('Lỗi khi cập nhật blog');
         }
     };
 
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-4xl mx-auto p-6"
-        >
+    if (loading) return <p className="text-center p-6">Đang tải...</p>;
 
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="max-w-4xl mx-auto p-6">
             <div className="flex justify-between items-center mb-6">
                 <Button variant="outline" asChild>
                     <Link to="/blog" className="flex items-center gap-2">
@@ -69,23 +81,15 @@ const BlogEditorPage = () => {
                         Quay lại
                     </Link>
                 </Button>
-                <Button
-                    className="bg-blue-600 hover:bg-blue-700 flex gap-2"
-                    onClick={handleSubmit}
-                >
+                <Button className="bg-blue-600 hover:bg-blue-700 flex gap-2" onClick={handleSubmit}>
                     <Save className="h-4 w-4" />
                     Lưu bài viết
                 </Button>
             </div>
 
-            {/* Featured Image */}
             <div className="relative h-48 bg-gray-100">
-                {formData.featuredImage ? (
-                    <img
-                        src={formData.featuredImage}
-                        alt="Featured"
-                        className="w-full h-full object-cover"
-                    />
+                {formData.featuredImage || formData.imageUrl ? (
+                    <img src={formData.featuredImage || formData.imageUrl} alt="Featured" className="w-full h-full object-cover" />
                 ) : (
                     <div className="absolute inset-0 flex items-center justify-center text-gray-400">
                         <div className="text-center">
@@ -99,16 +103,13 @@ const BlogEditorPage = () => {
                     id="featuredImage"
                     className="hidden"
                     onChange={(e) => {
-                        const file = e.target.files[0]
+                        const file = e.target.files[0];
                         if (file) {
-                            const reader = new FileReader()
+                            const reader = new FileReader();
                             reader.onload = (event) => {
-                                setFormData({
-                                    ...formData,
-                                    featuredImage: event.target.result
-                                })
-                            }
-                            reader.readAsDataURL(file)
+                                setFormData({ ...formData, featuredImage: event.target.result });
+                            };
+                            reader.readAsDataURL(file);
                         }
                     }}
                 />
@@ -120,7 +121,7 @@ const BlogEditorPage = () => {
                     {formData.featuredImage ? 'Đổi ảnh' : 'Thêm ảnh'}
                 </label>
             </div>
-            {/* Editor Form */}
+
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
                 <div className="p-6">
                     <div className="mb-6">
@@ -144,18 +145,10 @@ const BlogEditorPage = () => {
                                 Nội dung bài viết
                             </label>
                             <div className="flex gap-1">
-                                <Button variant="ghost" size="sm">
-                                    <Bold className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                    <Italic className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                    <List className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                    <ListOrdered className="h-4 w-4" />
-                                </Button>
+                                <Button variant="ghost" size="sm"><Bold className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm"><Italic className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm"><List className="h-4 w-4" /></Button>
+                                <Button variant="ghost" size="sm"><ListOrdered className="h-4 w-4" /></Button>
                             </div>
                         </div>
                         <textarea
@@ -174,4 +167,4 @@ const BlogEditorPage = () => {
     );
 };
 
-export default BlogEditorPage;
+export default EditBlogPage;

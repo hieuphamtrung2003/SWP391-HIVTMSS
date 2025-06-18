@@ -16,6 +16,7 @@ const DoctorTreatmentPage = () => {
     const [submitError, setSubmitError] = useState(null);
     const [patientInfo, setPatientInfo] = useState(null);
     const [appointmentInfo, setAppointmentInfo] = useState(null);
+    const [regimens, setRegimens] = useState([]);
 
     // Initial form state
     const initialFormData = {
@@ -33,6 +34,23 @@ const DoctorTreatmentPage = () => {
     };
 
     const [formData, setFormData] = useState(initialFormData);
+
+    //Treatment data
+    const [form, setForm] = useState({
+        gender: "MALE",
+        dob: "",
+        applicable: "",
+        prognosis: "",
+        prevention: "",
+        method: 1,
+        pregnant: false,
+        first_name: "",
+        last_name: "",
+        medical_history: "",
+        end_time: "",
+        next_follow_up: "",
+        treatment_regimen_id: ""
+    });
 
     // Get the selected test type details
     const selectedTestType = formData.test_type_id
@@ -132,7 +150,7 @@ const DoctorTreatmentPage = () => {
 
             setSubmitSuccess(true);
             toast.success('Chẩn đoán đã được gửi thành công!');
-            
+
             // Reset form data after successful submission
             setFormData(initialFormData);
         } catch (err) {
@@ -233,7 +251,7 @@ const DoctorTreatmentPage = () => {
                                 <CheckCircle2 className="h-5 w-5 mr-2" />
                                 <p className="font-medium">Chẩn đoán đã được gửi thành công!</p>
                             </div>
-                            <Button 
+                            <Button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700"
                                 onClick={() => setSubmitSuccess(false)}
                             >

@@ -72,7 +72,7 @@ if (role === "CUSTOMER") {
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/blog", component: BlogListPage, layout: DefaultLayout },
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
-        { path: "/dashboard", component: DashboardContent, layout: DefaultLayout },
+        { path: "/dashboard", component: DashboardContent, layout: AdminLayout },
         { path: "/login", component: Login, layout: null },
         { path: "/admin/dashboard", component: DashboardContent, layout: AdminLayout },
         { path: "/admin/notify", component: NotificationsPage, layout: AdminLayout },

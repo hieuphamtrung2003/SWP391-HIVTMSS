@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import axios from '../../..//setup/configAxios';
 import {
   Table,
@@ -32,192 +32,50 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../../c
 import { Separator } from "../../../components/ui/separator";
 import { Label } from 'recharts';
 import { Link, useNavigate } from "react-router-dom";
+import { useAccountStore } from '../../stores/accountStore';
 
 const AccountManagementPage = () => {
-  const [accounts, setAccounts] = useState([]);
-  const [selectedAccount, setSelectedAccount] = useState(null);
-  const [accountDetails, setAccountDetails] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [pagination, setPagination] = useState({
-    pageNo: 0,
-    pageSize: 10,
-    totalElements: 0,
-    totalPages: 1,
-    last: false
-  });
-  const [filters, setFilters] = useState({
-    role: 'ALL',
-    searchTerm: '',
-    sortDir: 'asc',
-    sortBy: 'id',
-  });
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editFormData, setEditFormData] = useState({
-    last_name: '',
-    first_name: '',
-    gender: '',
-    phone: '',
-    address: '',
-    dob: '',
-    role_id: 1, // Default to CUSTOMER
-  });
-
-  //Navigate
   const navigate = useNavigate();
-  //Create staff
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [formValue, setFormValue] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    role_name: "",
-  });
-
-  const handleChange = (e) => {
-    const { value, name } = e.target;
-    setFormValue((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCreateStaff = async (e) => {
-    e.preventDefault();
-
-    const { first_name, last_name, email, phone, address, role_name } = formValue;
-
-    // Kiểm tra rỗng
-    if (!first_name.trim() || !last_name.trim() || !email.trim()) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
-      return;
-    }
-
-    try {
-      const res = await axios.post("/api/v1/accounts/admin/new-account", formValue);
-      if (res?.http_status === 201) {
-        toast.success("Đăng ký thành công!");
-        setIsCreateOpen(false);
-        fetchAccounts(); // Refresh the account list
-      } else {
-        toast.error("Đăng ký không thành công. Vui lòng thử lại!");
-      }
-    } catch (error) {
-      if (error.response) {
-        const { message } = error.response.data;
-        toast.error(message || "Lỗi từ máy chủ. Đăng ký thất bại!");
-      } else {
-        toast.error("Không thể kết nối đến máy chủ!");
-      }
-      console.error("Đăng ký thất bại:", error);
-    }
-  };
-
-  const fetchAccounts = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('/api/v1/accounts/admin/all', {
-        params: {
-          pageNo: pagination.pageNo,
-          pageSize: pagination.pageSize,
-          role: filters.role,
-          sortBy: filters.sortBy,
-          sortDir: filters.sortDir,
-          keyword: filters.searchTerm,
-        },
-      });
-
-      setAccounts(response.data.content);
-      setPagination({
-        pageNo: response.data.page_no,
-        pageSize: response.data.page_size,
-        totalElements: response.data.total_elements,
-        totalPages: response.data.total_pages,
-        last: response.data.last
-      });
-    } catch (error) {
-      toast.error('Failed to fetch accounts');
-      console.error('Error fetching accounts:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAccountDetails = async (accountId) => {
-    try {
-      setDetailsLoading(true);
-      const response = await axios.get(`api/v1/accounts/admin?id=${accountId}`);
-      setAccountDetails(response.data);
-    } catch (error) {
-      toast.error('Failed to fetch account details');
-      console.error('Error fetching account details:', error);
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
+  const {
+    accounts,
+    selectedAccount,
+    accountDetails,
+    loading,
+    detailsLoading,
+    isDetailsOpen,
+    isCreateOpen,
+    isEditMode,
+    pagination,
+    filters,
+    formValue,
+    editFormData,
+    fetchAccounts,
+    fetchAccountDetails,
+    handleViewDetails,
+    handlePageChange,
+    updateFilter,
+    handleResetFilters,
+    handleUpdateAccount,
+    handleCreateStaff,
+    setFormValue,
+    setEditFormData,
+    setIsEditMode,
+    setIsDetailsOpen,
+    setIsCreateOpen,
+    setFilters
+  } = useAccountStore();
 
   useEffect(() => {
     fetchAccounts();
   }, [pagination.pageNo, filters.role, filters.sortDir, filters.sortBy]);
 
-  const handleViewDetails = (account) => {
-    setSelectedAccount(account);
-    fetchAccountDetails(account.account_id);
-    setIsDetailsOpen(true);
-    setIsEditMode(false);
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage >= 0 && newPage < pagination.totalPages) {
-      setPagination({ ...pagination, pageNo: newPage });
-    }
-  };
-
   const handleRoleFilterChange = (value) => {
-    setFilters({ ...filters, role: value });
-    setPagination({ ...pagination, pageNo: 0 });
+    updateFilter('role', value);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    setPagination({ ...pagination, pageNo: 0 });
     fetchAccounts();
-  };
-
-  const handleResetFilters = () => {
-    setFilters({
-      role: 'ALL',
-      searchTerm: '',
-      sortDir: 'asc',
-      sortBy: 'created_date',
-    });
-    setPagination({
-      pageNo: 0,
-      pageSize: 10,
-      totalPages: 1,
-      totalElements: 0,
-      last: false,
-    });
-    fetchAccounts();
-  };
-
-  const handleUpdateAccount = async () => {
-    try {
-      setDetailsLoading(true);
-      await axios.put(`/api/v1/accounts/admin?id=${accountDetails.account_id}`, editFormData);
-      toast.success('Account updated successfully');
-      fetchAccounts();
-      fetchAccountDetails(accountDetails.account_id);
-      setIsEditMode(false);
-    } catch (error) {
-      toast.error('Failed to update account');
-      console.error('Error updating account:', error);
-    } finally {
-      setDetailsLoading(false);
-    }
   };
 
   const handleEditFormChange = (e) => {
@@ -232,6 +90,14 @@ const AccountManagementPage = () => {
     setEditFormData({
       ...editFormData,
       role_id: parseInt(value),
+    });
+  };
+
+  const handleChange = (e) => {
+    const { value, name } = e.target;
+    setFormValue({
+      ...formValue,
+      [name]: value,
     });
   };
 
@@ -283,10 +149,6 @@ const AccountManagementPage = () => {
               <User className="h-4 w-4 mr-2" />
               Create Staff
             </Button>
-            <Button variant="outline" onClick={handleResetFilters}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
           </div>
         </div>
 
@@ -303,12 +165,11 @@ const AccountManagementPage = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="ALL">All Roles</SelectItem>
                     <SelectItem value="CUSTOMER">Patients</SelectItem>
                     <SelectItem value="DOCTOR">Doctors</SelectItem>
                     <SelectItem value="MANAGER">Managers</SelectItem>
-                    <SelectItem value="ADMIN">Admins</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -317,15 +178,13 @@ const AccountManagementPage = () => {
                 <label className="text-sm font-medium text-muted-foreground">Sort By</label>
                 <Select
                   value={filters.sortBy}
-                  onValueChange={(value) => setFilters({ ...filters, sortBy: value })}
+                  onValueChange={(value) => updateFilter('sortBy', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select field" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="created_date">Created Date</SelectItem>
-                    <SelectItem value="last_name">Last Name</SelectItem>
-                    <SelectItem value="first_name">First Name</SelectItem>
+                  <SelectContent className="bg-white">
+                    <SelectItem value="id">ID</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -334,12 +193,12 @@ const AccountManagementPage = () => {
                 <label className="text-sm font-medium text-muted-foreground">Sort Direction</label>
                 <Select
                   value={filters.sortDir}
-                  onValueChange={(value) => setFilters({ ...filters, sortDir: value })}
+                  onValueChange={(value) => updateFilter('sortDir', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select direction" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="asc">
                       <div className="flex items-center gap-2">
                         <ChevronUp className="h-4 w-4" />
@@ -362,7 +221,7 @@ const AccountManagementPage = () => {
                   <Input
                     placeholder="Search by name, email or phone..."
                     value={filters.searchTerm}
-                    onChange={(e) => setFilters({ ...filters, searchTerm: e.target.value })}
+                    onChange={(e) => updateFilter('searchTerm', e.target.value)}
                   />
                   <Button type="submit">
                     <Search className="h-4 w-4 mr-2" />

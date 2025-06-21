@@ -16,6 +16,7 @@ const DoctorTreatmentPage = () => {
     const [submitError, setSubmitError] = useState(null);
     const [patientInfo, setPatientInfo] = useState(null);
     const [appointmentInfo, setAppointmentInfo] = useState(null);
+    const [showAdditionalFields, setShowAdditionalFields] = useState(false);
 
     // Initial form state
     const initialFormData = {
@@ -38,6 +39,30 @@ const DoctorTreatmentPage = () => {
     const selectedTestType = formData.test_type_id
         ? testTypes.find(test => test.test_type_id === parseInt(formData.test_type_id))
         : null;
+
+    // Determine which fields to show based on test type
+    const getFieldsToShow = () => {
+        if (!selectedTestType) return [];
+        
+        const testName = selectedTestType.test_type_name.toLowerCase();
+        
+        if (testName.includes('screening')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'agAbResult'];
+        } else if (testName.includes('confirmatory')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'virusType', 'result'];
+        } else if (testName.includes('pcr')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'pcrType', 'viralLoad', 'result'];
+        } else if (testName.includes('western bolt test')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'result', 'virusType'];
+        } else if (testName.includes('giúp xác định')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'viralLoad', 'result'];
+        } else if (testName.includes('cd4')) {
+            return ['sampleType', 'clinicalStage', 'resultType', 'cd4'];
+        }
+        return [];
+    };
+
+    const fieldsToShow = getFieldsToShow();
 
     // Fetch test types and patient/appointment info
     useEffect(() => {
@@ -97,6 +122,11 @@ const DoctorTreatmentPage = () => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+        
+        if (name === 'test_type_id') {
+            setShowAdditionalFields(value !== '');
+        }
+        
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -135,6 +165,7 @@ const DoctorTreatmentPage = () => {
             
             // Reset form data after successful submission
             setFormData(initialFormData);
+            setShowAdditionalFields(false);
         } catch (err) {
             toast.error(err.response?.data?.message);
             setSubmitError(err.response?.data?.message || 'Có lỗi xảy ra khi gửi chẩn đoán');
@@ -237,7 +268,7 @@ const DoctorTreatmentPage = () => {
                                 className="mt-4 bg-blue-600 hover:bg-blue-700"
                                 onClick={() => setSubmitSuccess(false)}
                             >
-                                Thêm chẩn đoán mới
+                                chỉnh sửa chuẩn đoán
                             </Button>
                         </div>
                     ) : submitError && (
@@ -274,56 +305,86 @@ const DoctorTreatmentPage = () => {
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại mẫu <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="sample_type"
-                                            value={formData.sample_type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="WHOLE_BLOOD">Máu toàn phần</option>
-                                            <option value="SERUM">Huyết thanh</option>
-                                            <option value="PLASMA">Huyết tương</option>
-                                        </select>
-                                    </div>
+                                    {showAdditionalFields && (
+                                        <>
+                                            {fieldsToShow.includes('sampleType') && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Loại mẫu <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="sample_type"
+                                                        value={formData.sample_type}
+                                                        onChange={handleInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    >
+                                                        <option value="WHOLE_BLOOD">Máu toàn phần</option>
+                                                        <option value="SERUM">Huyết thanh</option>
+                                                        <option value="PLASMA">Huyết tương</option>
+                                                    </select>
+                                                </div>
+                                            )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Kết quả <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="result"
-                                            value={formData.result}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="POSITIVE">Dương tính</option>
-                                            <option value="NEGATIVE">Âm tính</option>
-                                            <option value="INCONCLUSIVE">Không xác định</option>
-                                        </select>
-                                    </div>
+                                            {fieldsToShow.includes('clinicalStage') && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Giai đoạn lâm sàng <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="clinical_stage"
+                                                        value={formData.clinical_stage}
+                                                        onChange={handleInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    >
+                                                        <option value="STAGE_I">Giai đoạn I</option>
+                                                        <option value="STAGE_II">Giai đoạn II</option>
+                                                        <option value="STAGE_III">Giai đoạn III</option>
+                                                        <option value="STAGE_IV">Giai đoạn IV</option>
+                                                    </select>
+                                                </div>
+                                            )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại kết quả <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="result_type"
-                                            value={formData.result_type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="PRELIMINARY">Sơ bộ</option>
-                                            <option value="FINAL">Cuối cùng</option>
-                                            <option value="INDETERMINATE">Không xác định</option>
-                                        </select>
-                                    </div>
+                                            {fieldsToShow.includes('resultType') && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Loại kết quả <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="result_type"
+                                                        value={formData.result_type}
+                                                        onChange={handleInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    >
+                                                        <option value="PRELIMINARY">Sơ bộ</option>
+                                                        <option value="FINAL">Cuối cùng</option>
+                                                        <option value="INDETERMINATE">Không xác định</option>
+                                                    </select>
+                                                </div>
+                                            )}
+
+                                            {fieldsToShow.includes('result') && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        Kết quả <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="result"
+                                                        value={formData.result}
+                                                        onChange={handleInputChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                        required
+                                                    >
+                                                        <option value="POSITIVE">Dương tính</option>
+                                                        <option value="NEGATIVE">Âm tính</option>
+                                                        <option value="INCONCLUSIVE">Không xác định</option>
+                                                    </select>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
 
                                 {/* Middle Column - Test Type Details */}
@@ -354,135 +415,130 @@ const DoctorTreatmentPage = () => {
                                 </div>
 
                                 {/* Right Column - Additional Fields */}
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại virus <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="virus_type"
-                                            value={formData.virus_type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="HIV_1">HIV-1</option>
-                                            <option value="HIV_2">HIV-2</option>
-                                        </select>
-                                    </div>
+                                {showAdditionalFields && (
+                                    <div className="space-y-6">
+                                        {fieldsToShow.includes('virusType') && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Loại virus <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    name="virus_type"
+                                                    value={formData.virus_type}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    <option value="HIV_1">HIV-1</option>
+                                                    <option value="HIV_2">HIV-2</option>
+                                                </select>
+                                            </div>
+                                        )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Kết quả Kháng nguyên/Kháng thể <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="ag_ab_result"
-                                            value={formData.ag_ab_result}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="POSITIVE">Dương tính</option>
-                                            <option value="NEGATIVE">Âm tính</option>
-                                            <option value="INCONCLUSIVE">Không xác định</option>
+                                        {fieldsToShow.includes('agAbResult') && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Kết quả Kháng nguyên/Kháng thể <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    name="ag_ab_result"
+                                                    value={formData.ag_ab_result}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    <option value="POSITIVE">Dương tính</option>
+                                                    <option value="NEGATIVE">Âm tính</option>
+                                                    <option value="INCONCLUSIVE">Không xác định</option>
+                                                </select>
+                                            </div>
+                                        )}
 
-                                        </select>
-                                    </div>
+                                        {fieldsToShow.includes('pcrType') && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Loại PCR <span className="text-red-500">*</span>
+                                                </label>
+                                                <select
+                                                    name="pcr_type"
+                                                    value={formData.pcr_type}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                    required
+                                                >
+                                                    <option value="DNA">DNA</option>
+                                                    <option value="RNA">RNA</option>
+                                                </select>
+                                            </div>
+                                        )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại PCR <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="pcr_type"
-                                            value={formData.pcr_type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="DNA">DNA</option>
-                                            <option value="RNA">RNA</option>
-                                        </select>
-                                    </div>
+                                        {fieldsToShow.includes('viralLoad') && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Tải lượng virus (bản sao/mL)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="viral_load"
+                                                    value={formData.viral_load}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="Nhập tải lượng virus"
+                                                    min="0"
+                                                />
+                                            </div>
+                                        )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Giai đoạn lâm sàng <span className="text-red-500">*</span>
-                                        </label>
-                                        <select
-                                            name="clinical_stage"
-                                            value={formData.clinical_stage}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
-                                        >
-                                            <option value="STAGE_I">Giai đoạn I</option>
-                                            <option value="STAGE_II">Giai đoạn II</option>
-                                            <option value="STAGE_III">Giai đoạn III</option>
-                                            <option value="STAGE_IV">Giai đoạn IV</option>
-                                        </select>
-                                    </div>
+                                        {fieldsToShow.includes('cd4') && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    Số lượng CD4 (tế bào/mm³)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    name="cd4"
+                                                    value={formData.cd4}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                    placeholder="Nhập số lượng CD4"
+                                                    min="0"
+                                                />
+                                            </div>
+                                        )}
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Số lượng CD4 (tế bào/mm³)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="cd4"
-                                            value={formData.cd4}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Nhập số lượng CD4"
-                                            min="0"
-                                        />
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Ghi chú
+                                            </label>
+                                            <textarea
+                                                name="note"
+                                                value={formData.note}
+                                                onChange={handleInputChange}
+                                                rows={3}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                                placeholder="Nhập ghi chú (nếu có)"
+                                            />
+                                        </div>
                                     </div>
+                                )}
+                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tải lượng virus (bản sao/mL)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="viral_load"
-                                            value={formData.viral_load}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Nhập tải lượng virus"
-                                            min="0"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Ghi chú
-                                        </label>
-                                        <textarea
-                                            name="note"
-                                            value={formData.note}
-                                            onChange={handleInputChange}
-                                            rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            placeholder="Nhập ghi chú (nếu có)"
-                                        />
-                                    </div>
+                            {showAdditionalFields && (
+                                <div className="mt-8 flex justify-end">
+                                    <Button
+                                        type="submit"
+                                        disabled={submitting}
+                                        className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
+                                    >
+                                        {submitting ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Đang gửi...
+                                            </>
+                                        ) : 'Gửi chẩn đoán'}
+                                    </Button>
                                 </div>
-                            </div>
-
-                            <div className="mt-8 flex justify-end">
-                                <Button
-                                    type="submit"
-                                    disabled={submitting}
-                                    className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
-                                >
-                                    {submitting ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                            Đang gửi...
-                                        </>
-                                    ) : 'Gửi chẩn đoán'}
-                                </Button>
-                            </div>
+                            )}
                         </form>
                     )}
                 </div>

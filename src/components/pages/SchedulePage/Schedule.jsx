@@ -25,6 +25,9 @@ const Schedule = () => {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [isCancelling, setIsCancelling] = useState(false);
+  const [diagnosis, setDiagnosis] = useState(null);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisError, setDiagnosisError] = useState(null);
 
   // Get customer ID from token
   const getCustomerId = () => {
@@ -84,6 +87,24 @@ const Schedule = () => {
       setAppointments([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch diagnosis data
+  const fetchDiagnosis = async (appointmentId) => {
+    setDiagnosisLoading(true);
+    setDiagnosisError(null);
+
+    try {
+      const response = await axios.get('/api/v1/diagnosis/appointment', {
+        params: { appointmentId }
+      });
+        setDiagnosis(response.data);
+    } catch (error) {
+      console.error('Error fetching diagnosis:', error);
+      setDiagnosisError(error.response?.data?.message || 'Không thể tải dữ liệu chẩn đoán');
+    } finally {
+      setDiagnosisLoading(false);
     }
   };
 
@@ -184,14 +205,23 @@ const Schedule = () => {
   };
 
   // Handle appointment card click
-  const handleAppointmentClick = (appointment) => {
+  const handleAppointmentClick = async (appointment) => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
+
+    // Only fetch diagnosis if the appointment has a diagnosis_id
+    if (appointment.diagnosis_id) {
+      await fetchDiagnosis(appointment.appointment_id);
+    } else {
+      setDiagnosis(null); // Reset diagnosis if no diagnosis_id
+    }
   };
 
   // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
+    setDiagnosis(null);
+    setDiagnosisError(null);
     setTimeout(() => setSelectedAppointment(null), 300);
   };
 
@@ -542,6 +572,63 @@ const Schedule = () => {
                         </p>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Diagnosis Information */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-medium text-blue-600 border-b pb-2">Thông tin chẩn đoán</h4>
+                    {diagnosisLoading ? (
+                      <div className="flex justify-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : diagnosisError ? (
+                      <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 text-red-500" />
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-red-700">{diagnosisError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : diagnosis ? (
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm text-gray-500">Loại xét nghiệm</p>
+                          <p className="font-medium">{diagnosis.testType?.test_type_name || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Kết quả</p>
+                          <p className="font-medium">
+                            {diagnosis.result === 'POSITIVE' ? 'Dương tính' :
+                              diagnosis.result === 'NEGATIVE' ? 'Âm tính' : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Loại virus</p>
+                          <p className="font-medium">
+                            {diagnosis.virus_type === 'HIV_1' ? 'HIV-1' :
+                              diagnosis.virus_type === 'HIV_2' ? 'HIV-2' : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Giai đoạn lâm sàng</p>
+                          <p className="font-medium">
+                            {diagnosis.clinical_stage === 'STAGE_I' ? 'Giai đoạn I' :
+                              diagnosis.clinical_stage === 'STAGE_II' ? 'Giai đoạn II' :
+                                diagnosis.clinical_stage === 'STAGE_III' ? 'Giai đoạn III' :
+                                  diagnosis.clinical_stage === 'STAGE_IV' ? 'Giai đoạn IV' : 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Ngày chuẩn đoán</p>
+                          <p className="font-medium">{formatDate(diagnosis.createdDate)} {formatTime(diagnosis.createdDate)}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">Không có thông tin chẩn đoán</p>
+                    )}
                   </div>
                 </div>
 

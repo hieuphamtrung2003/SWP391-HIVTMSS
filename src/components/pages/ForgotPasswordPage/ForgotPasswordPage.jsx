@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginImage from "../../../assets/loginmiage.jpg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ForgotPasswordForm = () => {
     const [email, setEmail] = useState("");
@@ -46,7 +45,7 @@ const ForgotPasswordForm = () => {
         } catch (error) {
             console.error("Forgot password error:", error);
             const errorMessage = error.response?.data?.message || "Đã xảy ra lỗi. Vui lòng thử lại.";
-            
+
             toast.error(errorMessage, {
                 position: "top-right",
                 autoClose: 5000,

@@ -22,7 +22,7 @@ import DoctorDegreeForm from "components/pages/DoctorDegreeForm/DoctorDegreeForm
 import NotFound from "components/pages/NotFoundPage";
 import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
 import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
-
+import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
 let publicRoute = [];
 const role = localStorage.getItem("role");
 
@@ -40,7 +40,9 @@ if (role === "CUSTOMER") {
         { path: "/chat", component: ChatPage, layout: DefaultLayout },
         { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
+        { path: "/blog/edit/:blogId", component: EditBlogPage, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
+
     ]
 } else if (role === "DOCTOR") {
     publicRoute = [

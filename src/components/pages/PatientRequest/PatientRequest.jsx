@@ -1,7 +1,7 @@
 import { Button } from "../../ui/button"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon} from "lucide-react"
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from "lucide-react"
 import axios from 'setup/configAxios'
 import { decodeToken } from "../../../utils/tokenUtils";
 import { format, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, parse } from 'date-fns';
@@ -55,7 +55,12 @@ const DoctorRequestsManager = () => {
   const formatAppointmentsForDisplay = (appointmentData) => {
     const formatted = {};
 
-    appointmentData.forEach(appointment => {
+    // Filter out cancelled appointments
+    const filteredAppointments = appointmentData.filter(
+      appointment => appointment.status !== 'CANCELLED'
+    );
+
+    filteredAppointments.forEach(appointment => {
       const dayOfWeek = getDayOfWeekVietnamese(appointment.start_time);
       const time = getTimeFromStartTime(appointment.start_time);
 
@@ -341,8 +346,8 @@ const DoctorRequestsManager = () => {
             <tbody>
               {appointments.length === 0 && !loading ? (
                 <tr>
-                  <td 
-                    colSpan={days.length + 1} 
+                  <td
+                    colSpan={days.length + 1}
                     className="p-8 text-center text-gray-500"
                   >
                     <div className="flex flex-col items-center justify-center">

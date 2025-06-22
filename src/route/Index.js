@@ -23,6 +23,7 @@ import NotFound from "components/pages/NotFoundPage";
 import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
 import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
 import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
+
 let publicRoute = [];
 const role = localStorage.getItem("role");
 
@@ -65,6 +66,7 @@ if (role === "CUSTOMER") {
         { path: "/doctor/treatment/:appointmentId", component: DoctorDiagnosisPage, layout: DoctorLayout },
         { path: "*", component: NotFound, layout: null },
 
+
     ]
 } else if (role === "ADMIN") {
     publicRoute = [
@@ -92,6 +94,7 @@ if (role === "CUSTOMER") {
         { path: "/blog/1", component: BlogDetail, layout: null },
         { path: "/blog", component: BlogListPage, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
+
 
     ]
 };

@@ -28,6 +28,9 @@ const Schedule = () => {
   const [diagnosis, setDiagnosis] = useState(null);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisError, setDiagnosisError] = useState(null);
+  const [treatment, setTreatment] = useState(null);
+  const [treatmentLoading, setTreatmentLoading] = useState(false);
+  const [treatmentError, setTreatmentError] = useState(null);
 
   // Get customer ID from token
   const getCustomerId = () => {
@@ -99,7 +102,7 @@ const Schedule = () => {
       const response = await axios.get('/api/v1/diagnosis/appointment', {
         params: { appointmentId }
       });
-        setDiagnosis(response.data);
+      setDiagnosis(response.data);
     } catch (error) {
       console.error('Error fetching diagnosis:', error);
       setDiagnosisError(error.response?.data?.message || 'Không thể tải dữ liệu chẩn đoán');
@@ -107,6 +110,25 @@ const Schedule = () => {
       setDiagnosisLoading(false);
     }
   };
+
+  // Fetch treatment data
+  const fetchTreatment = async (appointmentId) => {
+    setTreatmentLoading(true);
+    setTreatmentError(null);
+
+    try {
+      const response = await axios.get('/api/v1/treatments/appointment', {
+        params: { appointmentId }
+      });
+      setTreatment(response.data);
+    } catch (error) {
+      console.error('Error fetching treatment:', error);
+      setTreatmentError(error.response?.data?.message || 'Không thể tải dữ liệu điều trị');
+    } finally {
+      setTreatmentLoading(false);
+    }
+  };
+
 
   // Handle cancel appointment
   const handleCancelAppointment = async () => {
@@ -204,16 +226,21 @@ const Schedule = () => {
     }));
   };
 
-  // Handle appointment card click
+  // handleAppointmentClick
   const handleAppointmentClick = async (appointment) => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
 
-    // Only fetch diagnosis if the appointment has a diagnosis_id
     if (appointment.diagnosis_id) {
       await fetchDiagnosis(appointment.appointment_id);
     } else {
-      setDiagnosis(null); // Reset diagnosis if no diagnosis_id
+      setDiagnosis(null);
+    }
+
+    if (appointment.treatment_id || true) {
+      await fetchTreatment(appointment.appointment_id);
+    } else {
+      setTreatment(null);
     }
   };
 
@@ -245,6 +272,7 @@ const Schedule = () => {
   const pendingAppointments = Array.isArray(appointments)
     ? appointments.filter(app => app?.status === 'PENDING')
     : [];
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -628,6 +656,52 @@ const Schedule = () => {
                       </div>
                     ) : (
                       <p className="text-gray-500">Không có thông tin chẩn đoán</p>
+                    )}
+                  </div>
+
+                  {/* Treatment Information */}
+                  <div className="space-y-4">
+                    <h4 className="text-lg font-medium text-blue-600 border-b pb-2">Phương pháp điều trị</h4>
+                    {treatmentLoading ? (
+                      <div className="flex justify-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : treatmentError ? (
+                      <div className="bg-red-50 border-l-4 border-red-500 p-4">
+                        <div className="flex">
+                          <div className="flex-shrink-0">
+                            <AlertCircle className="h-5 w-5 text-red-500" />
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-red-700">{treatmentError}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : treatment ? (
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm text-gray-500">Đơn thuốc</p>
+                          <ul className="list-disc list-inside text-sm text-gray-800">
+                            {(treatment.drugs || []).map(drug => (
+                              <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Tiên lượng</p>
+                          <p className="font-medium">{treatment.prognosis || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Phòng ngừa</p>
+                          <p className="font-medium">{treatment.prevention || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Lịch tái khám</p>
+                          <p className="font-medium">{formatDate(treatment.next_follow_up)} {formatTime(treatment.next_follow_up)}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">Không có thông tin điều trị</p>
                     )}
                   </div>
                 </div>

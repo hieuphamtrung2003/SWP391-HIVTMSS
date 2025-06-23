@@ -20,12 +20,45 @@ const BookingPage = () => {
 
   const [currentStep, setCurrentStep] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
 
-  // Handle date/time change to fetch available doctors
-  const handleDateTimeChange = async (dateTime) => {
-    updateAppointmentData({ start_time: dateTime });
-    if (dateTime) {
-      await fetchAvailableDoctors(dateTime);
+  // Generate time slots from 8AM to 4PM
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour < 16; hour++) {
+      const startTime = `${hour.toString().padStart(2, '0')}:00`;
+      const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+      slots.push({
+        value: `${hour.toString().padStart(2, '0')}:00`,
+        label: `${startTime} - ${endTime}`,
+        hour: hour
+      });
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
+
+  // Handle date change
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setSelectedTimeSlot('');
+    updateAppointmentData({ start_time: '' });
+    setSelectedDoctor(null);
+  };
+
+  // Handle time slot selection
+  const handleTimeSlotChange = async (timeSlot) => {
+    setSelectedTimeSlot(timeSlot);
+
+    if (selectedDate && timeSlot) {
+      // Create ISO string for the selected date and time
+      const dateTime = new Date(`${selectedDate}T${timeSlot}:00`);
+      const isoDateTime = dateTime.toISOString();
+
+      updateAppointmentData({ start_time: isoDateTime });
+      await fetchAvailableDoctors(isoDateTime);
     }
   };
 
@@ -50,9 +83,11 @@ const BookingPage = () => {
           is_anonymous: false
         });
         setSelectedDoctor(null);
+        setSelectedDate('');
+        setSelectedTimeSlot('');
       }, 3000);
     } catch (error) {
-      toast.error( error.response?.data?.message);
+      toast.error(error.response?.data?.message);
     }
   };
 
@@ -61,11 +96,17 @@ const BookingPage = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  // Get minimum datetime for appointment
-  const getMinDateTime = () => {
+  // Check if time slot is available (not in the past)
+  const isTimeSlotAvailable = (timeSlot) => {
+    if (!selectedDate) return false;
+
     const now = new Date();
-    now.setHours(now.getHours() + 1); // At least 1 hour from now
-    return now.toISOString().slice(0, 16);
+    const slotDateTime = new Date(`${selectedDate}T${timeSlot}:00`);
+
+    // Add 1 hour buffer from current time
+    const minTime = new Date(now.getTime() + 60 * 60 * 1000);
+
+    return slotDateTime >= minTime;
   };
 
   if (showSuccess) {
@@ -252,19 +293,58 @@ const BookingPage = () => {
                   Chọn Thời Gian & Bác Sĩ
                 </h2>
 
+                {/* Date Selection */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thời gian khám *
+                    Chọn ngày khám *
                   </label>
                   <input
-                    type="datetime-local"
+                    type="date"
                     required
-                    min={getMinDateTime()}
-                    value={appointmentData.start_time}
-                    onChange={(e) => handleDateTimeChange(e.target.value)}
+                    min={getMinDate()}
+                    value={selectedDate}
+                    onChange={(e) => handleDateChange(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+
+                {/* Time Slot Selection */}
+                {selectedDate && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-4">
+                      Chọn giờ khám *
+                    </label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {timeSlots.map((slot) => {
+                        const isAvailable = isTimeSlotAvailable(slot.value);
+                        const isSelected = selectedTimeSlot === slot.value;
+
+                        return (
+                          <button
+                            key={slot.value}
+                            type="button"
+                            disabled={!isAvailable}
+                            onClick={() => handleTimeSlotChange(slot.value)}
+                            className={`p-3 rounded-lg border-2 font-medium transition-all ${isSelected
+                              ? 'border-blue-500 bg-blue-50 text-blue-700'
+                              : isAvailable
+                                ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700'
+                                : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                              }`}
+                          >
+                            <div className="flex items-center justify-center">
+                              <Clock className="w-4 h-4 mr-1" />
+                              {slot.label}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      * Chỉ có thể đặt lịch ít nhất 1 giờ trước
+                    </p>
+                  </div>
+                )}
 
                 {isLoading && (
                   <div className="text-center py-8">
@@ -280,7 +360,7 @@ const BookingPage = () => {
                   </div>
                 )}
 
-                {availableDoctors.length > 0 && (
+                {availableDoctors.length > 0 && selectedTimeSlot && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-4">
                       Chọn bác sĩ *
@@ -291,8 +371,8 @@ const BookingPage = () => {
                           key={doctor.doctor_id}
                           whileHover={{ scale: 1.02 }}
                           className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${selectedDoctor?.doctor_id === doctor.doctor_id
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-blue-500 bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
                             }`}
                           onClick={() => setSelectedDoctor(doctor)}
                         >
@@ -326,7 +406,7 @@ const BookingPage = () => {
                   <button
                     type="button"
                     onClick={() => setCurrentStep(3)}
-                    disabled={!selectedDoctor}
+                    disabled={!selectedDoctor || !selectedTimeSlot}
                     className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
                     Tiếp theo
@@ -365,7 +445,9 @@ const BookingPage = () => {
                     <div>
                       <h4 className="font-semibold text-gray-900">Thông tin khám</h4>
                       <p className="text-gray-600">
-                        {new Date(appointmentData.start_time).toLocaleString('vi-VN')}
+                        {selectedDate && selectedTimeSlot &&
+                          new Date(`${selectedDate}T${selectedTimeSlot}:00`).toLocaleString('vi-VN')
+                        }
                       </p>
                       <p className="text-gray-600">Bác sĩ: {selectedDoctor?.full_name}</p>
                       <p className="text-gray-600">SĐT: {selectedDoctor?.phone}</p>

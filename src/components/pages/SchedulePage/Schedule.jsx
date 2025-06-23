@@ -707,7 +707,7 @@ const Schedule = () => {
                 </div>
 
                 <div className="mt-6 flex justify-between">
-                  {selectedAppointment?.status === 'PENDING' && (
+                  {selectedAppointment?.status === 'PENDING' && !selectedAppointment?.diagnosis_id && (
                     <button
                       onClick={openCancelModal}
                       className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"

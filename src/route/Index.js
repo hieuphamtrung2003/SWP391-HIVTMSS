@@ -24,6 +24,7 @@ import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
 import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
 import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
 import PatientListPage from "components/pages/DoctorPatientList/DoctorPatientList";
+import AppointmentTransferRequests from "components/pages/AppoimentChangePage/AppointmentChangePage";
 
 
 let publicRoute = [];
@@ -67,6 +68,8 @@ if (role === "CUSTOMER") {
         { path: "/doctor/degree", component: DoctorDegreeForm, layout: null },
         { path: "/doctor/treatment/:appointmentId", component: DoctorDiagnosisPage, layout: DoctorLayout },
         { path: "/doctor/patient-list", component: PatientListPage, layout: DoctorLayout },
+        { path: "/doctor/chat", component: ChatPage, layout: DoctorLayout },
+        { path: "/doctor/appointment-change", component: AppointmentTransferRequests, layout: DoctorLayout },
         { path: "*", component: NotFound, layout: null },
 
 

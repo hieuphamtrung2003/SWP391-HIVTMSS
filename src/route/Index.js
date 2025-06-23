@@ -23,6 +23,8 @@ import NotFound from "components/pages/NotFoundPage";
 import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
 import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
 import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
+import PatientListPage from "components/pages/DoctorPatientList/DoctorPatientList";
+
 
 let publicRoute = [];
 const role = localStorage.getItem("role");
@@ -64,6 +66,7 @@ if (role === "CUSTOMER") {
         { path: "/doctor/profile", component: ProfileSettings, layout: DoctorLayout },
         { path: "/doctor/degree", component: DoctorDegreeForm, layout: null },
         { path: "/doctor/treatment/:appointmentId", component: DoctorDiagnosisPage, layout: DoctorLayout },
+        { path: "/doctor/patient-list", component: PatientListPage, layout: DoctorLayout },
         { path: "*", component: NotFound, layout: null },
 
 

@@ -5,7 +5,7 @@ import {
   Bell,
   FileText,
   CircleUser,
-  User,
+  Table,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -14,7 +14,7 @@ import axios from "../../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-export default function DoctorSideNavbar() {
+export default function SideNavbar() {
   const location = useLocation()
 
   // Khai báo token
@@ -52,21 +52,25 @@ export default function DoctorSideNavbar() {
   };
   const navItems = [
     {
-      name: 'Yêu cầu khám bệnh',
+      name: 'Dashboard',
       icon: <MessageSquare className="h-5 w-5" />,
-      path: '/doctor/patient-request'
+      path: '/admin/Dashboard'
+    },
+    {
+      name: 'Quản lý tài khoản',
+      icon: <Table className="h-5 w-5" />,
+      path: '/admin/accounts'
     },
     {
       name: 'Thông báo',
       icon: <Bell className="h-5 w-5" />,
-      path: '/doctor/notify'
+      path: '/admin/notify'
     },
     {
-      name: 'Danh sách bệnh nhân',
-      icon: <User className="h-5 w-5" />,
-      path: '/doctor/patient-list'
+      name: 'Xét Nghiệm',
+      icon: <Bell className="h-5 w-5" />,
+      path: '/admin/test-types'
     },
-
   ]
 
   return (
@@ -107,7 +111,7 @@ export default function DoctorSideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <Link to="/doctor/profile" className="flex items-center gap-3">
+            <Link to="/admin/profile" className="flex items-center gap-3">
               <CircleUser className="h-5 w-5" />
               <span>Hồ Sơ</span>
             </Link>

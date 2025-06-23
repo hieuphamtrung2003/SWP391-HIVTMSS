@@ -62,6 +62,16 @@ export default function DoctorSideNavbar() {
       path: '/doctor/notify'
     },
     {
+      name: 'Nhắn tin hỗ trợ',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/doctor/chat'
+    },
+    {
+      name: 'chuyển giao lịch hẹn',
+      icon: <MessageSquare className="h-5 w-5" />,
+      path: '/doctor/appointment-change'
+    },
+    {
       name: 'Danh sách bệnh nhân',
       icon: <User className="h-5 w-5" />,
       path: '/doctor/patient-list'

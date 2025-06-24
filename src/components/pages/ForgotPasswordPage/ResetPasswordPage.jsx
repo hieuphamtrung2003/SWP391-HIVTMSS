@@ -88,111 +88,121 @@ const ResetPasswordForm = () => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div>
-            <div className="w-full h-screen flex items-center justify-center">
-                <div className="flex w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+            <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                {/* Hình ảnh minh họa */}
+                <div className="hidden md:block bg-blue-100">
+                    <img
+                        src={LoginImage}
+                        alt="Reset Password"
+                        className="h-full w-full object-cover"
+                    />
+                </div>
 
-                    {/* Image */}
-                    <div className="w-1/2 hidden md:flex bg-blue-50">
-                        <img
-                            src={LoginImage}
-                            className="w-full h-full object-cover self-stretch"
-                            alt="Pet Dog"
-                        />
+                {/* Nội dung form */}
+                <div className="p-8 md:p-10 flex flex-col justify-center">
+                    {/* Logo */}
+                    <Link to="/" className="font-semibold text-[#373E79]">
+                        <div className="mb-6">
+                            <h1 className="text-3xl font-bold text-blue-700">
+                                <span className="text-blue-800">HIV</span>
+                                <span className="text-blue-500">TMSS</span>
+                            </h1>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Bệnh viện chữa trị HIV hàng đầu
+                            </p>
+                        </div>
+                    </Link>
+
+                    {/* Tiêu đề */}
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-1">Đặt lại mật khẩu</h2>
+                        <p className="text-sm text-gray-500">Nhập thông tin bên dưới để tạo mật khẩu mới</p>
                     </div>
 
-                    {/* Form content */}
-                    <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-                        <Link to="/" className="text-left mb-6 text-xl font-semibold text-[#373E79]">
-                            <h1 className="text-2xl font-bold text-blue-600 mb-1">
-                                <span className="text-blue-800">HIV</span>
-                                <span className="text-blue-600">TMSS</span>
-                            </h1>
-                            <p className="text-sm">Bệnh viện chữa bệnh HIV tốt nhất</p>
-                        </Link>
+                    <form className="space-y-4" onSubmit={handleSubmit}>
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Email đã đăng ký"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
+                            autoComplete="email"
+                            required
+                        />
 
-                        <div className="mb-4">
-                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Đặt lại mật khẩu</h3>
-                            <p className="text-sm text-[#373E79]">Nhập thông tin để đặt lại mật khẩu</p>
-                        </div>
+                        <input
+                            type="text"
+                            name="verificationCode"
+                            placeholder="Mã xác nhận (6 ký tự)"
+                            value={verificationCode}
+                            onChange={(e) => setVerificationCode(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
+                            maxLength={6}
+                            required
+                        />
 
-                        <form className="flex flex-col" onSubmit={handleSubmit}>
+                        {/* Mật khẩu mới */}
+                        <div className="relative">
                             <input
-                                type="email"
-                                name="email"
-                                placeholder="Email đã đăng ký"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="email"
-                                required
-                            />
-                            <input
-                                type="text"
-                                name="verificationCode"
-                                placeholder="Mã xác nhận (6 ký tự)"
-                                value={verificationCode}
-                                onChange={(e) => setVerificationCode(e.target.value)}
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                required
-                                maxLength={6}
-                            />
-                            <input
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 name="newPassword"
                                 placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                                 autoComplete="new-password"
-                                required
                                 minLength={6}
-                            />
-                            <input
-                                type="password"
-                                name="confirmPassword"
-                                placeholder="Nhập lại mật khẩu mới"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
-                                autoComplete="confirm-new-password"
                                 required
-                                minLength={6}
                             />
                             <div
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
                                 onClick={() => setShowPassword(!showPassword)}
                                 onMouseDown={(e) => e.preventDefault()}
                             >
                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
                             </div>
-                            <button
-                                type="submit"
-                                className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition disabled:opacity-50"
-                                disabled={loading}
-                            >
-                                {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
-                            </button>
-                        </form>
-
-                        <div className="w-full my-6">
-                            <div className="h-[0.5px] bg-black w-full" />
                         </div>
 
-                        <div className="w-full flex items-center justify-center">
-                            <p className="text-sm font-normal text-[#373E79]">
-                                <Link to="/login">
-                                    <span className="font-semibold underline underline-offset-2 cursor-pointer text-[#373E79]">
-                                        Quay về trang đăng nhập
-                                    </span>
-                                </Link>
-                            </p>
-                        </div>
+                        {/* Xác nhận mật khẩu */}
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            placeholder="Xác nhận mật khẩu"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-500"
+                            autoComplete="confirm-new-password"
+                            minLength={6}
+                            required
+                        />
+
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition disabled:opacity-50"
+                            disabled={loading}
+                        >
+                            {loading ? "Đang xử lý..." : "Đặt lại mật khẩu"}
+                        </button>
+                    </form>
+
+                    {/* Gạch ngăn cách */}
+                    <div className="my-6">
+                        <div className="h-px bg-gray-200 w-full" />
                     </div>
+
+                    {/* Link về login */}
+                    <p className="text-center text-sm text-gray-600">
+                        <Link to="/login" className="text-blue-600 hover:underline font-medium">
+                            Quay về trang đăng nhập
+                        </Link>
+                    </p>
                 </div>
             </div>
         </div>
     );
+
 };
 
 export default ResetPasswordForm;

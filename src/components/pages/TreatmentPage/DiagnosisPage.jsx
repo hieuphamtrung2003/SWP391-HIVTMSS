@@ -17,6 +17,8 @@ const DoctorTreatmentPage = () => {
     const [patientInfo, setPatientInfo] = useState(null);
     const [appointmentInfo, setAppointmentInfo] = useState(null);
     const [showAdditionalFields, setShowAdditionalFields] = useState(true);
+    const [showEditDiagnosisModal, setShowEditDiagnosisModal] = useState(false);
+
 
 
 
@@ -39,8 +41,7 @@ const DoctorTreatmentPage = () => {
 
     //Treatment data
 
-    const [treatmentRegimens, setTreatmentRegimens] = useState([]);
-    const [treatmentForm, setTreatmentForm] = useState({
+    const initialTreatmentForm = {
         gender: 'MALE',
         dob: '',
         applicable: '',
@@ -53,9 +54,14 @@ const DoctorTreatmentPage = () => {
         medical_history: '',
         next_follow_up: '',
         treatment_regimen_id: ''
-    });
+    };
+    const [treatmentForm, setTreatmentForm] = useState(initialTreatmentForm);
+
+    const [treatmentRegimens, setTreatmentRegimens] = useState([]);
     const [treatmentSubmitSuccess, setTreatmentSubmitSuccess] = useState(false);
     const [treatmentSubmitError, setTreatmentSubmitError] = useState(null);
+    const [canShowTreatment, setCanShowTreatment] = useState(false);
+
 
     // Get the selected test type details
     const selectedTestType = formData.test_type_id
@@ -157,15 +163,19 @@ const DoctorTreatmentPage = () => {
 
             } catch (err) {
                 console.error('Error fetching data:', err);
+
                 toast.error('Không thể tải dữ liệu. Vui lòng thử lại sau.');
                 setError(err.message || 'Không thể tải dữ liệu.');
                 setTestTypes([]);
             } finally {
+
                 setLoading(false);
             }
         };
 
         fetchData();
+
+
     }, [appointmentId]);
 
     const handleInputChange = (e) => {
@@ -185,6 +195,30 @@ const DoctorTreatmentPage = () => {
         e.preventDefault();
         setSubmitting(true);
         setSubmitError(null);
+
+        // Validate diagnosis fields
+        if (!formData.test_type_id) {
+            toast.error('Vui lòng chọn loại xét nghiệm.');
+            setSubmitting(false);
+            return;
+        }
+
+        const requiredFields = getFieldsToShow();
+        if (requiredFields.includes('cd4') && !formData.cd4) {
+            toast.error('Vui lòng nhập chỉ số CD4.');
+            setSubmitting(false);
+            return;
+        }
+        if (requiredFields.includes('viralLoad') && !formData.viral_load) {
+            toast.error('Vui lòng nhập tải lượng virus.');
+            setSubmitting(false);
+            return;
+        }
+        if (requiredFields.includes('result') && !formData.result) {
+            toast.error('Vui lòng chọn kết quả.');
+            setSubmitting(false);
+            return;
+        }
 
         try {
             const payload = {
@@ -209,9 +243,8 @@ const DoctorTreatmentPage = () => {
             });
 
             setSubmitSuccess(true);
+            setCanShowTreatment(true);
             toast.success('Chẩn đoán đã được gửi thành công!');
-
-            // Reset form data after successful submission
             setFormData(initialFormData);
             setShowAdditionalFields(false);
         } catch (err) {
@@ -295,6 +328,36 @@ const DoctorTreatmentPage = () => {
         e.preventDefault();
         setSubmitting(true);
         setTreatmentSubmitError(null);
+
+        // Validate treatment fields
+        if (!treatmentForm.treatment_regimen_id) {
+            toast.error("Vui lòng chọn phác đồ điều trị.");
+            setSubmitting(false);
+            return;
+        }
+        if (!treatmentForm.method) {
+            toast.error("Vui lòng chọn phương pháp điều trị.");
+            setSubmitting(false);
+            return;
+        }
+        if (!treatmentForm.applicable) {
+            toast.error("Vui lòng chọn đối tượng áp dụng.");
+            setSubmitting(false);
+            return;
+        }
+        if (!treatmentForm.next_follow_up) {
+            toast.error("Vui lòng chọn lịch tái khám.");
+            setSubmitting(false);
+            return;
+        }
+        const followUpDate = new Date(treatmentForm.next_follow_up);
+        const now = new Date();
+        if (followUpDate <= now) {
+            toast.error("Lịch tái khám phải là thời gian trong tương lai.");
+            setSubmitting(false);
+            return;
+        }
+
         try {
             const payload = {
                 appointmentId: parseInt(appointmentId),
@@ -305,17 +368,19 @@ const DoctorTreatmentPage = () => {
                 prevention: treatmentForm.prevention,
                 method: parseInt(treatmentForm.method),
                 pregnant: treatmentForm.pregnant,
-                first_name: '...', // điền từ patientInfo nếu có
+                first_name: '...', // nếu có thể lấy từ patientInfo
                 last_name: '...',
                 medical_history: treatmentForm.medical_history,
                 next_follow_up: treatmentForm.next_follow_up,
                 treatment_regimen_id: parseInt(treatmentForm.treatment_regimen_id)
             };
+
             await axios.put('/api/v1/appointments/treatment', payload, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('access_token')}`
                 }
             });
+
             toast.success('Đã gửi phác đồ điều trị!');
             setTreatmentSubmitSuccess(true);
         } catch (err) {
@@ -325,6 +390,40 @@ const DoctorTreatmentPage = () => {
             setSubmitting(false);
         }
     };
+
+    const handleEditDiagnosisConfirm = () => {
+        const hasTreatmentData =
+            treatmentForm.treatment_regimen_id !== '' ||
+            treatmentForm.method !== '' ||
+            treatmentForm.prognosis !== '' ||
+            treatmentForm.prevention !== '' ||
+            treatmentForm.applicable !== '' ||
+            treatmentForm.pregnant !== false ||
+            treatmentForm.next_follow_up !== '';
+
+        if (hasTreatmentData) {
+            setShowEditDiagnosisModal(true); // sẽ show dialog confirm
+        } else {
+            setSubmitSuccess(false); // mở lại form chẩn đoán 
+            setCanShowTreatment(false);
+            setTreatmentSubmitSuccess(false);
+        }
+    };
+
+    const handleEditDiagnosisYes = () => {
+        setShowEditDiagnosisModal(false);
+        setSubmitSuccess(false);
+        setCanShowTreatment(false);
+        setTreatmentSubmitSuccess(false);
+        setTreatmentForm(initialTreatmentForm); // reset treatment form
+        toast.info("Phác đồ điều trị đã được hủy do có thay đổi trong chẩn đoán.");
+    };
+
+
+    const handleEditDiagnosisNo = () => {
+        setShowEditDiagnosisModal(false);
+    };
+
 
     return (
         <motion.div
@@ -397,10 +496,11 @@ const DoctorTreatmentPage = () => {
                             </div>
                             <Button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700"
-                                onClick={() => setSubmitSuccess(false)}
+                                onClick={handleEditDiagnosisConfirm}
                             >
-                                chỉnh sửa chuẩn đoán
+                                Chỉnh sửa chuẩn đoán
                             </Button>
+
                         </div>
                     ) : submitError && (
                         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
@@ -680,230 +780,259 @@ const DoctorTreatmentPage = () => {
 
                 </div>
 
-                {/* Treatment Info - Phác đồ điều trị */}
-                <div className="p-6 border-b">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4">Chọn phác đồ điều trị</h2>
+                {/* Treatment Form */}
+                {canShowTreatment && (
+                    <div className="p-6 border-b">
+                        <h2 className="text-lg font-medium text-gray-800 mb-4">Chọn phác đồ điều trị</h2>
 
-                    {treatmentSubmitSuccess ? (
-                        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
-                            <div className="flex items-center text-green-700">
-                                <CheckCircle2 className="h-5 w-5 mr-2" />
-                                <p className="font-medium">Phác đồ đã được gửi thành công!</p>
-                            </div>
-                            <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => setTreatmentSubmitSuccess(false)}>
-                                Chỉnh sửa bản điều trị
-                            </Button>
-                        </div>
-                    ) : treatmentSubmitError && (
-                        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                            <div className="flex items-center text-red-700">
-                                <XCircle className="h-5 w-5 mr-2" />
-                                <p className="font-medium">{treatmentSubmitError}</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {!treatmentSubmitSuccess && (
-                        <form onSubmit={handleSubmitTreatment}>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Left Column: chọn phác đồ + note */}
-                                <div className="space-y-6">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Phác đồ điều trị</label>
-                                        <select
-                                            name="treatment_regimen_id"
-                                            value={treatmentForm.treatment_regimen_id}
-                                            onChange={handleTreatmentRegimenChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        >
-                                            <option value="">Chọn phác đồ</option>
-                                            {treatmentRegimens.map(regimen => (
-                                                <option key={regimen.treatment_regimen_id} value={regimen.treatment_regimen_id}>
-                                                    {regimen.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                                        <textarea
-                                            name="medical_history"
-                                            value={treatmentForm.medical_history}
-                                            onChange={handleTreatmentChange}
-                                            rows={3}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            placeholder="Nhập ghi chú (nếu có)"
-                                        />
-                                    </div>
+                        {treatmentSubmitSuccess ? (
+                            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
+                                <div className="flex items-center text-green-700">
+                                    <CheckCircle2 className="h-5 w-5 mr-2" />
+                                    <p className="font-medium">Phác đồ đã được gửi thành công!</p>
                                 </div>
+                                <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => setTreatmentSubmitSuccess(false)}>
+                                    Chỉnh sửa bản điều trị
+                                </Button>
+                            </div>
+                        ) : treatmentSubmitError && (
+                            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+                                <div className="flex items-center text-red-700">
+                                    <XCircle className="h-5 w-5 mr-2" />
+                                    <p className="font-medium">{treatmentSubmitError}</p>
+                                </div>
+                            </div>
+                        )}
 
-                                {/* Middle Column: thông tin phác đồ */}
-                                <div className="lg:col-span-1">
-                                    {treatmentForm.treatment_regimen_id && (
-                                        (() => {
-                                            const selected = treatmentRegimens.find(
-                                                r => r.treatment_regimen_id === parseInt(treatmentForm.treatment_regimen_id)
-                                            );
-                                            if (!selected) return null;
+                        {!treatmentSubmitSuccess && (
+                            <form onSubmit={handleSubmitTreatment}>
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    {/* Left Column: chọn phác đồ + note */}
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Phác đồ điều trị</label>
+                                            <select
+                                                name="treatment_regimen_id"
+                                                value={treatmentForm.treatment_regimen_id}
+                                                onChange={handleTreatmentRegimenChange}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                            >
+                                                <option value="">Chọn phác đồ</option>
+                                                {treatmentRegimens.map(regimen => (
+                                                    <option key={regimen.treatment_regimen_id} value={regimen.treatment_regimen_id}>
+                                                        {regimen.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                                            <textarea
+                                                name="medical_history"
+                                                value={treatmentForm.medical_history}
+                                                onChange={handleTreatmentChange}
+                                                rows={3}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                placeholder="Nhập ghi chú (nếu có)"
+                                            />
+                                        </div>
+                                    </div>
 
-                                            return (
-                                                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 h-full">
-                                                    <h3 className="font-medium text-blue-800 mb-3">Thông tin phác đồ</h3>
-                                                    <div className="space-y-4">
-                                                        <div>
-                                                            <p className="text-xs text-blue-600 uppercase tracking-wider">Tên phác đồ</p>
-                                                            <p className="font-medium mt-1">{selectedRegimen.name}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-blue-600 uppercase tracking-wider">Đối tượng áp dụng</p>
-                                                            <p className="font-medium mt-1">{selectedRegimen.applicable}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-xs text-blue-600 uppercase tracking-wider">Tuyến điều trị</p>
-                                                            <p className="font-medium mt-1">
-                                                                {selectedRegimen.lineLevel === 'FIRST_LINE' ? 'Tuyến đầu'
-                                                                    : selectedRegimen.lineLevel === 'SECOND_LINE' ? 'Tuyến hai'
-                                                                        : selectedRegimen.lineLevel}
-                                                            </p>
-                                                        </div>
-                                                        {selectedRegimen.note && (
+                                    {/* Middle Column: thông tin phác đồ */}
+                                    <div className="lg:col-span-1">
+                                        {treatmentForm.treatment_regimen_id && (
+                                            (() => {
+                                                const selected = treatmentRegimens.find(
+                                                    r => r.treatment_regimen_id === parseInt(treatmentForm.treatment_regimen_id)
+                                                );
+                                                if (!selected) return null;
+
+                                                return (
+                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 h-full">
+                                                        <h3 className="font-medium text-blue-800 mb-3">Thông tin phác đồ</h3>
+                                                        <div className="space-y-4">
                                                             <div>
-                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Lưu ý</p>
-                                                                <p className="text-sm mt-1 text-gray-700">{selectedRegimen.note}</p>
+                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Tên phác đồ</p>
+                                                                <p className="font-medium mt-1">{selectedRegimen.name}</p>
                                                             </div>
-                                                        )}
+                                                            <div>
+                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Đối tượng áp dụng</p>
+                                                                <p className="font-medium mt-1">{selectedRegimen.applicable}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Tuyến điều trị</p>
+                                                                <p className="font-medium mt-1">
+                                                                    {selectedRegimen.lineLevel === 'FIRST_LINE' ? 'Tuyến đầu'
+                                                                        : selectedRegimen.lineLevel === 'SECOND_LINE' ? 'Tuyến hai'
+                                                                            : selectedRegimen.lineLevel}
+                                                                </p>
+                                                            </div>
+                                                            {selectedRegimen.note && (
+                                                                <div>
+                                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Lưu ý</p>
+                                                                    <p className="text-sm mt-1 text-gray-700">{selectedRegimen.note}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
+                                                );
+                                            })()
+                                        )}
+                                    </div>
+
+
+                                    {/* Right Column: fields còn lại */}
+                                    {treatmentForm.treatment_regimen_id && (
+                                        <div className="space-y-6">
+                                            {fieldsToShowTreatment.includes("method") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp điều trị <span className="text-red-500">*</span></label>
+                                                    <select
+                                                        name="method"
+                                                        value={treatmentForm.method}
+                                                        onChange={handleTreatmentChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                    >
+                                                        <option value="">Chọn phương pháp</option>
+                                                        {(selectedRegimen?.treatment_regimen_drugs || []).map(m => (
+                                                            <option key={m.method} value={m.method}>Phương pháp {m.method}</option>
+                                                        ))}
+                                                    </select>
+
+                                                    {treatmentForm.method && (
+                                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
+                                                            <h3 className="font-medium text-blue-800 mb-3">Danh sách thuốc</h3>
+                                                            <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
+                                                                {(
+                                                                    selectedRegimen?.treatment_regimen_drugs?.find(drugGroup => drugGroup.method === parseInt(treatmentForm.method))?.drugs || []
+                                                                ).map(drug => (
+                                                                    <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            );
-                                        })()
+                                            )}
+
+                                            {fieldsToShowTreatment.includes("prognosis") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tiên lượng <span className="text-red-500">*</span></label>
+                                                    <input
+                                                        name="prognosis"
+                                                        value={treatmentForm.prognosis}
+                                                        onChange={handleTreatmentChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {fieldsToShowTreatment.includes("prevention") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ngừa <span className="text-red-500">*</span></label>
+                                                    <input
+                                                        name="prevention"
+                                                        value={treatmentForm.prevention}
+                                                        onChange={handleTreatmentChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            {fieldsToShowTreatment.includes("applicable") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng áp dụng <span className="text-red-500">*</span></label>
+                                                    <select
+                                                        name="applicable"
+                                                        value={treatmentForm.applicable}
+                                                        onChange={handleTreatmentChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                    >
+                                                        <option value="">Chọn đối tượng</option>
+                                                        <option value="Infant">Em bé</option>
+                                                        <option value="Adolescents">Trẻ em</option>
+                                                        <option value="Adults">Người lớn</option>
+                                                        <option value="PregnantWomen">Phụ nữ có thai</option>
+
+                                                    </select>
+                                                </div>
+                                            )}
+
+                                            {fieldsToShowTreatment.includes("pregnant") && patientInfo?.gender === 'Nữ' && (
+                                                <div className="flex items-center">
+                                                    <input
+                                                        type="checkbox"
+                                                        name="pregnant"
+                                                        checked={treatmentForm.pregnant}
+                                                        onChange={handleTreatmentChange}
+                                                        className="mr-2"
+                                                    />
+                                                    <label className="text-sm text-gray-700">Mang thai</label>
+                                                </div>
+                                            )}
+
+                                            {fieldsToShowTreatment.includes("next_follow_up") && (
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tái khám tiếp theo <span className="text-red-500">*</span></label>
+                                                    <input
+                                                        type="datetime-local"
+                                                        name="next_follow_up"
+                                                        value={treatmentForm.next_follow_up}
+                                                        onChange={handleTreatmentChange}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
 
-
-                                {/* Right Column: fields còn lại */}
                                 {treatmentForm.treatment_regimen_id && (
-                                    <div className="space-y-6">
-                                        {fieldsToShowTreatment.includes("method") && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp điều trị <span className="text-red-500">*</span></label>
-                                                <select
-                                                    name="method"
-                                                    value={treatmentForm.method}
-                                                    onChange={handleTreatmentChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                >
-                                                    <option value="">Chọn phương pháp</option>
-                                                    {(selectedRegimen?.treatment_regimen_drugs || []).map(m => (
-                                                        <option key={m.method} value={m.method}>Phương pháp {m.method}</option>
-                                                    ))}
-                                                </select>
-
-                                                {treatmentForm.method && (
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
-                                                        <h3 className="font-medium text-blue-800 mb-3">Danh sách thuốc</h3>
-                                                        <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
-                                                            {(
-                                                                selectedRegimen?.treatment_regimen_drugs?.find(drugGroup => drugGroup.method === parseInt(treatmentForm.method))?.drugs || []
-                                                            ).map(drug => (
-                                                                <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
-                                                            ))}
-                                                        </ul>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        {fieldsToShowTreatment.includes("prognosis") && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Tiên lượng <span className="text-red-500">*</span></label>
-                                                <input
-                                                    name="prognosis"
-                                                    value={treatmentForm.prognosis}
-                                                    onChange={handleTreatmentChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {fieldsToShowTreatment.includes("prevention") && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ngừa <span className="text-red-500">*</span></label>
-                                                <input
-                                                    name="prevention"
-                                                    value={treatmentForm.prevention}
-                                                    onChange={handleTreatmentChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {fieldsToShowTreatment.includes("applicable") && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng áp dụng <span className="text-red-500">*</span></label>
-                                                <select
-                                                    name="applicable"
-                                                    value={treatmentForm.applicable}
-                                                    onChange={handleTreatmentChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                >
-                                                    <option value="">Chọn đối tượng</option>
-                                                    <option value="Infant">Em bé</option>
-                                                    <option value="Adolescents">Trẻ em</option>
-                                                    <option value="Adults">Người lớn</option>
-                                                    <option value="PregnantWomen">Phụ nữ có thai</option>
-
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {fieldsToShowTreatment.includes("pregnant") && patientInfo?.gender === 'Nữ' && (
-                                            <div className="flex items-center">
-                                                <input
-                                                    type="checkbox"
-                                                    name="pregnant"
-                                                    checked={treatmentForm.pregnant}
-                                                    onChange={handleTreatmentChange}
-                                                    className="mr-2"
-                                                />
-                                                <label className="text-sm text-gray-700">Mang thai</label>
-                                            </div>
-                                        )}
-
-                                        {fieldsToShowTreatment.includes("next_follow_up") && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">Tái khám tiếp theo <span className="text-red-500">*</span></label>
-                                                <input
-                                                    type="datetime-local"
-                                                    name="next_follow_up"
-                                                    value={treatmentForm.next_follow_up}
-                                                    onChange={handleTreatmentChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                />
-                                            </div>
-                                        )}
+                                    <div className="mt-8 flex justify-end">
+                                        <Button
+                                            type="submit"
+                                            disabled={submitting}
+                                            className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
+                                        >
+                                            {submitting ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    Đang gửi...
+                                                </>
+                                            ) : 'Gửi phác đồ'}
+                                        </Button>
                                     </div>
                                 )}
-                            </div>
+                            </form>
+                        )}
+                    </div>
+                )}
 
-                            {treatmentForm.treatment_regimen_id && (
-                                <div className="mt-8 flex justify-end">
-                                    <Button
-                                        type="submit"
-                                        disabled={submitting}
-                                        className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
-                                    >
-                                        {submitting ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                Đang gửi...
-                                            </>
-                                        ) : 'Gửi phác đồ'}
-                                    </Button>
-                                </div>
-                            )}
-                        </form>
-                    )}
-                </div>
+                {/* Edit confirmation */}
+                {showEditDiagnosisModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+                            <h2 className="text-lg font-semibold mb-4">Xác nhận chỉnh sửa</h2>
+                            <p className="mb-6 text-gray-700">
+                                Việc chỉnh sửa chẩn đoán sẽ hủy bỏ phác đồ điều trị đã chọn trước đó. Bạn có chắc chắn muốn tiếp tục?
+                            </p>
+                            <div className="flex justify-end space-x-4">
+                                <button
+                                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                    onClick={handleEditDiagnosisNo}
+                                >
+                                    Không
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                                    onClick={handleEditDiagnosisYes}
+                                >
+                                    Có
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
 
 
             </div>

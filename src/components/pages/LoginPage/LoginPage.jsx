@@ -97,106 +97,105 @@ const LoginForm = () => {
 
 
     return (
-        <div>
-            <div className="w-full h-screen flex items-center justify-center">
-                <div className="flex w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+            <div className="w-full max-w-5xl bg-white rounded-xl shadow-lg overflow-hidden grid grid-cols-1 md:grid-cols-2">
+                {/* Ảnh bên trái */}
+                <div className="hidden md:block bg-blue-100">
+                    <img
+                        src={LoginImage}
+                        alt="Login"
+                        className="h-full w-full object-cover"
+                    />
+                </div>
 
-                    {/* Ảnh */}
-                    <div className="w-1/2 hidden md:flex bg-blue-50">
-                        <img
-                            src={LoginImage}
-                            className="w-full h-full object-cover self-stretch"
-                            alt="Pet Dog"
-                        />
-                    </div>
-                    {/* Nội dung form login */}
-                    <div className="w-full md:w-1/2 p-10 flex flex-col justify-center">
-                        <Link to="/" className="text-left mb-6 text-xl font-semibold text-[#373E79]">
-                            <h1 className="text-2xl font-bold text-blue-600 mb-1">
+                {/* Nội dung form bên phải */}
+                <div className="p-8 md:p-10 flex flex-col justify-center">
+                    {/* Logo và mô tả */}
+                    <Link to="/" className="font-semibold text-[#373E79]">
+                        <div className="mb-6">
+                            <h1 className="text-3xl font-bold text-blue-700">
                                 <span className="text-blue-800">HIV</span>
-                                <span className="text-blue-600">TMSS</span>
+                                <span className="text-blue-500">TMSS</span>
                             </h1>
-                            <p className="text-sm">Bệnh viện chữa bệnh HIV tốt nhất</p>
-                        </Link>
-
-                        <div className="mb-4">
-                            <h3 className="text-3xl font-semibold text-[#373E79] mb-1">Đăng nhập</h3>
-                            <p className="text-sm text-[#373E79]">Chào mừng bạn trở lại! Vui lòng điền thông tin.</p>
+                            <p className="text-sm text-gray-600 mt-1">
+                                Bệnh viện chữa trị HIV hàng đầu
+                            </p>
                         </div>
+                    </Link>
 
-                        <form className="flex flex-col" onSubmit={handleLogin}>
+                    {/* Tiêu đề form */}
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-semibold text-gray-800 mb-1">Đăng nhập</h2>
+                        <p className="text-sm text-gray-500">Vui lòng nhập thông tin để tiếp tục</p>
+                    </div>
+
+                    {/* Form nhập */}
+                    <form className="space-y-4" onSubmit={handleLogin}>
+                        <div>
                             <input
                                 type="email"
                                 name="email"
                                 placeholder="Email"
-                                className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none"
                                 autoComplete="email"
                                 value={formValue.email}
                                 onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             />
-                            <div className="relative w-full">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    placeholder="Password"
-                                    className="w-full text-black py-2 my-2 border-b border-black bg-transparent outline-none pr-10"
-                                    autoComplete="current-password"
-                                    value={formValue.password}
-                                    onChange={handleChange}
-                                />
-                                <div
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-600"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    onMouseDown={(e) => e.preventDefault()}
-                                >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                </div>
-                            </div>
-
-
-
-                            <div className="flex justify-between items-center text-sm mt-2">
-                                <label className="flex items-center text-[#373E79]">
-                                    <input type="checkbox" className="mr-2" />
-                                    Nhớ tôi cho lần sau
-                                </label>
-                                <Link to="/forgot-password">
-                                    <p className="underline cursor-pointer text-[#373E79]">Quên mật khẩu?</p>
-                                </Link>
-
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-[#4763E6] text-white py-3 rounded-md mt-6 hover:bg-[#3a52c9] transition"
+                        </div>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Mật khẩu"
+                                autoComplete="current-password"
+                                value={formValue.password}
+                                onChange={handleChange}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none pr-10"
+                            />
+                            <div
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer"
+                                onClick={() => setShowPassword(!showPassword)}
                             >
-                                Đăng nhập
-                            </button>
-                        </form>
-
-
-                        <div className="w-full my-6">
-                            <div className="h-[0.5px] bg-black w-full" />
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </div>
                         </div>
 
-
-                        <div className="w-full flex items-center justify-center">
-                            <p className="text-sm font-normal text-[#373E79]">
-                                Không có tài khoản?{" "}
-                                <Link to="/register">
-                                    <span className="font-semibold underline underline-offset-2 cursor-pointer text-[#373E79]">
-                                        Hãy đăng kí
-                                    </span>
-                                </Link>
-                            </p>
+                        {/* Ghi nhớ và quên mật khẩu */}
+                        <div className="flex justify-between items-center text-sm">
+                            <label className="flex items-center gap-2 text-gray-600">
+                                <input type="checkbox" />
+                                Nhớ tôi
+                            </label>
+                            <Link to="/forgot-password" className="text-blue-600 hover:underline">
+                                Quên mật khẩu?
+                            </Link>
                         </div>
 
+                        {/* Nút login */}
+                        <button
+                            type="submit"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition"
+                        >
+                            Đăng nhập
+                        </button>
+                    </form>
+
+                    {/* Dòng kẻ và đăng ký */}
+                    <div className="my-6">
+                        <div className="h-px bg-gray-200 w-full" />
                     </div>
+                    <p className="text-center text-sm text-gray-600">
+                        Chưa có tài khoản?{" "}
+                        <Link to="/register" className="text-blue-600 hover:underline font-medium">
+                            Đăng ký ngay
+                        </Link>
+                    </p>
                 </div>
             </div>
-
         </div>
     );
+
+
 };
 
 export default LoginForm;

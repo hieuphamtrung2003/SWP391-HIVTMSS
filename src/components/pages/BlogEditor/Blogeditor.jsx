@@ -36,7 +36,7 @@ const BlogEditorPage = () => {
             const payload = {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: '', // bỏ qua phần ảnh
+                imageUrl: '',
                 accountID: accountId
             };
 

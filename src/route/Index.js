@@ -25,6 +25,7 @@ import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeMana
 import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
 import PatientListPage from "components/pages/DoctorPatientList/DoctorPatientList";
 import AppointmentTransferRequests from "components/pages/AppoimentChangePage/AppointmentChangePage";
+import TreatmentRegimenManagement from "components/pages/TreatmentRegimenManagement/TreatmentRegimenManagement";
 
 
 let publicRoute = [];
@@ -87,6 +88,7 @@ if (role === "CUSTOMER") {
         { path: "/admin/profile", component: ProfileSettings, layout: AdminLayout },
         { path: "/admin/accounts", component: AccountManagement, layout: AdminLayout },
         { path: "/admin/test-types", component: TestTypeManagement, layout: AdminLayout },
+        { path: "/admin/treatment-regimen", component: TreatmentRegimenManagement, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else {

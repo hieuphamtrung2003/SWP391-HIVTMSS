@@ -2,10 +2,14 @@ import {
   Calendar,
   CalendarCheck,
   MessageSquare,
-  Bell,
   FileText,
   CircleUser,
   Table,
+  LayoutDashboard,
+  Users,
+  Bell,
+  FlaskConical,
+  Stethoscope,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -53,12 +57,12 @@ export default function SideNavbar() {
   const navItems = [
     {
       name: 'Dashboard',
-      icon: <MessageSquare className="h-5 w-5" />,
+      icon: <LayoutDashboard className="h-5 w-5" />,
       path: '/admin/Dashboard'
     },
     {
       name: 'Quản lý tài khoản',
-      icon: <Table className="h-5 w-5" />,
+      icon: <Users className="h-5 w-5" />,
       path: '/admin/accounts'
     },
     {
@@ -68,8 +72,13 @@ export default function SideNavbar() {
     },
     {
       name: 'Xét Nghiệm',
-      icon: <Bell className="h-5 w-5" />,
+      icon: <FlaskConical className="h-5 w-5" />,
       path: '/admin/test-types'
+    },
+    {
+      name: 'Phác đồ',
+      icon: <Stethoscope className="h-5 w-5" />,
+      path: '/admin/treatment-regimen'
     },
   ]
 

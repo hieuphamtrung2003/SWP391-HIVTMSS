@@ -1,5 +1,5 @@
 
-import Header from "../DoctorLayout/Header/Header.jsx";
+import Header from "../Header/Header.jsx";
 import Navbar from "../DoctorLayout/Navbar/Navbar.jsx";
 const DoctorLayout = ({ children }) => {
   return (

@@ -1,5 +1,5 @@
 
-import Header from "../AdminLayout/Header/Header.jsx";
+import Header from "../Header/Header.jsx";
 import Navbar from "../AdminLayout/Navbar/Navbar.jsx";
 const AdminLayout = ({ children }) => {
   return (

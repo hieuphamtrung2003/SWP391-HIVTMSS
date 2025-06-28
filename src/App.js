@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import AdminLayout from "components/layouts/AdminLayout/AdminLayout";
 import DoctorLayout from "components/layouts/DoctorLayout/DoctorLayout";
 function App() {
+
   return (
     <div className="App">
       <Router>

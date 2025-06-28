@@ -111,7 +111,10 @@ const LoginForm = () => {
                 {/* Nội dung form bên phải */}
                 <div className="p-8 md:p-10 flex flex-col justify-center">
                     {/* Logo và mô tả */}
-                    <Link to="/" className="font-semibold text-[#373E79]">
+                    <div
+                        onClick={() => (window.location.href = "/")}
+                        className="font-semibold text-[#373E79] cursor-pointer"
+                    >
                         <div className="mb-6">
                             <h1 className="text-3xl font-bold text-blue-700">
                                 <span className="text-blue-800">HIV</span>
@@ -121,7 +124,7 @@ const LoginForm = () => {
                                 Bệnh viện chữa trị HIV hàng đầu
                             </p>
                         </div>
-                    </Link>
+                    </div>
 
                     {/* Tiêu đề form */}
                     <div className="mb-6">

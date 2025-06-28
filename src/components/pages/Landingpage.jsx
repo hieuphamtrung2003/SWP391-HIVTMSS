@@ -534,24 +534,43 @@ export default function LandingPage() {
                                             variants={itemVariants}
                                             className="flex-shrink-0 w-72"
                                         >
-                                            <Card className="bg-white hover:shadow-lg transition-shadow h-full flex flex-col">
+                                            <Card className="group bg-white hover:bg-[#00CED1] transition-all duration-300 h-full flex flex-col">
                                                 <CardHeader className="pb-0">
                                                     <div className="flex items-center space-x-4">
                                                         <div className="p-3 bg-blue-50 rounded-lg">
                                                             {item.icon}
                                                         </div>
-                                                        <CardTitle className="text-lg">{item.title}</CardTitle>
+
+                                                        <CardTitle className="text-lg text-black">{item.title}</CardTitle>
                                                     </div>
                                                 </CardHeader>
                                                 <CardContent className="flex-1 pt-4">
-                                                    <p className="text-gray-600 mb-6">{item.description}</p>
+
+                                                    <p className="text-gray-600 group-hover:text-white transition-colors duration-300 mb-6">
+                                                        {item.description}
+                                                    </p>
                                                     <div className="mt-auto">
-                                                        <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
-                                                            Tải xuống
-                                                        </Button>
+
+                                                        <a
+                                                            href={item.link}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="block w-full"
+                                                        >
+                                                            <Button
+                                                                variant="outline"
+                                                                className="w-full border-blue-600 text-blue-600 transition-all duration-300
+               group-hover:bg-blue-50 hover:bg-blue-100"
+                                                            >
+                                                                Tải xuống
+                                                            </Button>
+                                                        </a>
+
+
                                                     </div>
                                                 </CardContent>
                                             </Card>
+
                                         </motion.div>
                                     ))}
                                 </div>

@@ -54,7 +54,7 @@ const LoginForm = () => {
                 if (role === "ADMIN") {
                     window.location.href = "/admin/profile";
                 } else if (role === "MANAGER") {
-                    window.location.href = "/manager";
+                    window.location.href = "/manager/profile";
                 } else if (role === "CUSTOMER") {
                     window.location.href = "/schedule";
                 }

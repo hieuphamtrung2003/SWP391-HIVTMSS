@@ -34,7 +34,7 @@ const TreatmentRegimenManagement = () => {
         treatmentRegimenDrugs: [{ method: 1, drugId: '' }]
     });
 
-    const applicableOptions = [ // ✅ [EDIT] Moved to top for reuse
+    const applicableOptions = [
         { value: 'Infant', label: 'Em bé' },
         { value: 'Adolescents', label: 'Trẻ em' },
         { value: 'Adults', label: 'Người lớn' },
@@ -126,7 +126,7 @@ const TreatmentRegimenManagement = () => {
     };
 
     const resolveDrugId = (input) => {
-        if (!Array.isArray(drugs)) return null; // ✅ [EDIT] Defensive check
+        if (!Array.isArray(drugs)) return null;
         const found = drugs.find(d => {
             const normalizedInput = input.trim().toLowerCase();
             return (
@@ -323,7 +323,7 @@ const TreatmentRegimenManagement = () => {
                         </Button>
                         <Button
                             variant="outline"
-
+                            onClick={() => setIsDeleteDialogOpen(true)}
                             className="text-red-600 hover:text-red-700 border-red-600 hover:border-red-700"
                         >
                             <Trash2 className="h-4 w-4 mr-2" />

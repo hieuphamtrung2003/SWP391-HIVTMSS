@@ -3,15 +3,14 @@ import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Save, ArrowLeft, Image, Bold, Italic, List, ListOrdered } from 'lucide-react'
 import { Button } from '../../ui/button';
-import axios from "../../../setup/configAxios";
 import { toast } from "react-toastify";
 import { decodeToken } from "../../../utils/tokenUtils";
-
+import axios from '../../../setup/configAxios';
 const BlogEditorPage = () => {
     const [formData, setFormData] = useState({
         title: '',
         content: '',
-        imageUrl: '', // giữ lại để đúng format payload nhưng không dùng
+        imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/5/5f/Original_Doge_meme.jpg', // giữ lại để đúng format payload nhưng không dùng
         featuredImage: ''
     });
 
@@ -36,7 +35,7 @@ const BlogEditorPage = () => {
             const payload = {
                 title: formData.title,
                 content: formData.content,
-                imageUrl: '',
+                imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/5/5f/Original_Doge_meme.jpg',
                 accountID: accountId
             };
 

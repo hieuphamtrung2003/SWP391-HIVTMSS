@@ -5,7 +5,10 @@ import {
   Bell,
   FileText,
   CircleUser,
-  User,
+  Users2,
+  Stethoscope,
+  Repeat,
+  MessageCircle,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -53,7 +56,7 @@ export default function DoctorSideNavbar() {
   const navItems = [
     {
       name: 'Yêu cầu khám bệnh',
-      icon: <MessageSquare className="h-5 w-5" />,
+      icon: <Stethoscope className="h-5 w-5" />, // Biểu tượng khám bệnh
       path: '/doctor/patient-request'
     },
     {
@@ -63,21 +66,20 @@ export default function DoctorSideNavbar() {
     },
     {
       name: 'Nhắn tin hỗ trợ',
-      icon: <MessageSquare className="h-5 w-5" />,
+      icon: <MessageCircle className="h-5 w-5" />, // Biểu tượng hội thoại thay vì MessageSquare
       path: '/doctor/chat'
     },
     {
-      name: 'chuyển giao lịch hẹn',
-      icon: <MessageSquare className="h-5 w-5" />,
+      name: 'Chuyển giao lịch hẹn',
+      icon: <Repeat className="h-5 w-5" />, // Biểu tượng thể hiện hành động lặp/chuyển
       path: '/doctor/appointment-change'
     },
     {
       name: 'Danh sách bệnh nhân',
-      icon: <User className="h-5 w-5" />,
+      icon: <Users2 className="h-5 w-5" />, // Danh sách nhiều người thay vì 1 user
       path: '/doctor/patient-list'
-    },
-
-  ]
+    }
+  ];
 
   return (
     <aside className="fixed left-0 top-0 h-full w-64 border-r bg-white z-40">

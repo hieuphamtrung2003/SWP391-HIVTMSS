@@ -6,7 +6,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AdminLayout from "components/layouts/AdminLayout/AdminLayout";
 import DoctorLayout from "components/layouts/DoctorLayout/DoctorLayout";
+import ManagerLayout from "components/layouts/ManagerLayout/ManagerLayout";
 function App() {
+
   return (
     <div className="App">
       <Router>
@@ -20,6 +22,9 @@ function App() {
               }
               if (route.layout == DoctorLayout) {
                 Layout = DoctorLayout;
+              }
+              if (route.layout == ManagerLayout) {
+                Layout = ManagerLayout;
               }
               if (route.layout === null) {
                 Layout = Fragment;

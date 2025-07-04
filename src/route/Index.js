@@ -28,6 +28,7 @@ import AppointmentTransferRequests from "components/pages/AppoimentChangePage/Ap
 import TreatmentRegimenManagement from "components/pages/TreatmentRegimenManagement/TreatmentRegimenManagement";
 
 
+
 let publicRoute = [];
 const role = localStorage.getItem("role");
 
@@ -46,6 +47,7 @@ if (role === "CUSTOMER") {
         { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
         { path: "/blog/edit/:blogId", component: EditBlogPage, layout: DefaultLayout },
+
         { path: "*", component: NotFound, layout: null },
 
     ]

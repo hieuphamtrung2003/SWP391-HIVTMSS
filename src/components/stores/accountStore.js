@@ -141,7 +141,7 @@ export const useAccountStore = create((set, get) => ({
   },
 
   handleViewDetails: async (account) => {
-    set({ 
+    set({
       selectedAccount: account,
       isDetailsOpen: true,
       isEditMode: false

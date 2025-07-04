@@ -1,1043 +1,235 @@
-import { useState, useEffect } from 'react';
-import axios from '../../../setup/configAxios'
-import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Button } from "../../ui/button";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import axios from 'setup/configAxios';
 import { toast } from 'react-toastify';
+import {
+    Card, CardContent, CardFooter, CardHeader, CardTitle
+} from '../../../components/ui/card';
+import {
+    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
+} from '../../../components/ui/table';
+import { Button } from '../../../components/ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
+import { Badge } from '../../../components/ui/badge';
+import { Input } from '../../../components/ui/input';
+import { PlusCircle, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Eye, Loader2, Search } from 'lucide-react';
 
-const DoctorTreatmentPage = () => {
-    const { appointmentId } = useParams();
-    const [testTypes, setTestTypes] = useState([]);
+const TreatmentRegimenManagement = () => {
+    const [regimens, setRegimens] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null);
-    const [patientInfo, setPatientInfo] = useState(null);
-    const [appointmentInfo, setAppointmentInfo] = useState(null);
-    const [showAdditionalFields, setShowAdditionalFields] = useState(true);
-    const [showEditDiagnosisModal, setShowEditDiagnosisModal] = useState(false);
+    const [currentRegimen, setCurrentRegimen] = useState(null);
+    const [selectedMethod, setSelectedMethod] = useState(1);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
 
-
-
-
-    // Initial form state
-    const initialFormData = {
-        result: 'POSITIVE',
-        cd4: '',
-        note: '',
-        test_type_id: '',
-        sample_type: 'WHOLE_BLOOD',
-        result_type: 'PRELIMINARY',
-        virus_type: 'HIV_1',
-        ag_ab_result: 'POSITIVE',
-        viral_load: '',
-        pcr_type: 'DNA',
-        clinical_stage: 'STAGE_I'
-    };
-
-    const [formData, setFormData] = useState(initialFormData);
-
-    //Treatment data
-
-    const initialTreatmentForm = {
-        gender: 'MALE',
-        dob: '',
-        applicable: '',
-        prognosis: '',
-        prevention: '',
-        method: '',
-        pregnant: false,
-        first_name: '',
-        last_name: '',
-        medical_history: '',
-        next_follow_up: '',
-        treatment_regimen_id: ''
-    };
-    const [treatmentForm, setTreatmentForm] = useState(initialTreatmentForm);
-
-    const [treatmentRegimens, setTreatmentRegimens] = useState([]);
-    const [treatmentSubmitSuccess, setTreatmentSubmitSuccess] = useState(false);
-    const [treatmentSubmitError, setTreatmentSubmitError] = useState(null);
-    const [canShowTreatment, setCanShowTreatment] = useState(false);
-
-
-    // Get the selected test type details
-    const selectedTestType = formData.test_type_id
-        ? testTypes.find(test => test.test_type_id === parseInt(formData.test_type_id))
-        : null;
-
-    //Get the selected treatment regiment details
-    const selectedRegimen = treatmentForm.treatment_regimen_id
-        ? treatmentRegimens.find(r => r.treatment_regimen_id === parseInt(treatmentForm.treatment_regimen_id))
-        : null;
-
-    // Determine which fields to show based on test type
-    const getFieldsToShow = () => {
-        if (!selectedTestType) return [];
-
-        const testName = selectedTestType.test_type_name.toLowerCase();
-
-        if (testName.includes('screening')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'agAbResult'];
-        } else if (testName.includes('confirmatory')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'virusType', 'result'];
-        } else if (testName.includes('pcr')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'pcrType', 'viralLoad', 'result'];
-        } else if (testName.includes('western bolt test')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'result', 'virusType'];
-        } else if (testName.includes('giúp xác định')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'viralLoad', 'result'];
-        } else if (testName.includes('cd4')) {
-            return ['sampleType', 'clinicalStage', 'resultType', 'cd4'];
+    const fetchRegimens = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get('/api/v1/treatment-regimens/list?pageNo=0&pageSize=30&sortBy=id&sortDir=asc');
+            setRegimens(response.data.content);
+        } catch (error) {
+            toast.error('Không thể tải danh sách phác đồ');
+        } finally {
+            setLoading(false);
         }
-        return [];
     };
 
-    const fieldsToShow = getFieldsToShow();
-
-    // Determine which ARV to show in treatment
-    const getFieldsToShowTreatment = () => {
-        if (!selectedRegimen) return [];
-
-        const name = selectedRegimen.name?.toLowerCase();
-
-        if (name.includes("ưu tiên")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
-        } else if (name.includes("thay thế")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
-        } else if (name.includes("đặc biệt")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
-        }
-
-        return [];
-    };
-
-    const fieldsToShowTreatment = getFieldsToShowTreatment();
-
-    // Fetch test types and patient/appointment info
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+        fetchRegimens();
+    }, []);
 
-                // Fetch test types
-                const testTypesResponse = await axios.get('/api/v1/test-types/all');
-                if (!testTypesResponse.data || !Array.isArray(testTypesResponse.data)) {
-                    toast.error('Invalid test types data format');
-                }
-                const activeTestTypes = testTypesResponse.data.filter(
-                    test => test.is_active === 'ACTIVE'
-                );
-                setTestTypes(activeTestTypes);
+    const paginatedData = regimens.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
 
-                // Fetch treatment regimens
-                const treatmentRegimensResponse = await axios.get(
-                    '/api/v1/treatment-regimens/list?pageNo=0&pageSize=10&sortBy=id&sortDir=asc'
-                );
-                const treatmentData = treatmentRegimensResponse?.data?.content || [];
-                setTreatmentRegimens(treatmentData);
+    const totalPages = Math.ceil(regimens.length / itemsPerPage);
+    const goToPage = (page) => setCurrentPage(Math.max(1, Math.min(page, totalPages)));
 
-                // Fetch appointment info
-                const appointmentResponse = await axios.get(`/api/v1/appointments?appointmentId=${appointmentId}`);
-                if (!appointmentResponse.data) {
-                    toast.error('Invalid appointment data');
-                }
-
-                const appointmentData = appointmentResponse.data;
-                setAppointmentInfo({
-                    date: new Date(appointmentData.start_time).toLocaleDateString(),
-                    reason: appointmentData.chief_complaint || 'Khám tổng quát',
-                    medicalHistory: appointmentData.medical_history || 'Không có'
-                });
-
-                setPatientInfo({
-                    name: appointmentData.is_anonymous ? 'Bệnh nhân ẩn danh' : appointmentData.full_name,
-                    id: appointmentData.customer?.customer_id || 'N/A',
-                    gender: appointmentData.gender === 'MALE' ? 'Nam' : 'Nữ',
-                    dob: new Date(appointmentData.dob).toLocaleDateString(),
-                    phone: appointmentData.customer?.phone || 'N/A'
-                });
-
-            } catch (err) {
-                console.error('Error fetching data:', err);
-
-                toast.error('Không thể tải dữ liệu. Vui lòng thử lại sau.');
-                setError(err.message || 'Không thể tải dữ liệu.');
-                setTestTypes([]);
-            } finally {
-
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-
-
-    }, [appointmentId]);
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-
-        if (name === 'test_type_id') {
-            setShowAdditionalFields(value !== '');
-        }
-
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+    const handleViewDetails = (regimen) => {
+        setCurrentRegimen(regimen);
+        setSelectedMethod(1);
+        setIsViewDialogOpen(true);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
-        setSubmitError(null);
-
-        // Validate diagnosis fields
-        if (!formData.test_type_id) {
-            toast.error('Vui lòng chọn loại xét nghiệm.');
-            setSubmitting(false);
-            return;
-        }
-
-        const requiredFields = getFieldsToShow();
-        if (requiredFields.includes('cd4') && !formData.cd4) {
-            toast.error('Vui lòng nhập chỉ số CD4.');
-            setSubmitting(false);
-            return;
-        }
-        if (requiredFields.includes('viralLoad') && !formData.viral_load) {
-            toast.error('Vui lòng nhập tải lượng virus.');
-            setSubmitting(false);
-            return;
-        }
-        if (requiredFields.includes('result') && !formData.result) {
-            toast.error('Vui lòng chọn kết quả.');
-            setSubmitting(false);
-            return;
-        }
-
+    const handleDelete = async () => {
+        if (!currentRegimen) return;
         try {
-            const payload = {
-                result: formData.result,
-                cd4: formData.cd4 ? parseInt(formData.cd4) : null,
-                note: formData.note,
-                appointment_id: parseInt(appointmentId),
-                test_type_id: parseInt(formData.test_type_id),
-                sample_type: formData.sample_type,
-                result_type: formData.result_type,
-                virus_type: formData.virus_type,
-                ag_ab_result: formData.ag_ab_result,
-                viral_load: formData.viral_load ? parseInt(formData.viral_load) : null,
-                pcr_type: formData.pcr_type,
-                clinical_stage: formData.clinical_stage
-            };
-
-            await axios.put('/api/v1/appointments/diagnosis', payload, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
-            });
-
-            setSubmitSuccess(true);
-            setCanShowTreatment(true);
-            toast.success('Chẩn đoán đã được gửi thành công!');
-            setFormData(initialFormData);
-            setShowAdditionalFields(false);
-        } catch (err) {
-            toast.error(err.response?.data?.message);
-            setSubmitError(err.response?.data?.message || 'Có lỗi xảy ra khi gửi chẩn đoán');
+            setIsSubmitting(true);
+            await axios.delete(`/api/v1/treatment-regimens?id=${currentRegimen.treatment_regimen_id}`);
+            toast.success('Xóa phác đồ thành công');
+            setIsDeleteDialogOpen(false);
+            setIsViewDialogOpen(false);
+            fetchRegimens();
+        } catch (error) {
+            toast.error('Xóa phác đồ thất bại');
         } finally {
-            setSubmitting(false);
+            setIsSubmitting(false);
         }
     };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-screen">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="max-w-4xl mx-auto p-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                    <div className="text-center text-red-500">
-                        <XCircle className="h-12 w-12 mx-auto" />
-                        <p className="mt-4 text-lg font-medium">{error}</p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    //handle treatment value
-    const handleTreatmentChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setTreatmentForm(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
-    };
-
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-
-
-    const handleTreatmentRegimenChange = (e) => {
-        const value = e.target.value;
-
-        if (value === '') {
-            // Reset form
-            setTreatmentForm(prev => ({
-                ...prev,
-                treatment_regimen_id: '',
-                method: '',
-                prognosis: '',
-                prevention: '',
-                applicable: '',
-                pregnant: false,
-                next_follow_up: ''
-            }));
-            return;
-        }
-
-        const selectedRegimenId = parseInt(value);
-        const selectedRegimen = treatmentRegimens.find(r => r.treatment_regimen_id === selectedRegimenId);
-        const defaultMethod = selectedRegimen?.treatment_regimen_drugs?.[0]?.method || '';
-
-        setTreatmentForm(prev => ({
-            ...prev,
-            treatment_regimen_id: selectedRegimenId,
-            method: defaultMethod,
-            prognosis: '',
-            prevention: '',
-            applicable: '',
-            pregnant: false,
-            next_follow_up: ''
-        }));
-    };
-
-    // handle treatment submit
-    const handleSubmitTreatment = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
-        setTreatmentSubmitError(null);
-
-        // Validate treatment fields
-        if (!treatmentForm.treatment_regimen_id) {
-            toast.error("Vui lòng chọn phác đồ điều trị.");
-            setSubmitting(false);
-            return;
-        }
-        if (!treatmentForm.method) {
-            toast.error("Vui lòng chọn phương pháp điều trị.");
-            setSubmitting(false);
-            return;
-        }
-        if (!treatmentForm.applicable) {
-            toast.error("Vui lòng chọn đối tượng áp dụng.");
-            setSubmitting(false);
-            return;
-        }
-        if (!treatmentForm.next_follow_up) {
-            toast.error("Vui lòng chọn lịch tái khám.");
-            setSubmitting(false);
-            return;
-        }
-        const followUpDate = new Date(treatmentForm.next_follow_up);
-        const now = new Date();
-        if (followUpDate <= now) {
-            toast.error("Lịch tái khám phải là thời gian trong tương lai.");
-            setSubmitting(false);
-            return;
-        }
-
-        try {
-            const payload = {
-                appointmentId: parseInt(appointmentId),
-                gender: patientInfo?.gender === 'Nam' ? 'MALE' : 'FEMALE',
-                dob: new Date().toISOString().split('T')[0],
-                applicable: treatmentForm.applicable,
-                prognosis: treatmentForm.prognosis,
-                prevention: treatmentForm.prevention,
-                method: parseInt(treatmentForm.method),
-                pregnant: treatmentForm.pregnant,
-                first_name: '...', // nếu có thể lấy từ patientInfo
-                last_name: '...',
-                medical_history: treatmentForm.medical_history,
-                next_follow_up: treatmentForm.next_follow_up,
-                treatment_regimen_id: parseInt(treatmentForm.treatment_regimen_id)
-            };
-
-            await axios.put('/api/v1/appointments/treatment', payload, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
-            });
-
-            toast.success('Đã gửi phác đồ điều trị!');
-            setTreatmentSubmitSuccess(true);
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Lỗi khi gửi phác đồ');
-            setTreatmentSubmitError(err.response?.data?.message);
-        } finally {
-            setSubmitting(false);
-        }
-    };
-
-    const handleEditDiagnosisConfirm = () => {
-        const hasTreatmentData =
-            treatmentForm.treatment_regimen_id !== '' ||
-            treatmentForm.method !== '' ||
-            treatmentForm.prognosis !== '' ||
-            treatmentForm.prevention !== '' ||
-            treatmentForm.applicable !== '' ||
-            treatmentForm.pregnant !== false ||
-            treatmentForm.next_follow_up !== '';
-
-        if (hasTreatmentData) {
-            setShowEditDiagnosisModal(true); // sẽ show dialog confirm
-        } else {
-            setSubmitSuccess(false); // mở lại form chẩn đoán 
-            setCanShowTreatment(false);
-            setTreatmentSubmitSuccess(false);
-        }
-    };
-
-    const handleEditDiagnosisYes = () => {
-        setShowEditDiagnosisModal(false);
-        setSubmitSuccess(false);
-        setCanShowTreatment(false);
-        setTreatmentSubmitSuccess(false);
-        setTreatmentForm(initialTreatmentForm); // reset treatment form
-        toast.info("Phác đồ điều trị đã được hủy do có thay đổi trong chẩn đoán.");
-    };
-
-
-    const handleEditDiagnosisNo = () => {
-        setShowEditDiagnosisModal(false);
-    };
-
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-6xl mx-auto p-6"
-        >
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                {/* Header */}
-                <div className="bg-blue-600 px-6 py-4">
-                    <h1 className="text-xl font-semibold text-white">Chẩn đoán và điều trị</h1>
-                </div>
-
-                {/* Patient Info - This section remains visible after submission */}
-                <div className="p-6 border-b">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4">Thông tin bệnh nhân</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Họ tên</p>
-                            <p className="font-medium">{patientInfo?.name}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Mã bệnh nhân</p>
-                            <p className="font-medium">{patientInfo?.id}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Giới tính</p>
-                            <p className="font-medium">{patientInfo?.gender}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Ngày sinh</p>
-                            <p className="font-medium">{patientInfo?.dob}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Số điện thoại</p>
-                            <p className="font-medium">{patientInfo?.phone}</p>
+        <div className="container mx-auto px-4 py-8">
+            <Card className="shadow-sm">
+                <CardHeader>
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <CardTitle className="text-2xl font-bold">Quản lý phác đồ điều trị</CardTitle>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                    placeholder="Tìm kiếm tên phác đồ..."
+                                    className="pl-9"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
+                </CardHeader>
 
-                {/* Appointment Info - This section remains visible after submission */}
-                <div className="p-6 border-b">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4">Thông tin lịch hẹn</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Ngày hẹn</p>
-                            <p className="font-medium">{appointmentInfo?.date}</p>
+                <CardContent>
+                    {loading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                        <div>
-                            <p className="text-sm text-gray-500">Lý do khám</p>
-                            <p className="font-medium">{appointmentInfo?.reason}</p>
-                        </div>
-                        <div className="md:col-span-2">
-                            <p className="text-sm text-gray-500">Tiền sử bệnh</p>
-                            <p className="font-medium">{appointmentInfo?.medicalHistory}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Diagnosis Form */}
-                <div className="p-6">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4">Thông tin chẩn đoán</h2>
-
-                    {submitSuccess ? (
-                        <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
-                            <div className="flex items-center text-green-700">
-                                <CheckCircle2 className="h-5 w-5 mr-2" />
-                                <p className="font-medium">Chẩn đoán đã được gửi thành công!</p>
-                            </div>
-                            <Button
-                                className="mt-4 bg-blue-600 hover:bg-blue-700"
-                                onClick={handleEditDiagnosisConfirm}
-                            >
-                                Chỉnh sửa chuẩn đoán
-                            </Button>
-
-                        </div>
-                    ) : submitError && (
-                        <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                            <div className="flex items-center text-red-700">
-                                <XCircle className="h-5 w-5 mr-2" />
-                                <p className="font-medium">{submitError}</p>
-                            </div>
+                    ) : (
+                        <div className="rounded-lg border overflow-hidden">
+                            <Table>
+                                <TableHeader className="bg-gray-50">
+                                    <TableRow>
+                                        <TableHead className="w-[100px]">ID</TableHead>
+                                        <TableHead>Tên phác đồ</TableHead>
+                                        <TableHead>Trạng thái</TableHead>
+                                        <TableHead className="text-right">Thao tác</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {paginatedData.map((regimen) => (
+                                        <TableRow key={regimen.treatment_regimen_id} className="hover:bg-gray-50">
+                                            <TableCell className="font-medium">{regimen.treatment_regimen_id}</TableCell>
+                                            <TableCell>{regimen.name}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={regimen.isActive === 'ACTIVE' ? 'default' : 'secondary'}
+                                                    className={regimen.isActive === 'ACTIVE'
+                                                        ? 'bg-green-100 text-green-800'
+                                                        : 'bg-red-100 text-red-800'}
+                                                >
+                                                    {regimen.isActive === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => handleViewDetails(regimen)}
+                                                    className="hover:bg-muted"
+                                                >
+                                                    <Eye className="h-4 w-4 mr-2" />
+                                                    Xem
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                     )}
+                </CardContent>
 
-                    {!submitSuccess && (
-                        <form onSubmit={handleSubmit}>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                {/* Left Column - Test Selection */}
-                                <div className="space-y-6">
+                <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                        Hiển thị <strong>{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, regimens.length)}</strong> trong tổng số <strong>{regimens.length}</strong> phác đồ
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Button variant="outline" className="h-8 w-8 p-0" onClick={() => goToPage(1)} disabled={currentPage === 1}><ChevronsLeft className="h-4 w-4" /></Button>
+                        <Button variant="outline" className="h-8 w-8 p-0" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                        <div className="text-sm font-medium">Trang {currentPage} / {totalPages}</div>
+                        <Button variant="outline" className="h-8 w-8 p-0" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
+                        <Button variant="outline" className="h-8 w-8 p-0" onClick={() => goToPage(totalPages)} disabled={currentPage === totalPages}><ChevronsRight className="h-4 w-4" /></Button>
+                    </div>
+                </CardFooter>
+            </Card>
+
+            {/* View Detail Dialog */}
+            <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+                <DialogContent className="bg-white max-w-lg border border-gray-300 shadow-xl">
+                    <DialogHeader>
+                        <DialogTitle className="text-lg font-bold">Chi tiết phác đồ</DialogTitle>
+                    </DialogHeader>
+                    {currentRegimen && (
+                        <div className="space-y-4">
+                            <p><strong className="text-gray-700">Tên:</strong> {currentRegimen.name}</p>
+                            <p><strong className="text-gray-700">Đối tượng áp dụng:</strong> {currentRegimen.applicable}</p>
+                            <p><strong className="text-gray-700">Tuyến điều trị:</strong> {currentRegimen.lineLevel}</p>
+                            <p><strong className="text-gray-700">Trạng thái:</strong> {currentRegimen.isActive === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}</p>
+                            {currentRegimen.note && (
+                                <p><strong className="text-gray-700">Lưu ý:</strong> {currentRegimen.note}</p>
+                            )}
+
+                            {currentRegimen.treatment_regimen_drugs?.length > 0 && (
+                                <div className="space-y-3">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Loại xét nghiệm <span className="text-red-500">*</span>
-                                        </label>
+                                        <label className="block font-medium mb-1">Chọn phương thức điều trị:</label>
                                         <select
-                                            name="test_type_id"
-                                            value={formData.test_type_id}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                            required
+                                            value={selectedMethod}
+                                            onChange={(e) => setSelectedMethod(parseInt(e.target.value))}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                         >
-                                            <option value="">Chọn loại xét nghiệm</option>
-                                            {testTypes.map(test => (
-                                                <option key={test.test_type_id} value={test.test_type_id}>
-                                                    {test.test_type_name}
+                                            {currentRegimen.treatment_regimen_drugs.map(drugSet => (
+                                                <option key={drugSet.method} value={drugSet.method}>
+                                                    Phương thức {drugSet.method}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
 
-                                    {showAdditionalFields && (
-                                        <>
-                                            {fieldsToShow.includes('sampleType') && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Loại mẫu <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="sample_type"
-                                                        value={formData.sample_type}
-                                                        onChange={handleInputChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                        required
-                                                    >
-                                                        <option value="WHOLE_BLOOD">Máu toàn phần</option>
-                                                        <option value="SERUM">Huyết thanh</option>
-                                                        <option value="PLASMA">Huyết tương</option>
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShow.includes('clinicalStage') && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Giai đoạn lâm sàng <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="clinical_stage"
-                                                        value={formData.clinical_stage}
-                                                        onChange={handleInputChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                        required
-                                                    >
-                                                        <option value="STAGE_I">Giai đoạn I</option>
-                                                        <option value="STAGE_II">Giai đoạn II</option>
-                                                        <option value="STAGE_III">Giai đoạn III</option>
-                                                        <option value="STAGE_IV">Giai đoạn IV</option>
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShow.includes('resultType') && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Loại kết quả <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="result_type"
-                                                        value={formData.result_type}
-                                                        onChange={handleInputChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                        required
-                                                    >
-                                                        <option value="PRELIMINARY">Sơ bộ</option>
-                                                        <option value="FINAL">Cuối cùng</option>
-                                                        <option value="INDETERMINATE">Không xác định</option>
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShow.includes('result') && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                        Kết quả <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="result"
-                                                        value={formData.result}
-                                                        onChange={handleInputChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                        required
-                                                    >
-                                                        <option value="POSITIVE">Dương tính</option>
-                                                        <option value="NEGATIVE">Âm tính</option>
-                                                        <option value="INCONCLUSIVE">Không xác định</option>
-                                                    </select>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-
-                                {/* Middle Column - Test Type Details */}
-                                <div className="lg:col-span-1">
-                                    {selectedTestType && (
-                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 h-full">
-                                            <h3 className="font-medium text-blue-800 mb-3">Thông tin xét nghiệm</h3>
-                                            <div className="space-y-4">
-                                                <div>
-                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Tên xét nghiệm</p>
-                                                    <p className="font-medium mt-1">{selectedTestType.test_type_name}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Mã xét nghiệm</p>
-                                                    <p className="font-medium mt-1">{selectedTestType.test_type_description}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Đối tượng áp dụng</p>
-                                                    <p className="font-medium mt-1">{selectedTestType.applicable}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Mô tả</p>
-                                                    <p className="text-sm mt-1 text-gray-700">{selectedTestType.test_type_code}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Right Column - Additional Fields */}
-                                {showAdditionalFields && (
-                                    <div className="space-y-6">
-                                        {fieldsToShow.includes('virusType') && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Loại virus <span className="text-red-500">*</span>
-                                                </label>
-                                                <select
-                                                    name="virus_type"
-                                                    value={formData.virus_type}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    required
-                                                >
-                                                    <option value="HIV_1">HIV-1</option>
-                                                    <option value="HIV_2">HIV-2</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {fieldsToShow.includes('agAbResult') && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Kết quả Kháng nguyên/Kháng thể <span className="text-red-500">*</span>
-                                                </label>
-                                                <select
-                                                    name="ag_ab_result"
-                                                    value={formData.ag_ab_result}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    required
-                                                >
-                                                    <option value="POSITIVE">Dương tính</option>
-                                                    <option value="NEGATIVE">Âm tính</option>
-                                                    <option value="INCONCLUSIVE">Không xác định</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {fieldsToShow.includes('pcrType') && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Loại PCR <span className="text-red-500">*</span>
-                                                </label>
-                                                <select
-                                                    name="pcr_type"
-                                                    value={formData.pcr_type}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    required
-                                                >
-                                                    <option value="DNA">DNA</option>
-                                                    <option value="RNA">RNA</option>
-                                                </select>
-                                            </div>
-                                        )}
-
-                                        {fieldsToShow.includes('viralLoad') && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Tải lượng virus (bản sao/mL)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="viral_load"
-                                                    value={formData.viral_load}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="Nhập tải lượng virus"
-                                                    min="0"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {fieldsToShow.includes('cd4') && (
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Số lượng CD4 (tế bào/mm³)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="cd4"
-                                                    value={formData.cd4}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="Nhập số lượng CD4"
-                                                    min="0"
-                                                />
-                                            </div>
-                                        )}
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Ghi chú
-                                            </label>
-                                            <textarea
-                                                name="note"
-                                                value={formData.note}
-                                                onChange={handleInputChange}
-                                                rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="Nhập ghi chú (nếu có)"
-                                            />
-                                        </div>
+                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-2">
+                                        <h3 className="font-medium text-blue-800 mb-3">Danh sách thuốc</h3>
+                                        <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
+                                            {currentRegimen.treatment_regimen_drugs.find(d => d.method === selectedMethod)?.drugs.map(drug => (
+                                                <li key={drug.drug_id}>{drug.drug_name} ({drug.short_name}) - {drug.drug_type}</li>
+                                            ))}
+                                        </ul>
                                     </div>
-                                )}
-                            </div>
-
-
-
-                            {showAdditionalFields && (
-                                <div className="mt-8 flex justify-end">
-                                    <Button
-                                        type="submit"
-                                        disabled={submitting}
-                                        className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
-                                    >
-                                        {submitting ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                Đang gửi...
-                                            </>
-                                        ) : 'Gửi chẩn đoán'}
-                                    </Button>
                                 </div>
                             )}
-                        </form>
-
-
-
-                    )}
-
-                </div>
-
-                {/* Treatment Form */}
-                {canShowTreatment && (
-                    <div className="p-6 border-b">
-                        <h2 className="text-lg font-medium text-gray-800 mb-4">Chọn phác đồ điều trị</h2>
-
-                        {treatmentSubmitSuccess ? (
-                            <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
-                                <div className="flex items-center text-green-700">
-                                    <CheckCircle2 className="h-5 w-5 mr-2" />
-                                    <p className="font-medium">Phác đồ đã được gửi thành công!</p>
-                                </div>
-                                <Button className="mt-4 bg-blue-600 hover:bg-blue-700" onClick={() => setTreatmentSubmitSuccess(false)}>
-                                    Chỉnh sửa bản điều trị
-                                </Button>
-                            </div>
-                        ) : treatmentSubmitError && (
-                            <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
-                                <div className="flex items-center text-red-700">
-                                    <XCircle className="h-5 w-5 mr-2" />
-                                    <p className="font-medium">{treatmentSubmitError}</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {!treatmentSubmitSuccess && (
-                            <form onSubmit={handleSubmitTreatment}>
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Left Column: chọn phác đồ + note */}
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Phác đồ điều trị</label>
-                                            <select
-                                                name="treatment_regimen_id"
-                                                value={treatmentForm.treatment_regimen_id}
-                                                onChange={handleTreatmentRegimenChange}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            >
-                                                <option value="">Chọn phác đồ</option>
-                                                {treatmentRegimens.map(regimen => (
-                                                    <option key={regimen.treatment_regimen_id} value={regimen.treatment_regimen_id}>
-                                                        {regimen.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                                            <textarea
-                                                name="medical_history"
-                                                value={treatmentForm.medical_history}
-                                                onChange={handleTreatmentChange}
-                                                rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                placeholder="Nhập ghi chú (nếu có)"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Middle Column: thông tin phác đồ */}
-                                    <div className="lg:col-span-1">
-                                        {treatmentForm.treatment_regimen_id && (
-                                            (() => {
-                                                const selected = treatmentRegimens.find(
-                                                    r => r.treatment_regimen_id === parseInt(treatmentForm.treatment_regimen_id)
-                                                );
-                                                if (!selected) return null;
-
-                                                return (
-                                                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 h-full">
-                                                        <h3 className="font-medium text-blue-800 mb-3">Thông tin phác đồ</h3>
-                                                        <div className="space-y-4">
-                                                            <div>
-                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Tên phác đồ</p>
-                                                                <p className="font-medium mt-1">{selectedRegimen.name}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Đối tượng áp dụng</p>
-                                                                <p className="font-medium mt-1">{selectedRegimen.applicable}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-xs text-blue-600 uppercase tracking-wider">Tuyến điều trị</p>
-                                                                <p className="font-medium mt-1">
-                                                                    {selectedRegimen.lineLevel === 'FIRST_LINE' ? 'Tuyến đầu'
-                                                                        : selectedRegimen.lineLevel === 'SECOND_LINE' ? 'Tuyến hai'
-                                                                            : selectedRegimen.lineLevel}
-                                                                </p>
-                                                            </div>
-                                                            {selectedRegimen.note && (
-                                                                <div>
-                                                                    <p className="text-xs text-blue-600 uppercase tracking-wider">Lưu ý</p>
-                                                                    <p className="text-sm mt-1 text-gray-700">{selectedRegimen.note}</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()
-                                        )}
-                                    </div>
-
-
-                                    {/* Right Column: fields còn lại */}
-                                    {treatmentForm.treatment_regimen_id && (
-                                        <div className="space-y-6">
-                                            {fieldsToShowTreatment.includes("method") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp điều trị <span className="text-red-500">*</span></label>
-                                                    <select
-                                                        name="method"
-                                                        value={treatmentForm.method}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    >
-                                                        <option value="">Chọn phương pháp</option>
-                                                        {(selectedRegimen?.treatment_regimen_drugs || []).map(m => (
-                                                            <option key={m.method} value={m.method}>Phương pháp {m.method}</option>
-                                                        ))}
-                                                    </select>
-
-                                                    {treatmentForm.method && (
-                                                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mt-4">
-                                                            <h3 className="font-medium text-blue-800 mb-3">Danh sách thuốc</h3>
-                                                            <ul className="list-disc list-inside text-sm text-gray-800 space-y-1">
-                                                                {(
-                                                                    selectedRegimen?.treatment_regimen_drugs?.find(drugGroup => drugGroup.method === parseInt(treatmentForm.method))?.drugs || []
-                                                                ).map(drug => (
-                                                                    <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("prognosis") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tiên lượng <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        name="prognosis"
-                                                        value={treatmentForm.prognosis}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("prevention") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ngừa <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        name="prevention"
-                                                        value={treatmentForm.prevention}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("applicable") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng áp dụng <span className="text-red-500">*</span></label>
-                                                    <select
-                                                        name="applicable"
-                                                        value={treatmentForm.applicable}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    >
-                                                        <option value="">Chọn đối tượng</option>
-                                                        <option value="Infant">Em bé</option>
-                                                        <option value="Adolescents">Trẻ em</option>
-                                                        <option value="Adults">Người lớn</option>
-                                                        <option value="PregnantWomen">Phụ nữ có thai</option>
-
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("pregnant") && patientInfo?.gender === 'Nữ' && (
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        name="pregnant"
-                                                        checked={treatmentForm.pregnant}
-                                                        onChange={handleTreatmentChange}
-                                                        className="mr-2"
-                                                    />
-                                                    <label className="text-sm text-gray-700">Mang thai</label>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("next_follow_up") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tái khám tiếp theo <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        type="datetime-local"
-                                                        name="next_follow_up"
-                                                        value={treatmentForm.next_follow_up}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {treatmentForm.treatment_regimen_id && (
-                                    <div className="mt-8 flex justify-end">
-                                        <Button
-                                            type="submit"
-                                            disabled={submitting}
-                                            className="bg-blue-600 hover:bg-blue-700 min-w-[150px]"
-                                        >
-                                            {submitting ? (
-                                                <>
-                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                                    Đang gửi...
-                                                </>
-                                            ) : 'Gửi phác đồ'}
-                                        </Button>
-                                    </div>
-                                )}
-                            </form>
-                        )}
-                    </div>
-                )}
-
-                {/* Edit confirmation */}
-                {showEditDiagnosisModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-                            <h2 className="text-lg font-semibold mb-4">Xác nhận chỉnh sửa</h2>
-                            <p className="mb-6 text-gray-700">
-                                Việc chỉnh sửa chẩn đoán sẽ hủy bỏ phác đồ điều trị đã chọn trước đó. Bạn có chắc chắn muốn tiếp tục?
-                            </p>
-                            <div className="flex justify-end space-x-4">
-                                <button
-                                    className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-                                    onClick={handleEditDiagnosisNo}
-                                >
-                                    Không
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                                    onClick={handleEditDiagnosisYes}
-                                >
-                                    Có
-                                </button>
-                            </div>
                         </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="destructive" className="bg-red-600 hover:bg-red-700" onClick={() => setIsDeleteDialogOpen(true)}>
+                            Xoá phác đồ
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Delete confirmation dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] bg-white">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận xoá</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-4">
+                        Bạn có chắc chắn muốn xoá phác đồ <strong>{currentRegimen?.name}</strong>? Hành động này không thể hoàn tác.
                     </div>
-                )}
-
-
-
-            </div>
-        </motion.div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>
+                            Huỷ
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="bg-red-600 hover:bg-red-700">
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Xoá
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     );
 };
 
-export default DoctorTreatmentPage;
+export default TreatmentRegimenManagement;

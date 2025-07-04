@@ -10,6 +10,7 @@ import {
   Bell,
   FlaskConical,
   Stethoscope,
+  Pill,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -80,6 +81,11 @@ export default function SideNavbar() {
       icon: <Stethoscope className="h-5 w-5" />,
       path: '/admin/treatment-regimen'
     },
+    {
+      name: 'Thuốc',
+      icon: <Pill className="h-5 w-5" />,
+      path: '/admin/drugs'
+    }
   ]
 
   return (
@@ -130,7 +136,7 @@ export default function SideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <span onClick={handleLogout}>Đăng Xuất</span>
+            <div onClick={handleLogout}>Đăng Xuất</div>
           </Button>
         </div>
       </div>

@@ -37,7 +37,7 @@ const BlogListPage = () => {
           title: blog.title,
           content: blog.content,
           status: blog.status,
-          imageUrl: blog.image_url,
+          imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/5/5f/Original_Doge_meme.jpg',
           isHidden: true
         }
       });

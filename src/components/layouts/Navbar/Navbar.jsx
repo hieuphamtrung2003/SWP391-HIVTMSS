@@ -125,7 +125,7 @@ export default function SideNavbar() {
           >
             <div className="flex items-center gap-3 cursor-pointer">
               <LogOut className="h-5 w-5" />
-              <span onClick={handleLogout}>Đăng Xuất</span>
+              <div onClick={handleLogout}>Đăng Xuất</div>
             </div>
           </Button>
         </div>

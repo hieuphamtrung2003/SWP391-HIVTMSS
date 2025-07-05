@@ -26,6 +26,9 @@ import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
 import PatientListPage from "components/pages/DoctorPatientList/DoctorPatientList";
 import AppointmentTransferRequests from "components/pages/AppoimentChangePage/AppointmentChangePage";
 import TreatmentRegimenManagement from "components/pages/TreatmentRegimenManagement/TreatmentRegimenManagement";
+import DrugManagementPage from "components/pages/DrugManagement/DrugManagement";
+import ManagerLayout from "components/layouts/ManagerLayout/ManagerLayout";
+import DoctorTreatmentPage from "components/pages/TreatmentPage/DiagnosisPage";
 
 
 let publicRoute = [];
@@ -55,7 +58,6 @@ if (role === "CUSTOMER") {
         { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
         { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
         { path: "/reset-password", component: ResetPasswordForm, layout: null },
-        { path: "/blog/1", component: BlogDetail, layout: null },
         { path: "/schedule", component: Schedule, layout: DefaultLayout },
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
@@ -77,7 +79,7 @@ if (role === "CUSTOMER") {
     ]
 } else if (role === "ADMIN") {
     publicRoute = [
-        { path: "/schedule", component: Schedule, layout: DefaultLayout },
+
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/blog", component: BlogListPage, layout: DefaultLayout },
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
@@ -89,7 +91,17 @@ if (role === "CUSTOMER") {
         { path: "/admin/accounts", component: AccountManagement, layout: AdminLayout },
         { path: "/admin/test-types", component: TestTypeManagement, layout: AdminLayout },
         { path: "/admin/treatment-regimen", component: TreatmentRegimenManagement, layout: AdminLayout },
+        { path: "/admin/drugs", component: DrugManagementPage, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
+    ]
+} else if (role === "MANAGER") {
+    publicRoute = [
+        { path: "/manager/profile", component: ProfileSettings, layout: ManagerLayout },
+        { path: "/login", component: Login, layout: null },
+        { path: "/manager/blogs", component: BlogDetail, layout: ManagerLayout },
+        { path: "*", component: NotFound, layout: null },
+
+
     ]
 } else {
 

@@ -6,6 +6,7 @@ import {
   FileText,
   CircleUser,
   Table,
+  Newspaper,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -52,19 +53,14 @@ export default function SideNavbar() {
   };
   const navItems = [
     {
-      name: 'Dashboard',
-      icon: <MessageSquare className="h-5 w-5" />,
-      path: '/admin/Dashboard'
+      name: 'Phê duyệt blog',
+      icon: <Newspaper className="h-5 w-5" />,
+      path: '/manager/blogs'
     },
     {
-      name: 'Quản lý tài khoản',
-      icon: <Table className="h-5 w-5" />,
-      path: '/admin/accounts'
-    },
-    {
-      name: 'Xét Nghiệm',
-      icon: <Bell className="h-5 w-5" />,
-      path: '/admin/test-types'
+      name: 'Blog đã duyệt',
+      icon: <Newspaper className="h-5 w-5" />,
+      path: '/manager/approved-blogs'
     },
   ]
 
@@ -106,7 +102,7 @@ export default function SideNavbar() {
             variant="ghost"
             className="w-full justify-start gap-3 text-gray-600 hover:bg-gray-50"
           >
-            <Link to="/admin/profile" className="flex items-center gap-3">
+            <Link to="/manager/profile" className="flex items-center gap-3">
               <CircleUser className="h-5 w-5" />
               <span>Hồ Sơ</span>
             </Link>

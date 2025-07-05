@@ -1,7 +1,8 @@
 
-import Header from "..//Header/Header.jsx";
-import Navbar from "../AdminLayout/Navbar/Navbar.jsx";
-const AdminLayout = ({ children }) => {
+import Header from "../Header/Header.jsx";
+import Navbar from "../ManagerLayout/Navbar/Navbar.jsx";
+const ManagerLayout = ({ children }) => {
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
@@ -14,4 +15,4 @@ const AdminLayout = ({ children }) => {
     </div>
   )
 }
-export default AdminLayout
+export default ManagerLayout

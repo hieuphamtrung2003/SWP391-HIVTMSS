@@ -43,6 +43,7 @@ const ProfileSettings = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [deleteImageDialogOpen, setDeleteImageDialogOpen] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const [userData, setUserData] = useState({
     account_id: '',
@@ -124,6 +125,35 @@ const ProfileSettings = () => {
     fetchUserData();
   }, []);
 
+  const handleAvatarUpload = async (file) => {
+    if (!file) return;
+
+    try {
+      setUploadingAvatar(true);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post('/api/v1/accounts/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setUserData(prev => ({
+        ...prev,
+        avatar: response.data.avatarUrl
+      }));
+
+      toast.success("Cập nhật ảnh đại diện thành công");
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Cập nhật ảnh đại diện thất bại');
+      console.error('Avatar upload error:', err);
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -157,7 +187,6 @@ const ProfileSettings = () => {
         }
       });
 
-      // Refresh degree data to get updated image
       const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
       const updatedDegree = response.data;
       setDoctorDegree(updatedDegree);
@@ -185,7 +214,6 @@ const ProfileSettings = () => {
 
       await axios.delete(`/api/v1/doctor-degrees/images?id=${doctorDegree.id}`);
 
-      // Refresh degree data to remove the image
       const response = await axios.get(`api/v1/doctor-degrees/account?accountId=${userData.account_id}`);
       const updatedDegree = response.data;
       setDoctorDegree(updatedDegree);
@@ -572,24 +600,41 @@ const ProfileSettings = () => {
           className="w-full md:w-1/3 flex flex-col items-center"
         >
           <div className="relative group">
-            <Avatar className="h-40 w-40 border-4 border-white shadow-lg">
-              {userData.avatar ? (
-                <AvatarImage src={userData.avatar} />
-              ) : (
-                <AvatarFallback>
-                  {userData.first_name?.[0]}{userData.last_name?.[0]}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            {isEditing && (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full shadow-md"
-              >
-                <Pencil className="h-4 w-4" />
-              </motion.button>
-            )}
+            <label htmlFor="avatar-upload" className="cursor-pointer">
+              <Avatar className="h-40 w-40 border-4 border-white shadow-lg">
+                {userData.avatar ? (
+                  <AvatarImage src={userData.avatar} alt={`${userData.first_name} ${userData.last_name}`} />
+                ) : (
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-4xl font-semibold">
+                    {userData.first_name?.[0]}{userData.last_name?.[0]}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full shadow-md">
+                {uploadingAvatar ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></div>
+                ) : (
+                  <Pencil className="h-4 w-4" />
+                )}
+              </div>
+            </label>
+            <input
+              id="avatar-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error('Kích thước file không được vượt quá 5MB');
+                    return;
+                  }
+                  handleAvatarUpload(file);
+                }
+              }}
+              disabled={uploadingAvatar}
+            />
           </div>
 
           <motion.div
@@ -902,7 +947,6 @@ const ProfileSettings = () => {
 
               {doctorDegree ? (
                 <div>
-                  {/* Degree Image Section */}
                   <div className="mb-6">
                     <Label className="block mb-2">Ảnh bằng cấp</Label>
                     <div className="flex items-start gap-4">
@@ -966,7 +1010,6 @@ const ProfileSettings = () => {
                     </div>
                   </div>
 
-                  {/* Degree Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>

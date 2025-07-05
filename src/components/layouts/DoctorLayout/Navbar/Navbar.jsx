@@ -60,11 +60,6 @@ export default function DoctorSideNavbar() {
       path: '/doctor/patient-request'
     },
     {
-      name: 'Thông báo',
-      icon: <Bell className="h-5 w-5" />,
-      path: '/doctor/notify'
-    },
-    {
       name: 'Nhắn tin hỗ trợ',
       icon: <MessageCircle className="h-5 w-5" />, // Biểu tượng hội thoại thay vì MessageSquare
       path: '/doctor/chat'

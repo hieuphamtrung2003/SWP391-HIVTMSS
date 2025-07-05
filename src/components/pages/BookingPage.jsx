@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, User, Shield, Heart, Phone, AlertCircle, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { toast, Toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import useBookingStore from '../stores/bookingStore';
 
 const BookingPage = () => {
@@ -44,20 +44,30 @@ const BookingPage = () => {
   const handleDateChange = (date) => {
     setSelectedDate(date);
     setSelectedTimeSlot('');
-    updateAppointmentData({ start_time: '' });
+    updateAppointmentData({ start_time: '', end_time: '' });
     setSelectedDoctor(null);
   };
 
-  // Handle time slot selection
+  // In handleTimeSlotChange:
   const handleTimeSlotChange = async (timeSlot) => {
     setSelectedTimeSlot(timeSlot);
 
     if (selectedDate && timeSlot) {
-      // Create ISO string for the selected date and time
-      const dateTime = new Date(`${selectedDate}T${timeSlot}:00`);
-      const isoDateTime = dateTime.toISOString();
+      // Format start time exactly as selected (YYYY-MM-DDTHH:MM:SS)
+      const startTime = `${selectedDate}T${timeSlot}:00.000`;
 
-      updateAppointmentData({ start_time: isoDateTime });
+      // Calculate end time (1 hour later)
+      const [hours, minutes] = timeSlot.split(':');
+      const endHour = parseInt(hours, 10) + 1;
+      const endTime = `${selectedDate}T${String(endHour).padStart(2, '0')}:${minutes}:00.000`;
+
+      updateAppointmentData({
+        start_time: startTime,
+        end_time: endTime
+      });
+
+      // For fetching doctors, you might still want to use ISO string
+      const isoDateTime = new Date(`${selectedDate}T${timeSlot}:00`).toISOString();
       await fetchAvailableDoctors(isoDateTime);
     }
   };
@@ -66,7 +76,14 @@ const BookingPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createAppointment();
+      // Prepare complete appointment data
+      const completeAppointmentData = {
+        ...appointmentData,
+        doctor_id: selectedDoctor?.doctor_id || "",
+        applicable: "Adults" // Default value, adjust if needed
+      };
+
+      await createAppointment(completeAppointmentData);
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -78,6 +95,7 @@ const BookingPage = () => {
           first_name: '',
           last_name: '',
           start_time: '',
+          end_time: '',
           chief_complaint: '',
           is_pregnant: false,
           is_anonymous: false
@@ -87,7 +105,7 @@ const BookingPage = () => {
         setSelectedTimeSlot('');
       }, 3000);
     } catch (error) {
-      toast.error(error.response?.data?.message);
+      toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt lịch");
     }
   };
 

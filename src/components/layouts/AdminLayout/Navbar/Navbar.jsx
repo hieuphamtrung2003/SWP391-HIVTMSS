@@ -67,11 +67,6 @@ export default function SideNavbar() {
       path: '/admin/accounts'
     },
     {
-      name: 'Thông báo',
-      icon: <Bell className="h-5 w-5" />,
-      path: '/admin/notify'
-    },
-    {
       name: 'Xét Nghiệm',
       icon: <FlaskConical className="h-5 w-5" />,
       path: '/admin/test-types'

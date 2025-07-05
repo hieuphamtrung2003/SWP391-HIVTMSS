@@ -146,6 +146,7 @@ const ProfileSettings = () => {
       }));
 
       toast.success("Cập nhật ảnh đại diện thành công");
+      window.location.reload();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Cập nhật ảnh đại diện thất bại');
       console.error('Avatar upload error:', err);
@@ -179,9 +180,9 @@ const ProfileSettings = () => {
       setImageUploadError(null);
 
       const formData = new FormData();
-      formData.append('files', selectedImage);
+      formData.append('file', selectedImage);
 
-      await axios.post(`/api/v1/doctor-degrees/images?id=${doctorDegree.id}`, formData, {
+      await axios.post(`/api/v1/doctor-degrees/image?id=${doctorDegree.id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

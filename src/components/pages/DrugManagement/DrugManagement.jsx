@@ -23,7 +23,7 @@ const DrugListSimple = () => {
         const fetchDrugs = async () => {
             try {
                 const res = await axios.get('/api/v1/drugs/all');
-                setDrugs(Array.isArray(res.data) ? res.data : []);
+                setDrugs(res);
 
             } catch (err) {
                 toast.error('Không thể tải danh sách thuốc');
@@ -81,7 +81,7 @@ const DrugListSimple = () => {
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-red-100 text-red-800'}
                                             >
-                                                {drug.isActive === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
+                                                {drug.is_active === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
                                             </Badge>
                                         </TableCell>
                                     </TableRow>

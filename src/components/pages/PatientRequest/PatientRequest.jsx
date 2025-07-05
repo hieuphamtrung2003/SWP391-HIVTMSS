@@ -45,7 +45,7 @@ const DoctorRequestsManager = () => {
   ];
 
   const getDateForDay = (currentDate, dayIndex) => {
-    const weekStart = startOfWeek(currentDate);
+    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     const dayDate = new Date(weekStart);
     dayDate.setDate(weekStart.getDate() + dayIndex);
     return format(dayDate, "dd/MM");
@@ -63,35 +63,44 @@ const DoctorRequestsManager = () => {
     return format(date, "EEEE", { locale: vi });
   };
 
-  const getTimeFromStartTime = (startTimeString) => {
-    const date = parse(startTimeString, "MM/dd/yyyy HH:mm:ss", new Date());
-    return format(date, "HH:mm");
+  const getTimeRange = (startTimeString, endTimeString) => {
+    if (!startTimeString) return "N/A";
+
+    const startDate = parse(startTimeString, "MM/dd/yyyy HH:mm:ss", new Date());
+    let formattedTime = format(startDate, "HH:mm");
+
+    if (endTimeString) {
+      const endDate = parse(endTimeString, "MM/dd/yyyy HH:mm:ss", new Date());
+      formattedTime += ` - ${format(endDate, "HH:mm")}`;
+    }
+
+    return formattedTime;
   };
 
   const formatAppointmentsForDisplay = (appointmentData) => {
     const formatted = {};
 
+    // Filter out cancelled appointments entirely
     const filteredAppointments = appointmentData.filter(
       appointment => appointment.status !== "CANCELLED"
     );
 
     filteredAppointments.forEach(appointment => {
       const dayOfWeek = getDayOfWeekVietnamese(appointment.start_time);
-      const time = getTimeFromStartTime(appointment.start_time);
+      const timeRange = getTimeRange(appointment.start_time, appointment.end_time);
 
-      if (dayOfWeek && time) {
+      if (dayOfWeek && timeRange) {
         if (!formatted[dayOfWeek]) {
           formatted[dayOfWeek] = {};
         }
 
-        formatted[dayOfWeek][time] = {
+        formatted[dayOfWeek][timeRange] = {
           patientName: appointment.is_anonymous ? "Bệnh nhân ẩn danh" : appointment.full_name,
           patientId: appointment.customer?.customer_id || "N/A",
           doctor: appointment.doctor?.full_name || "N/A",
           reason: appointment.chief_complaint || "Khám tổng quát",
           status: appointment.status === "PENDING" ? "Chờ xác nhận" :
-            appointment.status === "COMPLETED" ? "Đã hoàn thành" :
-              appointment.status === "CANCELLED" ? "Đã hủy" : appointment.status,
+            appointment.status === "COMPLETED" ? "Đã hoàn thành" : appointment.status,
           gender: appointment.gender === "MALE" ? "Nam" : "Nữ",
           dob: format(new Date(appointment.dob), "dd/MM/yyyy") || "N/A",
           appointmentId: appointment.appointment_id,
@@ -105,7 +114,8 @@ const DoctorRequestsManager = () => {
           applicable: appointment.applicable === "Adults" ? "Người lớn" : "Trẻ em",
           createdDate: format(new Date(appointment.created_date), "dd/MM/yyyy HH:mm"),
           phone: appointment.customer?.phone || appointment.doctor?.phone || "N/A",
-          rawStatus: appointment.status
+          rawStatus: appointment.status,
+          timeRange
         };
       }
     });
@@ -127,8 +137,8 @@ const DoctorRequestsManager = () => {
       let startTime, endTime;
 
       if (viewMode === "week") {
-        const weekStart = startOfWeek(currentDate);
-        const weekEnd = endOfWeek(currentDate);
+        const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+        const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
         startTime = format(weekStart, "yyyy-MM-dd") + "T00:00:00";
         endTime = format(weekEnd, "yyyy-MM-dd") + "T23:59:59";
       } else {
@@ -225,6 +235,9 @@ const DoctorRequestsManager = () => {
   }, [currentDate, viewMode]);
 
   const formattedAppointments = formatAppointmentsForDisplay(appointments);
+  
+  // Get filtered appointments (non-cancelled) for counting
+  const filteredAppointments = appointments.filter(appointment => appointment.status !== "CANCELLED");
 
   const handlePrevPeriod = () => {
     if (viewMode === "week") {
@@ -246,13 +259,13 @@ const DoctorRequestsManager = () => {
     setCurrentDate(new Date(year, currentMonth, 1));
   };
 
-  const handleCellClick = async (day, time) => {
-    const appointment = formattedAppointments[day]?.[time];
+  const handleCellClick = async (day, timeRange) => {
+    const appointment = formattedAppointments[day]?.[timeRange];
     if (appointment) {
       setSelectedAppointment({
         ...appointment,
         day,
-        time
+        timeRange
       });
       setIsModalOpen(true);
     }
@@ -277,7 +290,6 @@ const DoctorRequestsManager = () => {
     switch (status) {
       case "Đã hoàn thành": return "bg-green-100 text-green-800";
       case "Chờ xác nhận": return "bg-yellow-100 text-yellow-800";
-      case "Đã hủy": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -297,8 +309,8 @@ const DoctorRequestsManager = () => {
   const getAllAppointmentTimes = () => {
     const times = new Set();
     Object.values(formattedAppointments).forEach(dayAppointments => {
-      Object.keys(dayAppointments).forEach(time => {
-        times.add(time);
+      Object.keys(dayAppointments).forEach(timeRange => {
+        times.add(timeRange);
       });
     });
     return Array.from(times).sort();
@@ -426,7 +438,7 @@ const DoctorRequestsManager = () => {
               </tr>
             </thead>
             <tbody>
-              {appointments.length === 0 && !loading ? (
+              {filteredAppointments.length === 0 && !loading ? (
                 <tr>
                   <td
                     colSpan={days.length + 1}
@@ -439,23 +451,23 @@ const DoctorRequestsManager = () => {
                   </td>
                 </tr>
               ) : (
-                getAllAppointmentTimes().map((time) => (
+                getAllAppointmentTimes().map((timeRange) => (
                   <tr
-                    key={time}
+                    key={timeRange}
                     className="bg-white hover:bg-gray-50"
                   >
                     <td className="p-3 border border-gray-200 text-center font-medium text-gray-700">
-                      {time}
+                      {timeRange}
                     </td>
                     {days.map(day => {
-                      const appointment = formattedAppointments[day]?.[time];
+                      const appointment = formattedAppointments[day]?.[timeRange];
                       return (
                         <motion.td
-                          key={`${day}-${time}`}
+                          key={`${day}-${timeRange}`}
                           initial={{ scale: 1 }}
                           whileHover={{ scale: 0.98 }}
                           className={`p-4 border border-gray-200 text-center cursor-pointer transition-all ${appointment ? "bg-blue-50" : "hover:bg-gray-100"}`}
-                          onClick={() => handleCellClick(day, time)}
+                          onClick={() => handleCellClick(day, timeRange)}
                         >
                           <div className="h-8 flex items-center justify-center">
                             {appointment ? (
@@ -479,18 +491,16 @@ const DoctorRequestsManager = () => {
         </div>
 
         {/* Footer */}
-        {appointments.length > 0 && (
+        {filteredAppointments.length > 0 && (
           <div className="px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500 bg-gray-50">
             <div>
-              <p>Tổng số lịch hẹn: {appointments.length}</p>
+              <p>Tổng số lịch hẹn: {filteredAppointments.length}</p>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-100 border border-green-300"></div>
               <span>Đã xác nhận</span>
               <div className="w-3 h-3 rounded-full bg-yellow-100 border border-yellow-300 ml-2"></div>
               <span>Chờ xác nhận</span>
-              <div className="w-3 h-3 rounded-full bg-red-100 border border-red-300 ml-2"></div>
-              <span>Đã hủy</span>
             </div>
           </div>
         )}
@@ -562,12 +572,18 @@ const DoctorRequestsManager = () => {
                     <h4 className="text-lg font-medium text-blue-600 border-b pb-2">Thông tin lịch hẹn</h4>
                     <div className="space-y-3">
                       <div>
-                        <p className="text-sm text-gray-500">Ngày hẹn</p>
-                        <p className="font-medium">{selectedAppointment.day}, {selectedAppointment.time}</p>
+                        <p className="text-sm text-gray-500">Thời gian hẹn</p>
+                        <p className="font-medium">{selectedAppointment.day}, {selectedAppointment.timeRange}</p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Thời gian bắt đầu</p>
                         <p className="font-medium">{formatDateTime(selectedAppointment.startTime)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Thời gian kết thúc</p>
+                        <p className="font-medium">
+                          {selectedAppointment.endTime ? formatDateTime(selectedAppointment.endTime) : "N/A"}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Trạng thái</p>
@@ -689,7 +705,7 @@ const DoctorRequestsManager = () => {
                       <div>
                         <p className="text-sm text-gray-500">Thời gian</p>
                         <p className="font-medium">
-                          {selectedAppointment.day}, {selectedAppointment.time} - {formatDateTime(selectedAppointment.startTime)}
+                          {selectedAppointment.day}, {selectedAppointment.timeRange}
                         </p>
                       </div>
                       <div>

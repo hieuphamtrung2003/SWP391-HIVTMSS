@@ -57,7 +57,7 @@ const LoginForm = () => {
 
                 toast.success("Đăng nhập thành công!!");
 
-                // Thêm delay nhỏ để người dùng thấy animation
+
                 setTimeout(() => {
                     // Điều hướng theo phân quyền
                     if (role === "ADMIN") {

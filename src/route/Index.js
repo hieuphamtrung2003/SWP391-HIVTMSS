@@ -28,7 +28,8 @@ import AppointmentTransferRequests from "components/pages/AppoimentChangePage/Ap
 import TreatmentRegimenManagement from "components/pages/TreatmentRegimenManagement/TreatmentRegimenManagement";
 import DrugManagementPage from "components/pages/DrugManagement/DrugManagement";
 import ManagerLayout from "components/layouts/ManagerLayout/ManagerLayout";
-import DoctorTreatmentPage from "components/pages/TreatmentPage/DiagnosisPage";
+import BlogApprovalPage from "components/pages/BlogApproval/BlogApprovalPage";
+import ApprovedBlogPage from "components/pages/ApprovedBlog/ApprovedBlogPage";
 
 
 let publicRoute = [];
@@ -98,10 +99,9 @@ if (role === "CUSTOMER") {
     publicRoute = [
         { path: "/manager/profile", component: ProfileSettings, layout: ManagerLayout },
         { path: "/login", component: Login, layout: null },
-        { path: "/manager/blogs", component: BlogDetail, layout: ManagerLayout },
+        { path: "/manager/blog-approval", component: BlogApprovalPage, layout: ManagerLayout },
+        { path: "/manager/approved-blogs", component: ApprovedBlogPage, layout: ManagerLayout },
         { path: "*", component: NotFound, layout: null },
-
-
     ]
 } else {
 

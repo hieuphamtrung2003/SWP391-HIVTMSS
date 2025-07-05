@@ -16,19 +16,18 @@ const ApprovedBlogPage = () => {
 
     const fetchApprovedBlogs = async () => {
         try {
-            setIsLoading(true);
-            const allBlogs = await axios.get('/api/v1/blogs/all');
-            const aprroved = allBlogs.filter(
-                blog => blog.status === 'APPROVED' && blog.is_hidden === true
-            );
-            setBlogs(aprroved);
+            setIsLoading(true)
+            const res = await axios.get('/api/v1/blogs/all')
+            // Lọc những blog có status APPROVED và is_hidden: true
+            const approvedBlogs = res.data.filter(blog => blog.status === 'APPROVED' && blog.is_hidden === true)
+            setBlogs(approvedBlogs)
         } catch (err) {
-            toast.error('Lỗi khi tải danh sách blog');
-            console.error(err);
+            toast.error('Lỗi khi tải danh sách blog đã duyệt')
+            console.error(err)
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {

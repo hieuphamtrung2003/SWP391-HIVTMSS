@@ -17,19 +17,17 @@ const BlogApprovalPage = () => {
 
     const fetchPendingBlogs = async () => {
         try {
-            setIsLoading(true);
-            const allBlogs = await axios.get('/api/v1/blogs/all');
-            const pending = allBlogs.filter(
-                blog => blog.status === 'PENDING' && blog.is_hidden === true
-            );
-            setBlogs(pending);
+            setIsLoading(true)
+            const res = await axios.get('/api/v1/blogs/all')
+            const pendingBlogs = res.data.filter(blog => blog.status === 'PENDING' && blog.is_hidden === true)
+            setBlogs(pendingBlogs)
         } catch (err) {
-            toast.error('Lỗi khi tải danh sách blog');
-            console.error(err);
+            toast.error('Lỗi khi tải danh sách blog')
+            console.error(err)
         } finally {
-            setIsLoading(false);
+            setIsLoading(false)
         }
-    };
+    }
 
     const updateBlogStatus = async (blogId, action) => {
         const blog = blogs.find(b => b.blog_id === blogId);

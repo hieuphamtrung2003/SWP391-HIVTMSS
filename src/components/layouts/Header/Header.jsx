@@ -331,7 +331,7 @@ export default function Header() {
                     )}
                   </div>
                   <div className="p-2 border-t text-center">
-                    <Link to="/notifications" className="text-xs text-blue-600 hover:underline">
+                    <Link to="/notify" className="text-xs text-blue-600 hover:underline">
                       Xem tất cả thông báo
                     </Link>
                   </div>

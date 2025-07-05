@@ -55,7 +55,7 @@ export default function SideNavbar() {
     {
       name: 'Phê duyệt blog',
       icon: <Newspaper className="h-5 w-5" />,
-      path: '/manager/blogs'
+      path: '/manager/blog-approval'
     },
     {
       name: 'Blog đã duyệt',

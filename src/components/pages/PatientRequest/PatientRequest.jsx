@@ -235,7 +235,7 @@ const DoctorRequestsManager = () => {
   }, [currentDate, viewMode]);
 
   const formattedAppointments = formatAppointmentsForDisplay(appointments);
-  
+
   // Get filtered appointments (non-cancelled) for counting
   const filteredAppointments = appointments.filter(appointment => appointment.status !== "CANCELLED");
 

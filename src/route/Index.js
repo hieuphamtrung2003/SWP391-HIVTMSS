@@ -5,7 +5,7 @@ import Schedule from "components/pages/SchedulePage/Schedule";
 import DefaultLayout from "../components/layouts/DefaultLayout/DefaultLayout.jsx";
 import ProfileSettings from "components/pages/ProfilePage/ProfilePage";
 import NotificationsPage from "components/pages/NotificationPage/NotificationPage";
-import BlogListPage from "components/pages/BlogPage/BlogPage";
+import BlogManagementPage from "components/pages/BlogPage/BlogManagementPage";
 import BlogEditorPage from "components/pages/BlogEditor/Blogeditor";
 import ChatPage from "components/pages/ChatPage/ChatPage";
 import DoctorBookingPage from "components/pages/BookingPage";
@@ -30,6 +30,7 @@ import DrugManagementPage from "components/pages/DrugManagement/DrugManagement";
 import ManagerLayout from "components/layouts/ManagerLayout/ManagerLayout";
 import BlogApprovalPage from "components/pages/BlogApproval/BlogApprovalPage";
 import ApprovedBlogPage from "components/pages/ApprovedBlog/ApprovedBlogPage";
+import AllAppointmentChanges from "components/pages/AppoimentChangePage/AllAppointmentChangePage";
 
 
 let publicRoute = [];
@@ -44,7 +45,7 @@ if (role === "CUSTOMER") {
         { path: "/schedule", component: Schedule, layout: DefaultLayout },
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/blog", component: BlogManagementPage, layout: DefaultLayout },
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/chat", component: ChatPage, layout: DefaultLayout },
         { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
@@ -62,7 +63,7 @@ if (role === "CUSTOMER") {
         { path: "/schedule", component: Schedule, layout: DefaultLayout },
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/chat", component: ChatPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
@@ -82,7 +83,7 @@ if (role === "CUSTOMER") {
     publicRoute = [
 
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/dashboard", component: DashboardContent, layout: AdminLayout },
         { path: "/login", component: Login, layout: null },
@@ -93,6 +94,7 @@ if (role === "CUSTOMER") {
         { path: "/admin/test-types", component: TestTypeManagement, layout: AdminLayout },
         { path: "/admin/treatment-regimen", component: TreatmentRegimenManagement, layout: AdminLayout },
         { path: "/admin/drugs", component: DrugManagementPage, layout: AdminLayout },
+        { path: "/admin/appointment-changes", component: AllAppointmentChanges, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else if (role === "MANAGER") {
@@ -112,7 +114,7 @@ if (role === "CUSTOMER") {
         { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
         { path: "/reset-password", component: ResetPasswordForm, layout: null },
         { path: "/blog/1", component: BlogDetail, layout: null },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+
         { path: "*", component: NotFound, layout: null },
 
 

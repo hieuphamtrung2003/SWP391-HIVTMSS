@@ -7,7 +7,7 @@ import axios from '../../../setup/configAxios'
 import { decodeToken } from '../../../utils/tokenUtils'
 import { toast } from 'react-toastify'
 
-const BlogListPage = () => {
+const BlogManagementPage = () => {
   const [blogs, setBlogs] = useState([])
   const [editingBlog, setEditingBlog] = useState(null)
 
@@ -37,7 +37,7 @@ const BlogListPage = () => {
           title: blog.title,
           content: blog.content,
           status: blog.status,
-          imageUrl: 'https://upload.wikimedia.org/wikipedia/vi/5/5f/Original_Doge_meme.jpg',
+          imageUrl: '',
           isHidden: true
         }
       });
@@ -211,4 +211,4 @@ const BlogListPage = () => {
   )
 }
 
-export default BlogListPage
+export default BlogManagementPage

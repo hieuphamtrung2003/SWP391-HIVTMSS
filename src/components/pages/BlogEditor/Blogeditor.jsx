@@ -98,7 +98,7 @@ const BlogEditorPage = () => {
 
     const handleSubmit = async () => {
         try {
-            // Validate form
+            //Kiểm tra dữ liệu
             if (!formData.title.trim()) {
                 toast.error('Vui lòng nhập tiêu đề bài viết!');
                 return;
@@ -110,67 +110,59 @@ const BlogEditorPage = () => {
             }
 
             const token = localStorage.getItem('access_token');
+            if (!token) {
+                toast.error('Bạn chưa đăng nhập!');
+                return;
+            }
+
             const decodedToken = decodeToken(token);
-            if (!decodedToken) {
+            if (!decodedToken || !decodedToken.id) {
                 toast.error('Token không hợp lệ hoặc đã hết hạn!');
                 return;
             }
 
             const accountId = decodedToken.id;
 
-            // Tạo FormData cho multipart/form-data
+
             const formDataToSend = new FormData();
+            formDataToSend.append('title', formData.title);
+            formDataToSend.append('content', formData.content);
+            formDataToSend.append('accountID', accountId);
 
-            // Tạo blogRequest object
-            const blogRequest = {
-                title: formData.title,
-                content: formData.content,
-                accountID: accountId
-            };
-
-            // Append blogRequest as JSON string
-            formDataToSend.append('blogRequest', JSON.stringify(blogRequest));
-
-            // Append files
-            const allFiles = [];
-
-            // Thêm ảnh bìa nếu có
+            //Gửi ảnh bìa
             if (formData.featuredImage) {
-                allFiles.push(formData.featuredImage);
+                formDataToSend.append('files', formData.featuredImage);
             }
 
-            // Thêm các ảnh bổ sung
+            //Gửi các ảnh bổ sung
             formData.additionalImages.forEach(file => {
-                allFiles.push(file);
-            });
-
-            // Append tất cả files vào FormData
-            allFiles.forEach(file => {
                 formDataToSend.append('files', file);
             });
 
-            // Gửi request với Content-Type multipart/form-data
+            //Gửi request
             const res = await axios.post('/api/v1/blogs', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             });
 
-            if (res.status === 200 || res.data.http_status === 200) {
+            if (res.status === 200 || res.http_status === 200) {
                 toast.success('Tạo blog thành công!');
                 navigate('/blog');
             } else {
                 toast.error('Tạo blog thất bại!');
             }
+
         } catch (error) {
             console.error('Error creating blog:', error);
-            if (error.response) {
-                toast.error(`Lỗi: ${error.response.data.message || 'Không thể tạo blog'}`);
+            if (error.response?.data?.error) {
+                toast.error(`Lỗi: ${error.response.data.error}`);
             } else {
                 toast.error('Đã xảy ra lỗi khi gửi bài viết.');
             }
         }
     };
+
 
     return (
         <motion.div
@@ -181,7 +173,7 @@ const BlogEditorPage = () => {
         >
             <div className="flex justify-between items-center mb-6">
                 <Button variant="outline" asChild>
-                    <Link to="/blog" className="flex items-center gap-2">
+                    <Link to="/my-blog" className="flex items-center gap-2">
                         <ArrowLeft className="h-4 w-4" />
                         Quay lại
                     </Link>

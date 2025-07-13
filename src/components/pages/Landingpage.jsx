@@ -6,6 +6,7 @@ import { ScrollArea } from "../ui/scroll-area"
 import { AnimatePresence, motion } from "framer-motion"
 import { useState, useEffect, useRef } from "react"
 import { Link } from "react-router-dom"
+import axios from 'setup/configAxios';
 
 const FAQItem = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -113,6 +114,11 @@ const carouselImages = [
 ];
 
 export default function LandingPage() {
+
+    const [blogs, setBlogs] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
@@ -123,6 +129,34 @@ export default function LandingPage() {
     const [currentSlide, setCurrentSlide] = useState(0);
     const intervalRef = useRef(null);
     const educationScrollRef = useRef(null);
+
+    // Fetch blogs from API
+    useEffect(() => {
+        const fetchBlogs = async () => {
+            try {
+                setIsLoading(true);
+
+                const result = await axios.get('/api/v1/blogs/all');
+                const rawBlogs = result?.data || [];
+
+                const approvedBlogs = rawBlogs
+                    .filter(blog => blog.status === 'APPROVED')
+                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+
+                setBlogs(approvedBlogs);
+                setError(null);
+            } catch (error) {
+                console.error('Lỗi khi tải danh sách blog:', error);
+                setError('Không thể tải danh sách blog. Vui lòng thử lại sau.');
+                setBlogs([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBlogs();
+    }, []);
+
 
     // Auto scroll through carousel
     useEffect(() => {
@@ -157,6 +191,53 @@ export default function LandingPage() {
                 left: scrollAmount,
                 behavior: 'smooth'
             });
+        }
+    };
+
+    // Helper function to format date
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    // Helper function to get default image if no image available
+    const getImageUrl = (imageUrls) => {
+        if (imageUrls && imageUrls.length > 0) {
+            return imageUrls[0];
+        }
+        // Default image for blogs without images
+        return "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80";
+    };
+
+    // Helper function to truncate content
+    const truncateContent = (content, maxLength = 150) => {
+        if (content.length <= maxLength) return content;
+        return content.substring(0, maxLength) + '...';
+    };
+
+    // Animation variants
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2
+            }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: {
+            y: 0,
+            opacity: 1,
+            transition: {
+                duration: 0.5
+            }
         }
     };
 
@@ -426,7 +507,7 @@ export default function LandingPage() {
                                     className="relative rounded-xl overflow-hidden shadow-xl"
                                 >
                                     <img
-                                        src="https://th.bing.com/th/id/OIP.gOdakF9ijmNPfdGzvuKm-gHaE3?rs=1&pid=ImgDetMain"
+                                        src="https://pbs.twimg.com/media/DOylsBpUIAA2Ve2?format=jpg&name=large"
                                         alt="Cơ sở y tế"
                                         className="w-full h-auto object-cover"
                                     />
@@ -475,7 +556,7 @@ export default function LandingPage() {
                                 >
                                     {[
                                         {
-                                            title: "Hướng dẫn điều trị và chăm sóc HIV/AIDS",
+                                            title: "Hướng dẫn điều trị, chăm sóc HIV/AIDS",
                                             description: "Tài liệu hướng dẫn chi tiết về điều trị và chăm sóc HIV/AIDS",
                                             link: "https://drive.google.com/file/d/1Ww7iPk9P3x5EfOvp6VYRnYEalOBNiiPx/view?usp=drive_link",
                                             icon: (
@@ -668,7 +749,7 @@ export default function LandingPage() {
                     </SectionWrapper>
 
                     {/* Blog Section with main blog on left and small blogs on right */}
-                    <SectionWrapper id="blog" className="py-20 ">
+                    <SectionWrapper id="blog" className="py-20">
                         <motion.div
                             initial="hidden"
                             whileInView="visible"
@@ -686,116 +767,117 @@ export default function LandingPage() {
                                 </motion.p>
                             </div>
 
-                            <div className="flex flex-col lg:flex-row gap-8">
-                                {/* Main Blog (Left) */}
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="lg:w-2/3"
-                                >
-                                    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow h-full">
-                                        <Link to="/blog/1">
-                                            <div className="h-64 md:h-80 overflow-hidden">
-                                                <img
-                                                    src="https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80"
-                                                    alt="Main blog"
-                                                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                                                />
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <span className="text-sm text-blue-600 font-medium">Kinh nghiệm</span>
-                                                    <span className="text-sm text-gray-500">15/06/2023</span>
-                                                </div>
-                                                <h3 className="text-2xl font-bold text-gray-800 mb-4 hover:text-blue-600 transition-colors">
-                                                    Kinh nghiệm điều trị HIV hiệu quả từ bệnh nhân lâu năm
-                                                </h3>
-                                                <p className="text-gray-600 mb-6">
-                                                    Chia sẻ từ những bệnh nhân đã điều trị HIV thành công trong nhiều năm, với những kinh nghiệm quý báu về tuân thủ điều trị, chế độ sinh hoạt và cách vượt qua khó khăn tâm lý.
-                                                </p>
-                                                <div className="flex items-center">
-                                                    <div className="flex-shrink-0">
-                                                        <img className="h-10 w-10 rounded-full" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80" alt="Author" />
-                                                    </div>
-                                                    <div className="ml-3">
-                                                        <p className="text-sm font-medium text-gray-900">Dr. Nguyễn Văn A</p>
-                                                        <p className="text-sm text-gray-500">Bác sĩ chuyên khoa</p>
-                                                    </div>
-                                                    <Button variant="link" className="ml-auto text-blue-600 hover:text-blue-800">
-                                                        Đọc thêm →
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    </div>
-                                </motion.div>
-
-                                {/* Small Blogs (Right) */}
-                                <motion.div
-                                    variants={itemVariants}
-                                    className="lg:w-1/3 space-y-6"
-                                >
-                                    {[
-                                        {
-                                            title: "Những tiến bộ mới trong điều trị HIV năm 2023",
-                                            excerpt: "Cập nhật các phương pháp điều trị mới nhất và hiệu quả nhất hiện nay.",
-                                            image: "https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-                                            date: "10/06/2023",
-                                            category: "Nghiên cứu"
-                                        },
-                                        {
-                                            title: "Dinh dưỡng cho người nhiễm HIV",
-                                            excerpt: "Chế độ ăn uống khoa học giúp tăng cường hệ miễn dịch và sức khỏe tổng thể.",
-                                            image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-                                            date: "05/06/2023",
-                                            category: "Dinh dưỡng"
-                                        },
-                                        {
-                                            title: "Cách vượt qua kỳ thị với người nhiễm HIV",
-                                            excerpt: "Chia sẻ từ chuyên gia tâm lý về cách đối mặt và vượt qua định kiến xã hội.",
-                                            image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-                                            date: "01/06/2023",
-                                            category: "Tâm lý"
-                                        },
-                                        {
-                                            title: "Quyền lợi y tế cho người nhiễm HIV",
-                                            excerpt: "Hướng dẫn đầy đủ về các chính sách hỗ trợ và quyền lợi của người nhiễm HIV.",
-                                            image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
-                                            date: "28/05/2023",
-                                            category: "Pháp lý"
-                                        }
-                                    ].map((post, index) => (
-                                        <div
-                                            key={index}
-                                            className="bg-white hover:shadow-lg transition-shadow flex gap-4 items-start p-4 rounded-lg border border-gray-200 hover:border-blue-200"
-                                        >
-                                            <img
-                                                src={post.image}
-                                                alt={`Blog ${index}`}
-                                                className="w-24 h-20 rounded-md object-cover flex-shrink-0"
-                                            />
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-center mb-1">
-                                                    <span className="text-xs text-blue-600 font-medium">{post.category}</span>
-                                                    <span className="text-xs text-gray-500">{post.date}</span>
-                                                </div>
-                                                <h3 className="font-semibold text-base text-gray-800 leading-tight hover:text-blue-600 transition-colors line-clamp-2">
-                                                    {post.title}
-                                                </h3>
-                                                <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                                                    {post.excerpt}
-                                                </p>
-                                                <Button variant="link" className="px-0 text-sm mt-1 text-blue-600 hover:text-blue-800">
-                                                    Đọc thêm
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    <Button variant="ghost" className="w-full text-blue-600 hover:bg-blue-50">
-                                        Xem tất cả bài viết →
+                            {isLoading ? (
+                                <div className="flex justify-center items-center py-20">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                                    <span className="ml-3 text-gray-600">Đang tải bài viết...</span>
+                                </div>
+                            ) : error ? (
+                                <div className="text-center py-20">
+                                    <div className="text-red-500 mb-4">{error}</div>
+                                    <Button
+                                        onClick={() => window.location.reload()}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                                    >
+                                        Thử lại
                                     </Button>
-                                </motion.div>
-                            </div>
+                                </div>
+                            ) : blogs.length === 0 ? (
+                                <div className="text-center py-20">
+                                    <div className="text-gray-500">Chưa có bài viết nào</div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col lg:flex-row gap-8">
+                                    {/* Main Blog (Left) - Most recent blog */}
+                                    <motion.div
+                                        variants={itemVariants}
+                                        className="lg:w-2/3"
+                                    >
+                                        <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow h-full">
+                                            <Link to={`/blog/${blogs[0].blog_id}`}>
+                                                <div className="h-64 md:h-80 overflow-hidden">
+                                                    <img
+                                                        src={getImageUrl(blogs[0].imageUrls)}
+                                                        alt={blogs[0].title}
+                                                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                                                        onError={(e) => {
+                                                            e.target.src = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80";
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="p-6">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <span className="text-sm text-blue-600 font-medium">Bài viết mới</span>
+                                                        <span className="text-sm text-gray-500">{formatDate(blogs[0].created_date)}</span>
+                                                    </div>
+                                                    <h3 className="text-2xl font-bold text-gray-800 mb-4 hover:text-blue-600 transition-colors">
+                                                        {blogs[0].title}
+                                                    </h3>
+                                                    <p className="text-gray-600 mb-6">
+                                                        {truncateContent(blogs[0].content, 200)}
+                                                    </p>
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0">
+                                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                                                <span className="text-blue-600 font-medium">
+                                                                    {blogs[0].full_name.charAt(0)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="ml-3">
+                                                            <p className="text-sm font-medium text-gray-900">{blogs[0].full_name}</p>
+                                                            <p className="text-sm text-gray-500">Tác giả</p>
+                                                        </div>
+                                                        <Button variant="link" className="ml-auto text-blue-600 hover:text-blue-800">
+                                                            Đọc thêm →
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </div>
+                                    </motion.div>
+
+                                    {/* Small Blogs (Right) - Remaining blogs */}
+                                    <motion.div
+                                        variants={itemVariants}
+                                        className="lg:w-1/3 space-y-6"
+                                    >
+                                        {blogs.slice(1, 5).map((blog) => (
+                                            <Link key={blog.blog_id} to={`/blog/${blog.blog_id}`}>
+                                                <div className="bg-white hover:shadow-lg transition-shadow flex gap-4 items-start p-4 rounded-lg border border-gray-200 hover:border-blue-200">
+                                                    <img
+                                                        src={getImageUrl(blog.imageUrls)}
+                                                        alt={blog.title}
+                                                        className="w-24 h-20 rounded-md object-cover flex-shrink-0"
+                                                        onError={(e) => {
+                                                            e.target.src = "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80";
+                                                        }}
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-xs text-blue-600 font-medium">Bài viết</span>
+                                                            <span className="text-xs text-gray-500">{formatDate(blog.created_date)}</span>
+                                                        </div>
+                                                        <h3 className="font-semibold text-base text-gray-800 leading-tight hover:text-blue-600 transition-colors line-clamp-2">
+                                                            {blog.title}
+                                                        </h3>
+                                                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                                                            {truncateContent(blog.content, 80)}
+                                                        </p>
+                                                        <Button variant="link" className="px-0 text-sm mt-1 text-blue-600 hover:text-blue-800">
+                                                            Đọc thêm
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))}
+
+                                        <Button variant="ghost" className="w-full text-blue-600 hover:bg-blue-50">
+                                            Xem tất cả bài viết →
+                                        </Button>
+                                    </motion.div>
+                                </div>
+                            )}
                         </motion.div>
                     </SectionWrapper>
                 </ScrollArea>

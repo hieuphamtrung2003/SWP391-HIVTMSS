@@ -23,7 +23,7 @@ const EditBlogPage = () => {
         const fetchBlog = async () => {
             try {
                 const res = await axios.get(`/api/v1/blogs?id=${blogId}`);
-                const blog = res.data?.data;
+                const blog = res.data;
 
                 if (!blog) throw new Error('Blog not found');
 

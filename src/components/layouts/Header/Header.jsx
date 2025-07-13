@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Search, AlertTriangle, CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
+import { Bell, MessageSquare, Search, PartyPopper , CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
 import { Input } from '../../ui/input'
 import { Button } from '../../ui/button'
@@ -110,7 +110,7 @@ export default function Header() {
       case 'medication':
         return <Pill className="h-4 w-4 text-green-500" />
       case 'alert':
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+        return <PartyPopper className="h-4 w-4 text-green-500" />
       case 'system':
         return <CheckCircle className="h-4 w-4 text-purple-500" />
       default:

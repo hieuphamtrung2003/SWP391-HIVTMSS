@@ -814,7 +814,7 @@ export default function LandingPage() {
                                                         {blogs[0].title}
                                                     </h3>
                                                     <p className="text-gray-600 mb-6">
-                                                        {truncateContent(blogs[0].content, 200)}
+                                                        <div dangerouslySetInnerHTML={{ __html: truncateContent(blogs[0].content, 200) }} />
                                                     </p>
                                                     <div className="flex items-center">
                                                         <div className="flex-shrink-0">
@@ -862,7 +862,7 @@ export default function LandingPage() {
                                                             {blog.title}
                                                         </h3>
                                                         <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                                                            {truncateContent(blog.content, 80)}
+                                                            <div dangerouslySetInnerHTML={{ __html: truncateContent(blog.content, 80) }} />
                                                         </p>
                                                         <Button variant="link" className="px-0 text-sm mt-1 text-blue-600 hover:text-blue-800">
                                                             Đọc thêm
@@ -871,10 +871,11 @@ export default function LandingPage() {
                                                 </div>
                                             </Link>
                                         ))}
-
-                                        <Button variant="ghost" className="w-full text-blue-600 hover:bg-blue-50">
-                                            Xem tất cả bài viết →
-                                        </Button>
+                                        <Link to="/blog">
+                                            <Button variant="ghost" className="w-full text-blue-600 hover:bg-blue-50">
+                                                Xem tất cả bài viết →
+                                            </Button>
+                                        </Link>
                                     </motion.div>
                                 </div>
                             )}

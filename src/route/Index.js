@@ -103,7 +103,7 @@ if (role === "CUSTOMER") {
         { path: "/manager/blog-approval", component: BlogApprovalPage, layout: ManagerLayout },
         { path: "/manager/approved-blogs", component: ApprovedBlogPage, layout: ManagerLayout },
         { path: "/blog", component: BlogListPage, layout: ManagerLayout },
-        { path: "/blog/:blogId", component: BlogDetail, layout: DefaultLayout },
+        { path: "/blog/:blogId", component: BlogDetail, layout: ManagerLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else {

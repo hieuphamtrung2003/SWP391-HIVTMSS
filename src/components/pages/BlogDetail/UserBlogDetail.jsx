@@ -26,7 +26,7 @@ const UserBlogDetail = () => {
                 setBlog(res.data);
             } catch (err) {
                 toast.error("Không thể tải thông tin blog.");
-                navigate("/blog");
+                navigate("/my-blog");
             } finally {
                 setLoading(false);
             }
@@ -63,7 +63,7 @@ const UserBlogDetail = () => {
         try {
             await axios.delete(`/api/v1/blogs?id=${blog.blog_id}`);
             toast.success("Đã xóa blog!");
-            navigate("/blogmanagement");
+            navigate("/my-blog");
         } catch (err) {
             toast.error("Xóa thất bại.");
         }
@@ -84,7 +84,191 @@ const UserBlogDetail = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-
+            <style>{`
+                .blog-content {
+                    font-size: 16px;
+                    line-height: 1.7;
+                    color: #374151;
+                }
+                .blog-content h1 { 
+                    font-size: 2em; 
+                    font-weight: bold; 
+                    margin: 1.5em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.2;
+                }
+                .blog-content h2 { 
+                    font-size: 1.5em; 
+                    font-weight: bold; 
+                    margin: 1.3em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.3;
+                }
+                .blog-content h3 { 
+                    font-size: 1.25em; 
+                    font-weight: bold; 
+                    margin: 1.2em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.4;
+                }
+                .blog-content h4 { 
+                    font-size: 1.1em; 
+                    font-weight: bold; 
+                    margin: 1.1em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.4;
+                }
+                .blog-content h5 { 
+                    font-size: 1em; 
+                    font-weight: bold; 
+                    margin: 1em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.4;
+                }
+                .blog-content h6 { 
+                    font-size: 0.9em; 
+                    font-weight: bold; 
+                    margin: 1em 0 0.5em 0; 
+                    color: #111827;
+                    line-height: 1.4;
+                }
+                .blog-content p { 
+                    margin: 1em 0; 
+                    line-height: 1.7;
+                }
+                .blog-content ul, .blog-content ol { 
+                    margin: 1em 0; 
+                    padding-left: 2em; 
+                }
+                .blog-content li { 
+                    margin: 0.5em 0; 
+                    line-height: 1.6;
+                }
+                .blog-content blockquote { 
+                    margin: 1.5em 0; 
+                    padding: 1em 1.5em; 
+                    border-left: 4px solid #3b82f6; 
+                    background-color: #f8fafc;
+                    font-style: italic;
+                    color: #475569;
+                }
+                .blog-content code { 
+                    background-color: #f1f5f9; 
+                    padding: 2px 6px; 
+                    border-radius: 4px; 
+                    font-family: 'Courier New', monospace;
+                    font-size: 0.9em;
+                    color: #dc2626;
+                }
+                .blog-content pre { 
+                    background-color: #1e293b; 
+                    color: #e2e8f0;
+                    padding: 1.5em; 
+                    border-radius: 8px; 
+                    overflow-x: auto; 
+                    margin: 1.5em 0;
+                    font-family: 'Courier New', monospace;
+                    font-size: 0.9em;
+                    line-height: 1.5;
+                }
+                .blog-content pre code {
+                    background: none;
+                    padding: 0;
+                    color: inherit;
+                    font-size: inherit;
+                }
+                .blog-content img { 
+                    max-width: 100%; 
+                    height: auto; 
+                    border-radius: 8px;
+                    margin: 1.5em 0;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                }
+                .blog-content a { 
+                    color: #3b82f6; 
+                    text-decoration: underline; 
+                    transition: color 0.2s;
+                }
+                .blog-content a:hover { 
+                    color: #1d4ed8; 
+                }
+                .blog-content strong { 
+                    font-weight: 600; 
+                    color: #111827;
+                }
+                .blog-content em { 
+                    font-style: italic; 
+                }
+                .blog-content u { 
+                    text-decoration: underline; 
+                }
+                .blog-content s { 
+                    text-decoration: line-through; 
+                }
+                .blog-content table {
+                    border-collapse: collapse;
+                    margin: 1.5em 0;
+                    width: 100%;
+                }
+                .blog-content table th,
+                .blog-content table td {
+                    border: 1px solid #d1d5db;
+                    padding: 0.75em 1em;
+                    text-align: left;
+                }
+                .blog-content table th {
+                    background-color: #f9fafb;
+                    font-weight: 600;
+                    color: #111827;
+                }
+                .blog-content hr {
+                    border: none;
+                    height: 1px;
+                    background-color: #e5e7eb;
+                    margin: 2em 0;
+                }
+                .blog-content .ql-align-center {
+                    text-align: center;
+                }
+                .blog-content .ql-align-right {
+                    text-align: right;
+                }
+                .blog-content .ql-align-justify {
+                    text-align: justify;
+                }
+                .blog-content .ql-indent-1 {
+                    padding-left: 2em;
+                }
+                .blog-content .ql-indent-2 {
+                    padding-left: 4em;
+                }
+                .blog-content .ql-indent-3 {
+                    padding-left: 6em;
+                }
+                .blog-content .ql-indent-4 {
+                    padding-left: 8em;
+                }
+                .blog-content .ql-indent-5 {
+                    padding-left: 10em;
+                }
+                .blog-content .ql-indent-6 {
+                    padding-left: 12em;
+                }
+                .blog-content .ql-indent-7 {
+                    padding-left: 14em;
+                }
+                .blog-content .ql-indent-8 {
+                    padding-left: 16em;
+                }
+                .blog-content sub {
+                    vertical-align: sub;
+                    font-size: 0.8em;
+                }
+                .blog-content sup {
+                    vertical-align: super;
+                    font-size: 0.8em;
+                }
+            `}</style>
 
             {/* Blog */}
             <article className="container mx-auto px-6 py-8 max-w-4xl">
@@ -105,7 +289,7 @@ const UserBlogDetail = () => {
                                     <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg border rounded-md z-10">
                                         <button
                                             className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100"
-                                            onClick={() => navigate(`/blog/edit/${blog.blog_id}`)}
+                                            onClick={() => navigate(`/my-blog/edit/${blog.blog_id}`)}
                                         >
                                             <Edit className="w-4 h-4 text-blue-600" /> Chỉnh sửa
                                         </button>
@@ -258,16 +442,10 @@ const UserBlogDetail = () => {
                         </div>
 
                         {/* Article Content */}
-                        <div className="prose prose-lg max-w-none">
-                            <div className="text-gray-800 leading-relaxed space-y-6">
-                                {blog.content.split("\n").map((para, idx) => (
-                                    para.trim() && (
-                                        <p key={idx} className="text-base md:text-lg leading-7 md:leading-8">
-                                            {para}
-                                        </p>
-                                    )
-                                ))}
-                            </div>
+                        <div className="blog-content">
+                            <div
+                                dangerouslySetInnerHTML={{ __html: blog.content || '<p>Chưa có nội dung...</p>' }}
+                            />
                         </div>
 
                         {/* Article Footer */}

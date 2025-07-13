@@ -80,6 +80,11 @@ export default function SideNavbar() {
       name: 'Thuốc',
       icon: <Pill className="h-5 w-5" />,
       path: '/admin/drugs'
+    },
+    {
+      name: 'Lịch khám đã thay đổi',
+      icon: <Calendar className="h-5 w-5" />,
+      path: '/admin/appointment-changes'
     }
   ]
 

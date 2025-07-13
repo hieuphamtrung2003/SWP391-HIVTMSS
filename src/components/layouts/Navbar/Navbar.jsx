@@ -1,4 +1,5 @@
 import {
+  Newspaper,
   Calendar,
   CalendarCheck,
   MessageSquare,
@@ -63,9 +64,14 @@ export default function SideNavbar() {
       path: '/book'
     },
     {
+      name: 'Xem blog',
+      icon: <Newspaper className="h-5 w-5" />,
+      path: '/blog'
+    },
+    {
       name: 'Quản lý blog',
       icon: <FileText className="h-5 w-5" />,
-      path: '/blog'
+      path: '/my-blog'
     },
 
     {

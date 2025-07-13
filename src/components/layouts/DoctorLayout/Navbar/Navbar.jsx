@@ -1,4 +1,5 @@
 import {
+  Newspaper,
   Calendar,
   CalendarCheck,
   MessageSquare,
@@ -73,6 +74,11 @@ export default function DoctorSideNavbar() {
       name: 'Danh sách bệnh nhân',
       icon: <Users2 className="h-5 w-5" />, // Danh sách nhiều người thay vì 1 user
       path: '/doctor/patient-list'
+    },
+    {
+      name: 'Xem blog',
+      icon: <Newspaper className="h-5 w-5" />,
+      path: '/blog'
     }
   ];
 

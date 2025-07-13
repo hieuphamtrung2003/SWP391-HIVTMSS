@@ -5,7 +5,7 @@ import Schedule from "components/pages/SchedulePage/Schedule";
 import DefaultLayout from "../components/layouts/DefaultLayout/DefaultLayout.jsx";
 import ProfileSettings from "components/pages/ProfilePage/ProfilePage";
 import NotificationsPage from "components/pages/NotificationPage/NotificationPage";
-import BlogListPage from "components/pages/BlogPage/BlogPage";
+import BlogManagementPage from "components/pages/BlogPage/BlogManagementPage";
 import BlogEditorPage from "components/pages/BlogEditor/Blogeditor";
 import ChatPage from "components/pages/ChatPage/ChatPage";
 import DoctorBookingPage from "components/pages/BookingPage";
@@ -30,6 +30,9 @@ import DrugManagementPage from "components/pages/DrugManagement/DrugManagement";
 import ManagerLayout from "components/layouts/ManagerLayout/ManagerLayout";
 import BlogApprovalPage from "components/pages/BlogApproval/BlogApprovalPage";
 import ApprovedBlogPage from "components/pages/ApprovedBlog/ApprovedBlogPage";
+import AllAppointmentChanges from "components/pages/AppoimentChangePage/AllAppointmentChangePage";
+import UserBlogDetail from "components/pages/BlogDetail/UserBlogDetail";
+import BlogListPage from "components/pages/Blog/BlogListpage";
 
 
 let publicRoute = [];
@@ -40,31 +43,26 @@ if (role === "CUSTOMER") {
     publicRoute = [
         { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
         { path: "/reset-password", component: ResetPasswordForm, layout: null },
-        { path: "/blog/1", component: BlogDetail, layout: null },
+        { path: "/my-blog/:blogId", component: UserBlogDetail, layout: DefaultLayout },
+        { path: "/blog/:blogId", component: BlogDetail, layout: DefaultLayout },
         { path: "/schedule", component: Schedule, layout: DefaultLayout },
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
         { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/my-blog", component: BlogManagementPage, layout: DefaultLayout },
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/chat", component: ChatPage, layout: DefaultLayout },
         { path: "/book", component: DoctorBookingPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
-        { path: "/blog/edit/:blogId", component: EditBlogPage, layout: DefaultLayout },
+        { path: "/my-blog/edit/:blogId", component: EditBlogPage, layout: DefaultLayout },
+        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
 
     ]
 } else if (role === "DOCTOR") {
     publicRoute = [
-        { path: "/dashboard", component: AdminDashboard, layout: DefaultLayout },
         { path: "/patient-request", component: PatientRequestsManager, layout: DefaultLayout },
         { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
         { path: "/reset-password", component: ResetPasswordForm, layout: null },
-        { path: "/schedule", component: Schedule, layout: DefaultLayout },
-        { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
-        { path: "/notify", component: NotificationsPage, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
-        { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
-        { path: "/chat", component: ChatPage, layout: DefaultLayout },
         { path: "/login", component: Login, layout: null },
         { path: "/doctor/patient-request", component: PatientRequestsManager, layout: DoctorLayout },
         { path: "/doctor/notify", component: NotificationsPage, layout: DoctorLayout },
@@ -74,6 +72,8 @@ if (role === "CUSTOMER") {
         { path: "/doctor/patient-list", component: PatientListPage, layout: DoctorLayout },
         { path: "/doctor/chat", component: ChatPage, layout: DoctorLayout },
         { path: "/doctor/appointment-change", component: AppointmentTransferRequests, layout: DoctorLayout },
+        { path: "/blog", component: BlogListPage, layout: DoctorLayout },
+        { path: "/blog/:blogId", component: BlogDetail, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
 
 
@@ -82,7 +82,7 @@ if (role === "CUSTOMER") {
     publicRoute = [
 
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/dashboard", component: DashboardContent, layout: AdminLayout },
         { path: "/login", component: Login, layout: null },
@@ -93,6 +93,7 @@ if (role === "CUSTOMER") {
         { path: "/admin/test-types", component: TestTypeManagement, layout: AdminLayout },
         { path: "/admin/treatment-regimen", component: TreatmentRegimenManagement, layout: AdminLayout },
         { path: "/admin/drugs", component: DrugManagementPage, layout: AdminLayout },
+        { path: "/admin/appointment-changes", component: AllAppointmentChanges, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else if (role === "MANAGER") {
@@ -101,6 +102,8 @@ if (role === "CUSTOMER") {
         { path: "/login", component: Login, layout: null },
         { path: "/manager/blog-approval", component: BlogApprovalPage, layout: ManagerLayout },
         { path: "/manager/approved-blogs", component: ApprovedBlogPage, layout: ManagerLayout },
+        { path: "/blog", component: BlogListPage, layout: ManagerLayout },
+        { path: "/blog/:blogId", component: BlogDetail, layout: ManagerLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else {
@@ -111,9 +114,11 @@ if (role === "CUSTOMER") {
         { path: "/register", component: RegisterForm, layout: null },
         { path: "/forgot-password", component: ForgotPasswordForm, layout: null },
         { path: "/reset-password", component: ResetPasswordForm, layout: null },
-        { path: "/blog/1", component: BlogDetail, layout: null },
-        { path: "/blog", component: BlogListPage, layout: DefaultLayout },
+        { path: "/blog/:blogId", component: BlogDetail, layout: null },
+        { path: "/blog", component: BlogListPage, layout: null },
+        { path: "/blog/:blogId", component: BlogDetail, layout: null },
         { path: "*", component: NotFound, layout: null },
+
 
 
     ]

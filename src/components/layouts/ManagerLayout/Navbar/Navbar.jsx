@@ -62,6 +62,11 @@ export default function SideNavbar() {
       icon: <Newspaper className="h-5 w-5" />,
       path: '/manager/approved-blogs'
     },
+    {
+      name: 'Xem blog',
+      icon: <Newspaper className="h-5 w-5" />,
+      path: '/blog'
+    }
   ]
 
   return (

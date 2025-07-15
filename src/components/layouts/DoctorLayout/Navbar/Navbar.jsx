@@ -61,11 +61,6 @@ export default function DoctorSideNavbar() {
       path: '/doctor/patient-request'
     },
     {
-      name: 'Nhắn tin hỗ trợ',
-      icon: <MessageCircle className="h-5 w-5" />, // Biểu tượng hội thoại thay vì MessageSquare
-      path: '/doctor/chat'
-    },
-    {
       name: 'Chuyển giao lịch hẹn',
       icon: <Repeat className="h-5 w-5" />, // Biểu tượng thể hiện hành động lặp/chuyển
       path: '/doctor/appointment-change'

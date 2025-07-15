@@ -28,13 +28,13 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 400 && !isToastShown) {
-      isToastShown = true;
-      toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      window.location.href = '/login';
-    }
+    // if (!isToastShown) {
+    //   isToastShown = true;
+    //   toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
+    //   localStorage.removeItem('access_token');
+    //   localStorage.removeItem('refresh_token');
+    //   window.location.href = '/login';
+    // }
 
     return Promise.reject(error);
   }

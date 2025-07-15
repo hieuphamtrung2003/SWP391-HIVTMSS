@@ -67,7 +67,7 @@ const DashboardContent = () => {
         });
 
         const response = await axios.get(
-          `https://swp391.tinhvv.xyz/api/v1/appointments/dashboard?${params}`
+          `api/v1/appointments/dashboard?${params}`
         );
 
         setDashboardData(response.data);
@@ -175,7 +175,7 @@ const DashboardContent = () => {
           </SelectTrigger>
           <SelectContent>
             {yearOptions.map(year => (
-              <SelectItem key={year} value={year.toString()}>
+              <SelectItem className="bg-white" key={year} value={year.toString()}>
                 {year}
               </SelectItem>
             ))}
@@ -189,7 +189,7 @@ const DashboardContent = () => {
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select month" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white">
             {monthOptions.map(month => (
               <SelectItem key={month.value} value={month.value.toString()}>
                 {month.label}
@@ -229,7 +229,7 @@ const DashboardContent = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng lịch hẹn</CardTitle>
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -242,7 +242,7 @@ const DashboardContent = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Blogs</CardTitle>
+            <CardTitle className="text-sm font-medium">tổng bài viết</CardTitle>
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -259,9 +259,9 @@ const DashboardContent = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            Weekly Statistics - {monthOptions[selectedMonth]?.label} {selectedYear}
+            báo cáo mỗi tuần - {monthOptions[selectedMonth]?.label} {selectedYear}
           </CardTitle>
-          <CardDescription>Weekly overview of patients, appointments, and blogs</CardDescription>
+          <CardDescription>báo cáo mỗi tuần bệnh nhân, lịch khám, bài viết</CardDescription>
         </CardHeader>
         <CardContent>
           {loading.weekly ? (
@@ -269,7 +269,7 @@ const DashboardContent = () => {
               <div className="animate-pulse bg-gray-200 rounded w-full h-full" />
             </div>
           ) : (
-            <div className="h-[300px]">
+            <div className="h-[300px]"> 
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -282,19 +282,19 @@ const DashboardContent = () => {
                   <Legend />
                   <Bar
                     dataKey="customers"
-                    name="Patients"
+                    name="Bệnh nhân"
                     fill="#3b82f6"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="appointments"
-                    name="Appointments"
+                    name="Lịch khám"
                     fill="#10b981"
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="blogs"
-                    name="Blogs"
+                    name="Bài viết"
                     fill="#8b5cf6"
                     radius={[4, 4, 0, 0]}
                   />
@@ -308,8 +308,8 @@ const DashboardContent = () => {
       {/* Recent Activity */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Appointments</CardTitle>
-          <CardDescription>Latest 5 appointments in the system</CardDescription>
+          <CardTitle>Lịch khám gần đây</CardTitle>
+          <CardDescription>5 lịch khám mới nhất</CardDescription>
         </CardHeader>
         <CardContent>
           {loading.appointments ? (
@@ -337,11 +337,11 @@ const DashboardContent = () => {
                     </div>
                     <div>
                       <p className="text-sm font-medium">
-                        {appointment.is_anonymous ? 'Anonymous' : appointment.full_name}
+                        {appointment.is_anonymous ? 'Ẩn danh' : appointment.full_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {appointment.doctor?.full_name ?
-                          `With Dr. ${appointment.doctor.full_name}` :
+                          `với bác sĩ ${appointment.doctor.full_name}` :
                           'No doctor assigned'}
                       </p>
                     </div>

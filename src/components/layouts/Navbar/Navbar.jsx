@@ -74,11 +74,6 @@ export default function SideNavbar() {
       path: '/my-blog'
     },
 
-    {
-      name: 'Nhắn tin hỗ trợ',
-      icon: <MessageSquare className="h-5 w-5" />,
-      path: '/chat'
-    },
   ]
 
   return (

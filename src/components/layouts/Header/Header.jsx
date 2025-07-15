@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Search, AlertTriangle, CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
+import { Bell, MessageSquare, Search, PartyPopper , CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
 import { Input } from '../../ui/input'
 import { Button } from '../../ui/button'
@@ -110,7 +110,7 @@ export default function Header() {
       case 'medication':
         return <Pill className="h-4 w-4 text-green-500" />
       case 'alert':
-        return <AlertTriangle className="h-4 w-4 text-amber-500" />
+        return <PartyPopper className="h-4 w-4 text-green-500" />
       case 'system':
         return <CheckCircle className="h-4 w-4 text-purple-500" />
       default:
@@ -225,13 +225,7 @@ export default function Header() {
         {/* Right side - Navigation */}
         <div className="flex items-center gap-4">
           {/* Search Bar */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Tìm kiếm..."
-              className="pl-10 w-[200px] lg:w-[300px] rounded-full bg-gray-50"
-            />
-          </div>
+
 
           {/* Notification */}
           <div className="relative">
@@ -331,7 +325,7 @@ export default function Header() {
                     )}
                   </div>
                   <div className="p-2 border-t text-center">
-                    <Link to="/notify" className="text-xs text-blue-600 hover:underline">
+                    <Link to="/doctor/notify" className="text-xs text-blue-600 hover:underline">
                       Xem tất cả thông báo
                     </Link>
                   </div>
@@ -339,13 +333,6 @@ export default function Header() {
               )}
             </AnimatePresence>
           </div>
-
-          {/* Messages */}
-          <Link to="/chat">
-            <Button variant="ghost" size="icon">
-              <MessageSquare className="h-5 w-5 text-gray-600" />
-            </Button>
-          </Link>
 
           {/* User Profile */}
           <div className="flex items-center gap-2 ml-2">

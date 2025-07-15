@@ -489,7 +489,6 @@ const BookingPage = () => {
                         <li>Vui lòng đến trước giờ hẹn 15 phút</li>
                         <li>Mang theo CCCD/CMND và sổ khám bệnh (nếu có)</li>
                         <li>Thông tin của bạn được bảo mật tuyệt đối</li>
-                        <li>Có thể hủy/đổi lịch trước 2 giờ</li>
                       </ul>
                     </div>
                   </div>

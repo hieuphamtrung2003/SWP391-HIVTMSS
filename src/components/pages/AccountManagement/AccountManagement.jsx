@@ -103,10 +103,10 @@ const AccountManagementPage = () => {
 
   const formatRole = (role) => {
     switch (role) {
-      case 'CUSTOMER': return 'Patient';
-      case 'DOCTOR': return 'Doctor';
+      case 'CUSTOMER': return 'Bệnh nhân';
+      case 'DOCTOR': return 'Bác sĩ';
       case 'ADMIN': return 'Admin';
-      case 'MANAGER': return 'Manager';
+      case 'MANAGER': return 'Quản lý';
       default: return role;
     }
   };
@@ -139,15 +139,15 @@ const AccountManagementPage = () => {
         {/* Header with title and actions */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Account Management</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Quản lý tài khoản</h1>
             <p className="text-muted-foreground">
-              Manage and review all system accounts
+              Quản lý và theo dõi thông tin tài khoản của nhân viên, bác sĩ và bệnh nhân.
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsCreateOpen(true)}>
               <User className="h-4 w-4 mr-2" />
-              Create Staff
+              Tạo nhân viên
             </Button>
           </div>
         </div>
@@ -166,16 +166,16 @@ const AccountManagementPage = () => {
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent className="bg-white">
-                    <SelectItem value="ALL">All Roles</SelectItem>
-                    <SelectItem value="CUSTOMER">Patients</SelectItem>
-                    <SelectItem value="DOCTOR">Doctors</SelectItem>
-                    <SelectItem value="MANAGER">Managers</SelectItem>
+                    <SelectItem value="ALL">Vai trò</SelectItem>
+                    <SelectItem value="CUSTOMER">Bệnh nhân</SelectItem>
+                    <SelectItem value="DOCTOR">Bác sĩ</SelectItem>
+                    <SelectItem value="MANAGER">Quản lý</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Sort By</label>
+                <label className="text-sm font-medium text-muted-foreground">Sắp xếp theo</label>
                 <Select
                   value={filters.sortBy}
                   onValueChange={(value) => updateFilter('sortBy', value)}
@@ -190,7 +190,7 @@ const AccountManagementPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Sort Direction</label>
+                <label className="text-sm font-medium text-muted-foreground">Sắp xếp</label>
                 <Select
                   value={filters.sortDir}
                   onValueChange={(value) => updateFilter('sortDir', value)}
@@ -202,13 +202,13 @@ const AccountManagementPage = () => {
                     <SelectItem value="asc">
                       <div className="flex items-center gap-2">
                         <ChevronUp className="h-4 w-4" />
-                        <span>Ascending</span>
+                        <span>Tăng dần</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="desc">
                       <div className="flex items-center gap-2">
                         <ChevronDown className="h-4 w-4" />
-                        <span>Descending</span>
+                        <span>Giảm dần</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -216,16 +216,16 @@ const AccountManagementPage = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Search</label>
+                <label className="text-sm font-medium text-muted-foreground">Tìm kiếm</label>
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Search by name, email or phone..."
+                    placeholder="Tìm kiếm email"
                     value={filters.searchTerm}
                     onChange={(e) => updateFilter('searchTerm', e.target.value)}
                   />
                   <Button type="submit">
                     <Search className="h-4 w-4 mr-2" />
-                    Search
+                    Tìm kiếm
                   </Button>
                 </div>
               </div>
@@ -236,7 +236,7 @@ const AccountManagementPage = () => {
         {/* Accounts Table Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Accounts</CardTitle>
+            <CardTitle>Tài khoản</CardTitle>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -251,11 +251,11 @@ const AccountManagementPage = () => {
                       <TableRow>
                         <TableHead className="w-[200px]">Name</TableHead>
                         <TableHead>Email</TableHead>
-                        <TableHead>Phone</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>Số điện thoại</TableHead>
+                        <TableHead>Vai trò</TableHead>
+                        <TableHead>Trang thái</TableHead>
+                        <TableHead>Ngày tạo</TableHead>
+                        <TableHead className="text-right">Thao tác</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -278,7 +278,7 @@ const AccountManagementPage = () => {
                               <RoleBadge role={account.role_name} />
                             </TableCell>
                             <TableCell>
-                              <StatusBadge status={account.is_locked ? 'LOCKED' : 'ACTIVE'} />
+                              <StatusBadge status={account.is_locked ? 'Bị khóa' : 'Đang hoạt động'} />
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col">
@@ -308,13 +308,13 @@ const AccountManagementPage = () => {
                           <TableCell colSpan={7} className="text-center py-8">
                             <div className="flex flex-col items-center gap-2">
                               <Search className="h-8 w-8 text-muted-foreground" />
-                              <p className="text-muted-foreground">No accounts found</p>
+                              <p className="text-muted-foreground">Không có tài khoản tìm thất</p>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleResetFilters}
                               >
-                                Reset filters
+                                Xóa lọc
                               </Button>
                             </div>
                           </TableCell>
@@ -382,7 +382,7 @@ const AccountManagementPage = () => {
               <div className="space-y-4">
                 {/* Basic Info Section */}
                 <div>
-                  <h3 className="font-semibold mb-3">Basic Information</h3>
+                  <h3 className="font-semibold mb-3">Thông tin</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <p className="text-sm">
@@ -390,7 +390,7 @@ const AccountManagementPage = () => {
                         <span className="ml-2 font-mono">{accountDetails.account_id}</span>
                       </p>
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Name:</Label>
+                        <Label className="font-medium text-muted-foreground">Tên:</Label>
                         {isEditMode ? (
                           <div className="flex gap-2">
                             <Input
@@ -419,7 +419,7 @@ const AccountManagementPage = () => {
                         <span className="ml-2">{accountDetails.email}</span>
                       </p>
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Address:</Label>
+                        <Label className="font-medium text-muted-foreground">Địa chỉ:</Label>
                         {isEditMode ? (
                           <Input
                             name="address"
@@ -436,7 +436,7 @@ const AccountManagementPage = () => {
                     </div>
                     <div className="space-y-2">
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Gender:</Label>
+                        <Label className="font-medium text-muted-foreground">Giới tính:</Label>
                         {isEditMode ? (
                           <Select
                             name="gender"
@@ -447,9 +447,9 @@ const AccountManagementPage = () => {
                               <SelectValue placeholder="Select gender" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="MALE">Male</SelectItem>
-                              <SelectItem value="FEMALE">Female</SelectItem>
-                              <SelectItem value="OTHER">Other</SelectItem>
+                              <SelectItem value="MALE">Nam</SelectItem>
+                              <SelectItem value="FEMALE">Nữ</SelectItem>
+                              <SelectItem value="OTHER">Giới tính khác</SelectItem>
                             </SelectContent>
                           </Select>
                         ) : (
@@ -457,7 +457,7 @@ const AccountManagementPage = () => {
                         )}
                       </div>
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Phone:</Label>
+                        <Label className="font-medium text-muted-foreground">Số điện thoại:</Label>
                         {isEditMode ? (
                           <Input
                             name="phone"
@@ -470,7 +470,7 @@ const AccountManagementPage = () => {
                         )}
                       </div>
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Role:</Label>
+                        <Label className="font-medium text-muted-foreground">Vai trò:</Label>
                         {isEditMode ? (
                           <Select
                             value={editFormData.role_id.toString()}
@@ -480,9 +480,9 @@ const AccountManagementPage = () => {
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="1">Patient</SelectItem>
-                              <SelectItem value="2">Doctor</SelectItem>
-                              <SelectItem value="3">Manager</SelectItem>
+                              <SelectItem value="1">Bệnh nhân</SelectItem>
+                              <SelectItem value="2">Bác sĩ</SelectItem>
+                              <SelectItem value="3">Quản lý</SelectItem>
                               <SelectItem value="4">Admin</SelectItem>
                             </SelectContent>
                           </Select>
@@ -493,7 +493,7 @@ const AccountManagementPage = () => {
                         )}
                       </div>
                       <div className="text-sm">
-                        <Label className="font-medium text-muted-foreground">Date of Birth:</Label>
+                        <Label className="font-medium text-muted-foreground">Ngày tháng sinh:</Label>
                         {isEditMode ? (
                           <Input
                             type="date"
@@ -557,7 +557,7 @@ const AccountManagementPage = () => {
                           });
                         }}
                       >
-                        Edit
+                        Chỉnh sửa
                       </Button>
                     </>
                   )}
@@ -572,15 +572,15 @@ const AccountManagementPage = () => {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent className="sm:max-w-2xl bg-white">
           <DialogHeader>
-            <DialogTitle>Register New Staff</DialogTitle>
+            <DialogTitle>Tạo nhân viên mới</DialogTitle>
             <DialogDescription>
-              Create a new Doctor or Manager account. Password will be auto-generated.
+              Nhập thông tin để tạo tài khoản nhân viên mới. Mật khẩu sẽ được tạo tự động.
             </DialogDescription>
           </DialogHeader>
           <form className="space-y-4" onSubmit={handleCreateStaff}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>First Name</Label>
+                <Label>Tên họ</Label>
                 <Input
                   name="first_name"
                   placeholder="First Name"
@@ -590,7 +590,7 @@ const AccountManagementPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Last Name</Label>
+                <Label>Tên</Label>
                 <Input
                   name="last_name"
                   placeholder="Last Name"
@@ -611,7 +611,7 @@ const AccountManagementPage = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Phone</Label>
+                <Label>Số điện thoại</Label>
                 <Input
                   name="phone"
                   placeholder="Phone Number"
@@ -620,7 +620,7 @@ const AccountManagementPage = () => {
                 />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Address</Label>
+                <Label>Thông tin</Label>
                 <Input
                   name="address"
                   placeholder="Address"
@@ -629,7 +629,7 @@ const AccountManagementPage = () => {
                 />
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Role</Label>
+                <Label>Vai trò</Label>
                 <Select
                   value={formValue.role_name}
                   onValueChange={(value) => setFormValue({ ...formValue, role_name: value })}
@@ -638,8 +638,8 @@ const AccountManagementPage = () => {
                     <SelectValue placeholder="Select Role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="DOCTOR">Doctor</SelectItem>
-                    <SelectItem value="MANAGER">Manager</SelectItem>
+                    <SelectItem value="DOCTOR">Bác sĩ</SelectItem>
+                    <SelectItem value="MANAGER">Quản lý</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -647,10 +647,10 @@ const AccountManagementPage = () => {
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button type="submit">
-                Register
+                Tạo
               </Button>
             </div>
           </form>

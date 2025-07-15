@@ -144,18 +144,22 @@ const ForgotPasswordForm = () => {
 
                     {/* Nội dung form */}
                     <div className="p-8 md:p-10 flex flex-col justify-center">
-                        {/* Logo */}
-                        <Link to="/" className="font-semibold text-[#373E79]">
+                        {/* Logo và mô tả */}
+                        <div className="font-semibold text-[#373E79]">
                             <div className="mb-6">
                                 <h1 className="text-3xl font-bold text-blue-700">
-                                    <span className="text-blue-800">HIV</span>
-                                    <span className="text-blue-500">TMSS</span>
+                                    <Link to="/" className="font-semibold text-[#373E79]">
+                                        <span className="text-blue-800">HIV</span>
+                                        <span className="text-blue-500">TMSS</span>
+                                    </Link>
                                 </h1>
+
                                 <p className="text-sm text-gray-600 mt-1">
                                     Bệnh viện chữa trị HIV hàng đầu
                                 </p>
                             </div>
-                        </Link>
+                        </div>
+
 
                         {/* Tiêu đề */}
                         <div className="mb-6">
@@ -201,7 +205,7 @@ const ForgotPasswordForm = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 
 };

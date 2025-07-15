@@ -67,17 +67,17 @@ export default function SideNavbar() {
       path: '/admin/accounts'
     },
     {
-      name: 'Xét Nghiệm',
+      name: 'Quản lý xét nghiệm',
       icon: <FlaskConical className="h-5 w-5" />,
       path: '/admin/test-types'
     },
     {
-      name: 'Phác đồ',
+      name: 'Quản lý phác đồ',
       icon: <Stethoscope className="h-5 w-5" />,
       path: '/admin/treatment-regimen'
     },
     {
-      name: 'Thuốc',
+      name: 'Quản lý thuốc',
       icon: <Pill className="h-5 w-5" />,
       path: '/admin/drugs'
     },

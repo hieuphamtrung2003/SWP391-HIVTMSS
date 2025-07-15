@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+
 // Tạo instance axios với cấu hình mặc định
 const instance = axios.create({
   baseURL: 'https://swp391.tinhvv.xyz/',
@@ -28,7 +29,7 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 400 && !isToastShown) {
+    if (error.response && error.response.status === 402 && !isToastShown) {
       isToastShown = true;
       toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
       localStorage.removeItem('access_token');

@@ -242,6 +242,7 @@ export default function LandingPage() {
     };
 
     return (
+
         <div className="bg-white">
             {/* Navigation Bar */}
             <nav className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-100 backdrop-blur-sm bg-opacity-90">
@@ -307,7 +308,7 @@ export default function LandingPage() {
                 </div>
             </nav>
 
-            <div className="min-h-screen flex flex-col mx-auto w-full max-w-7xl">
+            <div className="min-h-screen flex flex-col w-full">
 
                 {/* Main Content - Single Page Sections */}
                 <ScrollArea className="flex-1">
@@ -316,88 +317,90 @@ export default function LandingPage() {
                         initial="hidden"
                         animate="visible"
                         variants={containerVariants}
-                        className="relative"
+                        className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl"
                     >
                         {/* Hero Carousel with Centered Content */}
-                        <div className="relative overflow-hidden h-[32rem] rounded-xl mt-4 shadow-xl">
-                            {carouselImages.map((image, index) => (
-                                <motion.div
-                                    key={image.id}
-                                    className="absolute w-full h-full"
-                                    initial={{ opacity: 0 }}
-                                    animate={{
-                                        opacity: currentSlide === index ? 1 : 0,
-                                        zIndex: currentSlide === index ? 10 : 0
-                                    }}
-                                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                                >
-                                    <div className="w-full h-full relative">
-                                        <img
-                                            src={image.src}
-                                            alt={image.alt}
-                                            className="w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
+                        <div className="container mx-auto px-6 sm:px-6 lg:px-8 max-w-8xl">
+                            <div className="relative overflow-hidden h-[32rem] rounded-xl mt-4 shadow-xl mx-auto">
+                                {carouselImages.map((image, index) => (
+                                    <motion.div
+                                        key={image.id}
+                                        className="absolute w-full h-full"
+                                        initial={{ opacity: 0 }}
+                                        animate={{
+                                            opacity: currentSlide === index ? 1 : 0,
+                                            zIndex: currentSlide === index ? 10 : 0
+                                        }}
+                                        transition={{ duration: 0.8, ease: "easeInOut" }}
+                                    >
+                                        <div className="w-full h-full relative">
+                                            <img
+                                                src={image.src}
+                                                alt={image.alt}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent"></div>
 
-                                        {/* Centered Hero Content */}
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center z-20">
-                                            <motion.h1
-                                                variants={itemVariants}
-                                                className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
-                                            >
-                                                Hệ thống hỗ trợ điều trị HIV <br /> <span className="text-blue-300">chuyên nghiệp & tận tâm</span>
-                                            </motion.h1>
-                                            <motion.p
-                                                variants={itemVariants}
-                                                className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto"
-                                            >
-                                                Cung cấp dịch vụ y tế chất lượng và hỗ trợ toàn diện cho bệnh nhân HIV với đội ngũ chuyên gia hàng đầu
-                                            </motion.p>
-                                            <motion.div
-                                                variants={containerVariants}
-                                                className="flex flex-col sm:flex-row justify-center gap-4"
-                                            >
-                                                <motion.div variants={itemVariants}>
-                                                    <Link to="/login">
-                                                        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8 py-4 text-lg shadow-lg">
-                                                            Đặt lịch hẹn ngay
-                                                        </Button>
-                                                    </Link>
+                                            {/* Centered Hero Content */}
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center z-20">
+                                                <motion.h1
+                                                    variants={itemVariants}
+                                                    className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight"
+                                                >
+                                                    Hệ thống hỗ trợ điều trị HIV <br /> <span className="text-blue-300">chuyên nghiệp & tận tâm</span>
+                                                </motion.h1>
+                                                <motion.p
+                                                    variants={itemVariants}
+                                                    className="text-xl text-gray-200 mb-8 max-w-3xl mx-auto"
+                                                >
+                                                    Cung cấp dịch vụ y tế chất lượng và hỗ trợ toàn diện cho bệnh nhân HIV với đội ngũ chuyên gia hàng đầu
+                                                </motion.p>
+                                                <motion.div
+                                                    variants={containerVariants}
+                                                    className="flex flex-col sm:flex-row justify-center gap-4"
+                                                >
+                                                    <motion.div variants={itemVariants}>
+                                                        <Link to="/login">
+                                                            <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-8 py-4 text-lg shadow-lg">
+                                                                Đặt lịch hẹn ngay
+                                                            </Button>
+                                                        </Link>
+                                                    </motion.div>
+                                                    <motion.div variants={itemVariants}>
+                                                        <Link to="/login">
+                                                            <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-800 px-8 py-4 text-lg backdrop-blur-sm">
+                                                                Tư vấn trực tuyến
+                                                            </Button>
+                                                        </Link>
+                                                    </motion.div>
                                                 </motion.div>
-                                                <motion.div variants={itemVariants}>
-                                                    <Link to="/login">
-                                                        <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-800 px-8 py-4 text-lg backdrop-blur-sm">
-                                                            Tư vấn trực tuyến
-                                                        </Button>
-                                                    </Link>
-                                                </motion.div>
-                                            </motion.div>
-                                        </div>
+                                            </div>
 
-                                        <div className="absolute bottom-8 left-8 text-white">
-                                            <p className="text-xl font-medium">{image.caption}</p>
+                                            <div className="absolute bottom-8 left-8 text-white">
+                                                <p className="text-xl font-medium">{image.caption}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-
-                            {/* Carousel Navigation Dots */}
-                            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
-                                {carouselImages.map((_, index) => (
-                                    <button
-                                        key={index}
-                                        onClick={() => goToSlide(index)}
-                                        className={`w-3 h-3 rounded-full transition-all ${currentSlide === index ? 'bg-white w-6' : 'bg-white bg-opacity-50'}`}
-                                        aria-label={`Go to slide ${index + 1}`}
-                                    />
+                                    </motion.div>
                                 ))}
+
+                                {/* Carousel Navigation Dots */}
+                                <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-3 z-20">
+                                    {carouselImages.map((_, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => goToSlide(index)}
+                                            className={`w-3 h-3 rounded-full transition-all ${currentSlide === index ? 'bg-white w-6' : 'bg-white bg-opacity-50'}`}
+                                            aria-label={`Go to slide ${index + 1}`}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </motion.section>
 
                     {/* Stats Section */}
                     <section className="py-12 bg-white">
-                        <div className="container mx-auto px-6">
+                        <div className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl">
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -450,7 +453,7 @@ export default function LandingPage() {
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
                             variants={containerVariants}
-                            className="container mx-auto px-6"
+                            className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl"
                         >
                             <div className="text-center mb-16">
                                 <motion.h2 variants={itemVariants} className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -528,7 +531,7 @@ export default function LandingPage() {
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
                             variants={containerVariants}
-                            className="container mx-auto px-6"
+                            className="container mx-auto px-6 sm:px-6 lg:px-8 max-w-8xl"
                         >
                             <div className="text-center mb-16">
                                 <motion.h2 variants={itemVariants} className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -687,7 +690,7 @@ export default function LandingPage() {
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
                             variants={containerVariants}
-                            className="container mx-auto px-6"
+                            className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl"
                         >
                             <div className="text-center mb-16">
                                 <motion.h2 variants={itemVariants} className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -755,7 +758,7 @@ export default function LandingPage() {
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
                             variants={containerVariants}
-                            className="container mx-auto px-6"
+                            className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl"
                         >
                             <div className="text-center mb-16">
                                 <motion.h2 variants={itemVariants} className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
@@ -891,7 +894,7 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="bg-gray-900 text-white py-12"
             >
-                <div className="container mx-auto px-6">
+                <div className="container mx-auto px-7 sm:px-6 lg:px-8 max-w-8xl">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <motion.div
                             initial={{ x: -20 }}

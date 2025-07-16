@@ -528,16 +528,11 @@ const BlogDetail = () => {
                             </div>
 
                             {/* Article Content */}
-                            <div className="prose prose-lg max-w-none">
-                                <div className="text-gray-800 leading-relaxed space-y-6">
-                                    {blog.content.split("\n").map((para, idx) => (
-                                        para.trim() && (
-                                            <p key={idx} className="text-base md:text-lg leading-7 md:leading-8">
-                                                {para}
-                                            </p>
-                                        )
-                                    ))}
-                                </div>
+                            {/* Article Content */}
+                            <div className="blog-content">
+                                <div
+                                    dangerouslySetInnerHTML={{ __html: blog.content || '<p>Chưa có nội dung...</p>' }}
+                                />
                             </div>
 
                             {/* Article Footer */}

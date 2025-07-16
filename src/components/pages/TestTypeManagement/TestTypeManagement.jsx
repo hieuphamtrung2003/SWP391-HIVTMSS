@@ -43,13 +43,14 @@ import {
 import { Badge } from '../../../components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
+import ReactSelect from 'react-select';
 
 const TestTypeManagement = () => {
     const [testTypes, setTestTypes] = useState([]);
     const [filteredTestTypes, setFilteredTestTypes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeactivateDialogOpen, setIsDeactivateDialogOpen] = useState(false);
     const [currentTestType, setCurrentTestType] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -60,23 +61,58 @@ const TestTypeManagement = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const totalPages = Math.ceil(filteredTestTypes.length / itemsPerPage);
 
-    // Form state
+    // Dropdown options cho đối tượng áp dụng
+    const applicableOptions = [
+        { value: 'infant', label: 'Em bé' },
+        { value: 'adolescents', label: 'Trẻ em' },
+        { value: 'Adults', label: 'Người lớn' },
+        { value: 'pregnant woman', label: 'Phụ nữ có thai' }
+    ];
+
+    // Form state - Thay đổi applicable thành array
     const [formData, setFormData] = useState({
-        applicable: '',
+        applicable: [],
         test_type_name: '',
+        test_type_id: '1',
         test_type_description: '',
         test_type_code: '',
     });
+
+    // Hàm lấy label tiếng Việt cho applicable - Cập nhật để xử lý array
+    const getApplicableLabel = (value) => {
+        if (!value) return '';
+
+        // Nếu value là string, chuyển thành array
+        const applicableArray = Array.isArray(value) ? value : value.split(',');
+
+        return applicableArray.map(item => {
+            const option = applicableOptions.find(opt => opt.value === item.trim());
+            return option ? option.label : item.trim();
+        }).join(', ');
+    };
+
+    // Hàm sắp xếp theo ID
+    const sortByIdAsc = (data) => {
+        return data.sort((a, b) => {
+            const idA = parseInt(a.test_type_id) || 0;
+            const idB = parseInt(b.test_type_id) || 0;
+            return idA - idB;
+        });
+    };
 
     // Fetch all test types
     const fetchTestTypes = async () => {
         try {
             setLoading(true);
             const response = await axios.get('/api/v1/test-types/all');
-            setTestTypes(response.data);
-            setFilteredTestTypes(response.data);
+
+            // Sắp xếp theo ID ngay khi fetch
+            const sortedData = sortByIdAsc(response.data);
+
+            setTestTypes(sortedData);
+            setFilteredTestTypes(sortedData);
         } catch (error) {
-            toast.error('Failed to fetch test types');
+            toast.error('Không thể tải danh sách loại xét nghiệm');
         } finally {
             setLoading(false);
         }
@@ -103,6 +139,9 @@ const TestTypeManagement = () => {
             result = result.filter(item => item.is_active === statusFilter);
         }
 
+        // Sắp xếp theo test_type_id tăng dần
+        result = sortByIdAsc(result);
+
         setFilteredTestTypes(result);
         setCurrentPage(1); // Reset to first page when filters change
     }, [searchTerm, statusFilter, testTypes]);
@@ -116,10 +155,18 @@ const TestTypeManagement = () => {
         }));
     };
 
+    // Handle select changes
+    const handleSelectChange = (name, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [name]: value,
+        }));
+    };
+
     // Reset form
     const resetForm = () => {
         setFormData({
-            applicable: '',
+            applicable: [],
             test_type_name: '',
             test_type_description: '',
             test_type_code: '',
@@ -130,33 +177,67 @@ const TestTypeManagement = () => {
     // Handle form submission (create/update)
     const handleSubmit = async (e) => {
         e.preventDefault();
+        e.stopPropagation();
+
+        // Validation
+        if (!formData.test_type_name.trim()) {
+            toast.error('Vui lòng nhập tên loại xét nghiệm');
+            return;
+        }
+
+        if (!formData.test_type_code.trim()) {
+            toast.error('Vui lòng nhập mã xét nghiệm');
+            return;
+        }
+
+        if (!formData.applicable || formData.applicable.length === 0) {
+            toast.error('Vui lòng chọn ít nhất một đối tượng áp dụng');
+            return;
+        }
+
+        if (!formData.test_type_description.trim()) {
+            toast.error('Vui lòng nhập mô tả');
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
+            // Chuẩn bị data để gửi - chuyển array thành string
+            const submitData = {
+                ...formData,
+                applicable: formData.applicable.join(',')
+            };
+
             if (currentTestType) {
                 // Update existing test type
-                await axios.put(`/api/v1/test-types?id=${currentTestType.test_type_id}`, formData);
-                toast.success('Test type updated successfully');
+                await axios.put(`/api/v1/test-types?id=${currentTestType.test_type_id}`, submitData);
+                toast.success('Loại xét nghiệm đã được cập nhật thành công');
             } else {
                 // Create new test type
-                await axios.post('/api/v1/test-types', formData);
-                toast.success('Test type created successfully');
+                await axios.post('/api/v1/test-types', submitData);
+                toast.success('Loại xét nghiệm đã được tạo thành công');
             }
             fetchTestTypes();
             setIsDialogOpen(false);
             resetForm();
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Operation failed');
+            toast.error(error.response?.data?.message || 'Thao tác thất bại');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // Edit test type
+    // Edit test type - Cập nhật để xử lý applicable như array
     const handleEdit = (testType) => {
         setCurrentTestType(testType);
+
+        // Chuyển applicable từ string thành array
+        const applicableArray = testType.applicable ? testType.applicable.split(',').map(item => item.trim()) : [];
+
         setFormData({
-            applicable: testType.applicable,
+            applicable: applicableArray,
+            test_type_id: testType.test_type_id,
             test_type_name: testType.test_type_name,
             test_type_description: testType.test_type_description,
             test_type_code: testType.test_type_code,
@@ -164,21 +245,30 @@ const TestTypeManagement = () => {
         setIsDialogOpen(true);
     };
 
-    // // Delete test type
-    // const handleDelete = async () => {
-    //     try {
-    //         setIsSubmitting(true);
-    //         await axios.delete(`/api/v1/test-types?id=${currentTestType.test_type_id}`);
-    //         toast.success('Test type deleted successfully');
-    //         fetchTestTypes();
-    //         setIsDeleteDialogOpen(false);
-    //         resetForm();
-    //     } catch (error) {
-    //         toast.error('Failed to delete test type');
-    //     } finally {
-    //         setIsSubmitting(false);
-    //     }
-    // };
+    // Deactivate test type
+    const handleDeactivate = async () => {
+        try {
+            setIsSubmitting(true);
+            // Gửi request body với thông tin test type hiện tại
+            await axios.delete(`/api/v1/test-types?id=${currentTestType.test_type_id}`, {
+                data: {
+                    applicable: currentTestType.applicable,
+                    test_type_name: currentTestType.test_type_name,
+                    test_type_id: currentTestType.test_type_id,
+                    test_type_description: currentTestType.test_type_description,
+                    test_type_code: currentTestType.test_type_code,
+                }
+            });
+            toast.success('Loại xét nghiệm đã được vô hiệu hóa thành công');
+            fetchTestTypes();
+            setIsDeactivateDialogOpen(false);
+            resetForm();
+        } catch (error) {
+            toast.error('Không thể vô hiệu hóa loại xét nghiệm');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     // Toggle test type status
     const toggleStatus = async (testTypeId, currentStatus) => {
@@ -187,10 +277,10 @@ const TestTypeManagement = () => {
             await axios.patch(`/api/v1/test-types/status?id=${testTypeId}`, {
                 status: newStatus,
             });
-            toast.success(`Test type status updated to ${newStatus}`);
+            toast.success(`Trạng thái loại xét nghiệm đã được cập nhật thành ${newStatus === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}`);
             fetchTestTypes();
         } catch (error) {
-            toast.error('Failed to update status');
+            toast.error('Không thể cập nhật trạng thái');
         }
     };
 
@@ -204,17 +294,25 @@ const TestTypeManagement = () => {
         currentPage * itemsPerPage
     );
 
+    // Handle dialog close
+    const handleDialogClose = (open) => {
+        if (!open) {
+            resetForm();
+        }
+        setIsDialogOpen(open);
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <Card className="shadow-sm">
                 <CardHeader>
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <CardTitle className="text-2xl font-bold">Test Type Management</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Quản lý loại xét nghiệm</CardTitle>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                 <Input
-                                    placeholder="Search test types..."
+                                    placeholder="Tìm kiếm loại xét nghiệm..."
                                     className="pl-9"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -222,70 +320,81 @@ const TestTypeManagement = () => {
                             </div>
                             <Select value={statusFilter} onValueChange={setStatusFilter}>
                                 <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Filter by status" />
+                                    <SelectValue placeholder="Lọc theo trạng thái" />
                                 </SelectTrigger>
-                                <SelectContent className="bg-white">
-                                    <SelectItem value="ALL">All Statuses</SelectItem>
-                                    <SelectItem value="ACTIVE">Active</SelectItem>
-                                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                <SelectContent className="bg-white z-[60]">
+                                    <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
+                                    <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                                    <SelectItem value="INACTIVE">Không hoạt động</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-                                if (!open) resetForm();
-                                setIsDialogOpen(open);
-                            }}>
+                            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
                                 <DialogTrigger asChild>
                                     <Button className="gap-2">
                                         <PlusCircle className="h-4 w-4" />
-                                        Add New
+                                        Thêm mới
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[800px] bg-white">
+                                <DialogContent className="sm:max-w-[800px] bg-white z-[100] max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                         <DialogTitle>
-                                            {currentTestType ? 'Edit Test Type' : 'Create New Test Type'}
+                                            {currentTestType ? 'Chỉnh sửa loại xét nghiệm' : 'Tạo loại xét nghiệm mới'}
                                         </DialogTitle>
                                     </DialogHeader>
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <label className="block text-sm font-medium text-gray-700">
-                                                    Test Type Name <span className="text-red-500">*</span>
+                                                    Tên loại xét nghiệm <span className="text-red-500">*</span>
                                                 </label>
                                                 <Input
                                                     name="test_type_name"
                                                     value={formData.test_type_name}
                                                     onChange={handleInputChange}
                                                     required
+                                                    className="relative z-[101]"
                                                 />
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="block text-sm font-medium text-gray-700">
-                                                    Test Code <span className="text-red-500">*</span>
+                                                    Mã xét nghiệm <span className="text-red-500">*</span>
                                                 </label>
                                                 <Input
                                                     name="test_type_code"
                                                     value={formData.test_type_code}
                                                     onChange={handleInputChange}
                                                     required
+                                                    className="relative z-[101]"
                                                 />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="block text-sm font-medium text-gray-700">
-                                                Applicable To <span className="text-red-500">*</span>
+                                                Đối tượng áp dụng <span className="text-red-500">*</span>
                                             </label>
-                                            <Input
-                                                name="applicable"
-                                                value={formData.applicable}
-                                                onChange={handleInputChange}
-                                                placeholder="e.g., Adults, pregnant women"
-                                                required
+                                            <ReactSelect
+                                                isMulti
+                                                options={applicableOptions}
+                                                value={applicableOptions.filter(option => formData.applicable.includes(option.value))}
+                                                onChange={(selected) => {
+                                                    const values = selected ? selected.map(opt => opt.value) : [];
+                                                    setFormData((prev) => ({ ...prev, applicable: values }));
+                                                }}
+                                                className="react-select-container"
+                                                classNamePrefix="react-select"
+                                                placeholder="Chọn đối tượng áp dụng..."
+                                                noOptionsMessage={() => "Không có tùy chọn nào"}
+                                                menuPortalTarget={document.body}
+                                                styles={{
+                                                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                    menu: (base) => ({ ...base, zIndex: 9999 }),
+                                                    control: (base) => ({ ...base, zIndex: 1 })
+                                                }}
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="block text-sm font-medium text-gray-700">
-                                                Description <span className="text-red-500">*</span>
+                                                Mô tả <span className="text-red-500">*</span>
                                             </label>
                                             <Textarea
                                                 name="test_type_description"
@@ -293,20 +402,21 @@ const TestTypeManagement = () => {
                                                 onChange={handleInputChange}
                                                 rows={3}
                                                 required
+                                                className="relative z-[101]"
                                             />
                                         </div>
-                                        <DialogFooter>
+                                        <DialogFooter className="relative z-[101]">
                                             <Button
                                                 type="button"
                                                 variant="outline"
                                                 onClick={() => setIsDialogOpen(false)}
                                                 disabled={isSubmitting}
                                             >
-                                                Cancel
+                                                Hủy
                                             </Button>
                                             <Button type="submit" disabled={isSubmitting}>
                                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                {currentTestType ? 'Save Changes' : 'Create Test Type'}
+                                                {currentTestType ? 'Lưu thay đổi' : 'Tạo loại xét nghiệm'}
                                             </Button>
                                         </DialogFooter>
                                     </form>
@@ -326,23 +436,25 @@ const TestTypeManagement = () => {
                                 <TableHeader className="bg-gray-50">
                                     <TableRow>
                                         <TableHead className="w-[100px]">ID</TableHead>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Code</TableHead>
-                                        <TableHead>Applicable To</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+                                        <TableHead>Tên</TableHead>
+                                        <TableHead>Mã</TableHead>
+                                        <TableHead>Áp dụng cho</TableHead>
+                                        <TableHead>Trạng thái</TableHead>
+                                        <TableHead className="text-right">Thao tác</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {paginatedData.length > 0 ? (
-                                        paginatedData.map((testType) => (
+                                        paginatedData.map((testType, index) => (
                                             <TableRow key={testType.test_type_id} className="hover:bg-gray-50">
-                                                <TableCell className="font-medium">{testType.test_type_id}</TableCell>
+                                                <TableCell className="font-medium">
+                                                    {testType.test_type_id}
+                                                </TableCell>
                                                 <TableCell>{testType.test_type_name}</TableCell>
                                                 <TableCell>
                                                     <Badge variant="outline">{testType.test_type_code}</Badge>
                                                 </TableCell>
-                                                <TableCell>{testType.applicable}</TableCell>
+                                                <TableCell>{getApplicableLabel(testType.applicable)}</TableCell>
                                                 <TableCell>
                                                     <Badge
                                                         variant={testType.is_active === 'ACTIVE' ? 'default' : 'secondary'}
@@ -350,7 +462,7 @@ const TestTypeManagement = () => {
                                                             ? 'bg-green-100 text-green-800'
                                                             : 'bg-red-100 text-red-800'}
                                                     >
-                                                        {testType.is_active}
+                                                        {testType.is_active === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
@@ -360,34 +472,23 @@ const TestTypeManagement = () => {
                                                                 <MoreVertical className="h-4 w-4" />
                                                             </Button>
                                                         </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="bg-white">
+                                                        <DropdownMenuContent align="end" className="bg-white z-[50]">
                                                             <DropdownMenuItem onClick={() => handleEdit(testType)}>
                                                                 <Pencil className="mr-2 h-4 w-4" />
-                                                                Edit
+                                                                Chỉnh sửa
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => toggleStatus(testType.test_type_id, testType.is_active)}
-                                                                className={testType.is_active === 'ACTIVE'
-                                                                    ? 'text-yellow-600 '
-                                                                    : 'text-green-600'}
-                                                            >
-                                                                {testType.is_active === 'ACTIVE' ? (
+                                                            {testType.is_active === 'ACTIVE' && (
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setCurrentTestType(testType);
+                                                                        setIsDeactivateDialogOpen(true);
+                                                                    }}
+                                                                    className="text-red-600"
+                                                                >
                                                                     <XCircle className="mr-2 h-4 w-4" />
-                                                                ) : (
-                                                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                                                )}
-                                                                {testType.is_active === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem
-                                                                onClick={() => {
-                                                                    setCurrentTestType(testType);
-                                                                    setIsDeleteDialogOpen(true);
-                                                                }}
-                                                                className="text-red-600"
-                                                            >
-                                                                <Trash2 className="mr-2 h-4 w-4" />
-                                                                Delete
-                                                            </DropdownMenuItem>
+                                                                    Vô hiệu hóa
+                                                                </DropdownMenuItem>
+                                                            )}
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
@@ -396,7 +497,7 @@ const TestTypeManagement = () => {
                                     ) : (
                                         <TableRow>
                                             <TableCell colSpan={6} className="text-center h-24">
-                                                No test types found
+                                                Không tìm thấy loại xét nghiệm nào
                                             </TableCell>
                                         </TableRow>
                                     )}
@@ -408,11 +509,11 @@ const TestTypeManagement = () => {
                 {filteredTestTypes.length > 0 && (
                     <CardFooter className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t">
                         <div className="text-sm text-muted-foreground">
-                            Showing <strong>{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredTestTypes.length)}</strong> of <strong>{filteredTestTypes.length}</strong> test types
+                            Hiển thị <strong>{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredTestTypes.length)}</strong> trong tổng số <strong>{filteredTestTypes.length}</strong> loại xét nghiệm
                         </div>
                         <div className="flex items-center space-x-2">
                             <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium">Rows per page</span>
+                                <span className="text-sm font-medium">Số dòng mỗi trang</span>
                                 <Select
                                     value={`${itemsPerPage}`}
                                     onValueChange={(value) => {
@@ -423,7 +524,7 @@ const TestTypeManagement = () => {
                                     <SelectTrigger className="h-8 w-[70px]">
                                         <SelectValue placeholder={itemsPerPage} />
                                     </SelectTrigger>
-                                    <SelectContent side="top">
+                                    <SelectContent side="top" className="bg-white z-[50]">
                                         {[5, 10, 20, 50].map((pageSize) => (
                                             <SelectItem key={pageSize} value={`${pageSize}`}>
                                                 {pageSize}
@@ -439,7 +540,7 @@ const TestTypeManagement = () => {
                                     onClick={() => goToPage(1)}
                                     disabled={currentPage === 1}
                                 >
-                                    <span className="sr-only">Go to first page</span>
+                                    <span className="sr-only">Đi đến trang đầu</span>
                                     <ChevronsLeft className="h-4 w-4" />
                                 </Button>
                                 <Button
@@ -448,11 +549,11 @@ const TestTypeManagement = () => {
                                     onClick={() => goToPage(currentPage - 1)}
                                     disabled={currentPage === 1}
                                 >
-                                    <span className="sr-only">Go to previous page</span>
+                                    <span className="sr-only">Đi đến trang trước</span>
                                     <ChevronLeft className="h-4 w-4" />
                                 </Button>
                                 <div className="text-sm font-medium">
-                                    Page {currentPage} of {totalPages}
+                                    Trang {currentPage} / {totalPages}
                                 </div>
                                 <Button
                                     variant="outline"
@@ -460,7 +561,7 @@ const TestTypeManagement = () => {
                                     onClick={() => goToPage(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                 >
-                                    <span className="sr-only">Go to next page</span>
+                                    <span className="sr-only">Đi đến trang tiếp theo</span>
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
                                 <Button
@@ -469,7 +570,7 @@ const TestTypeManagement = () => {
                                     onClick={() => goToPage(totalPages)}
                                     disabled={currentPage === totalPages}
                                 >
-                                    <span className="sr-only">Go to last page</span>
+                                    <span className="sr-only">Đi đến trang cuối</span>
                                     <ChevronsRight className="h-4 w-4" />
                                 </Button>
                             </div>
@@ -478,30 +579,30 @@ const TestTypeManagement = () => {
                 )}
             </Card>
 
-            {/* Delete confirmation dialog */}
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent className="sm:max-w-[425px] bg-white">
+            {/* Dialog xác nhận vô hiệu hóa */}
+            <Dialog open={isDeactivateDialogOpen} onOpenChange={setIsDeactivateDialogOpen}>
+                <DialogContent className="sm:max-w-[425px] bg-white z-[100]">
                     <DialogHeader>
-                        <DialogTitle>Confirm Deletion</DialogTitle>
+                        <DialogTitle>Xác nhận vô hiệu hóa</DialogTitle>
                     </DialogHeader>
                     <div className="py-4">
-                        Are you sure you want to delete the test type <strong>{currentTestType?.test_type_name}</strong>? This action cannot be undone.
+                        Bạn có chắc chắn muốn vô hiệu hóa loại xét nghiệm <strong>{currentTestType?.test_type_name}</strong>? Hành động này sẽ chuyển trạng thái sang không hoạt động.
                     </div>
                     <DialogFooter>
                         <Button
                             variant="outline"
-                            onClick={() => setIsDeleteDialogOpen(false)}
+                            onClick={() => setIsDeactivateDialogOpen(false)}
                             disabled={isSubmitting}
                         >
-                            Cancel
+                            Hủy
                         </Button>
                         <Button
                             variant="destructive"
-                            // onClick={handleDelete}
+                            onClick={handleDeactivate}
                             disabled={isSubmitting}
                         >
                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Delete
+                            Vô hiệu hóa
                         </Button>
                     </DialogFooter>
                 </DialogContent>

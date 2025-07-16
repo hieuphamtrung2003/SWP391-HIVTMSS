@@ -82,7 +82,7 @@ export default function SideNavbar() {
       path: '/admin/drugs'
     },
     {
-      name: 'Lịch khám đã thay đổi',
+      name: 'Yêu cầu chuyển lịch khám',
       icon: <Calendar className="h-5 w-5" />,
       path: '/admin/appointment-changes'
     }

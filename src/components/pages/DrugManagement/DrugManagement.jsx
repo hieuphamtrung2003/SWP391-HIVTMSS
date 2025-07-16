@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'setup/configAxios';
 import { toast } from 'react-toastify';
+import Select from 'react-select';
 import {
     Card, CardContent, CardFooter, CardHeader, CardTitle
 } from '../../../components/ui/card';
@@ -27,7 +28,7 @@ const DrugManagement = () => {
         drug_id: '',
         name: '',
         short_name: '',
-        type: 'NRTIs',
+        type: '',
         is_active: 'ACTIVE',
         create_date: ''
     });
@@ -35,10 +36,19 @@ const DrugManagement = () => {
         drug_id: '',
         name: '',
         short_name: '',
-        type: 'NRTIs',
+        type: '',
         is_active: 'ACTIVE',
         create_date: ''
     });
+
+    // Drug type options
+    const drugTypeOptions = [
+        { value: 'NRTIs', label: 'NRTIs (Ức chế men sao chép ngược Nucleoside)' },
+        { value: 'NtRTIs', label: 'NtRTIs (Ức chế men sao chép ngược Nucleotide)' },
+        { value: 'NNRTIs', label: 'NNRTIs (Ức chế men sao chép ngược không Nucleoside)' },
+        { value: 'PIs', label: 'PIs (Ức chế Protease)' },
+        { value: 'INSTIs', label: 'INSTIs (Ức chế men tích hợp)' }
+    ];
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
@@ -83,17 +93,16 @@ const DrugManagement = () => {
     };
 
     const handleSubmitCreate = async () => {
-        if (!createForm.name.trim() || !createForm.short_name.trim()) {
-            toast.error('Vui lòng nhập đầy đủ tên và tên viết tắt');
+        if (!createForm.name.trim() || !createForm.short_name.trim() || !createForm.type.trim()) {
+            toast.error('Vui lòng nhập đầy đủ thông tin');
             return;
         }
-
 
         const payload = {
             drug_id: "",
             name: createForm.name,
             short_name: createForm.short_name,
-            type: 'NRTIs',
+            type: createForm.type,
             is_active: 'ACTIVE',
             create_date: new Date().toISOString()
         };
@@ -103,6 +112,14 @@ const DrugManagement = () => {
             await axios.post('/api/v1/drugs', payload);
             toast.success('Tạo thuốc mới thành công');
             setIsCreateDialogOpen(false);
+            setCreateForm({
+                drug_id: '',
+                name: '',
+                short_name: '',
+                type: '',
+                is_active: 'ACTIVE',
+                create_date: ''
+            });
             fetchDrugs();
         } catch {
             toast.error('Tạo thuốc thất bại');
@@ -117,20 +134,24 @@ const DrugManagement = () => {
             drug_id: drug.drug_id,
             name: drug.drug_name,
             short_name: drug.short_name,
-            type: drug.drug_type || 'NRTIs',
+            type: drug.drug_type || '',
             is_active: drug.is_active || 'ACTIVE',
             create_date: drug.created_date || new Date().toISOString()
         });
         setIsEditDialogOpen(true);
     };
 
-
     const handleSubmitEdit = async () => {
+        if (!editForm.name.trim() || !editForm.short_name.trim() || !editForm.type.trim()) {
+            toast.error('Vui lòng nhập đầy đủ thông tin');
+            return;
+        }
+
         const payload = {
             drug_id: editForm.drug_id,
             name: editForm.name,
             short_name: editForm.short_name,
-            type: 'NRTIs',
+            type: editForm.type,
             is_active: editForm.is_active || 'ACTIVE',
             create_date: editForm.create_date
         };
@@ -147,7 +168,6 @@ const DrugManagement = () => {
             setIsSubmitting(false);
         }
     };
-
 
     const handleDeleteDrug = async () => {
         try {
@@ -172,6 +192,10 @@ const DrugManagement = () => {
         }
     };
 
+    const getDrugTypeLabel = (type) => {
+        const option = drugTypeOptions.find(opt => opt.value === type);
+        return option ? option.label : type;
+    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -188,7 +212,7 @@ const DrugManagement = () => {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <Button onClick={() => setIsCreateDialogOpen(true)} className="whitespace-nowrap">
+                        <Button onClick={() => setIsCreateDialogOpen(true)} className="hover:bg-blue-700 hover:text-white">
                             <PlusCircle className="h-4 w-4 mr-2" />
                             Thêm thuốc
                         </Button>
@@ -207,6 +231,7 @@ const DrugManagement = () => {
                                     <TableRow>
                                         <TableHead className="w-[100px]">ID</TableHead>
                                         <TableHead>Tên thuốc</TableHead>
+                                        <TableHead>Loại thuốc</TableHead>
                                         <TableHead>Trạng thái</TableHead>
                                         <TableHead className="text-right">Thao tác</TableHead>
                                     </TableRow>
@@ -217,6 +242,11 @@ const DrugManagement = () => {
                                             <TableCell>{drug.drug_id}</TableCell>
                                             <TableCell>
                                                 {drug.drug_name}{drug.short_name && ` (${drug.short_name})`}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline" className="text-xs">
+                                                    {drug.drug_type || 'Chưa phân loại'}
+                                                </Badge>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
@@ -270,7 +300,7 @@ const DrugManagement = () => {
                         <div className="space-y-4 max-h-96 overflow-y-auto">
                             <p><strong className="text-gray-700">Tên:</strong> {currentDrug.drug_name}</p>
                             <p><strong className="text-gray-700">Viết tắt:</strong> {currentDrug.short_name}</p>
-                            <p><strong className="text-gray-700">Loại:</strong> {currentDrug.drug_type}</p>
+                            <p><strong className="text-gray-700">Loại:</strong> {getDrugTypeLabel(currentDrug.drug_type)}</p>
                             <p><strong className="text-gray-700">Ngày tạo:</strong> {new Date(currentDrug.created_date).toLocaleString()}</p>
                             <p><strong className="text-gray-700">Trạng thái:</strong> {currentDrug.is_active === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}</p>
                         </div>
@@ -313,6 +343,20 @@ const DrugManagement = () => {
                             <Input name="short_name" placeholder="Tên viết tắt" value={createForm.short_name} onChange={handleCreateChange} />
                         </div>
 
+                        <div>
+                            <label className="block font-medium mb-1">Loại thuốc</label>
+                            <Select
+                                options={drugTypeOptions}
+                                value={drugTypeOptions.find(option => option.value === createForm.type)}
+                                onChange={(selected) => {
+                                    setCreateForm(prev => ({ ...prev, type: selected ? selected.value : '' }));
+                                }}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                placeholder="Chọn loại thuốc..."
+                                isClearable
+                            />
+                        </div>
                     </div>
                     <DialogFooter className="mt-4">
                         <Button
@@ -350,7 +394,20 @@ const DrugManagement = () => {
                             <Input name="short_name" placeholder="Tên viết tắt" value={editForm.short_name} onChange={handleEditChange} />
                         </div>
 
-
+                        <div>
+                            <label className="block font-medium mb-1">Loại thuốc</label>
+                            <Select
+                                options={drugTypeOptions}
+                                value={drugTypeOptions.find(option => option.value === editForm.type)}
+                                onChange={(selected) => {
+                                    setEditForm(prev => ({ ...prev, type: selected ? selected.value : '' }));
+                                }}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                placeholder="Chọn loại thuốc..."
+                                isClearable
+                            />
+                        </div>
                     </div>
                     <DialogFooter className="mt-4">
                         <Button variant="outline"

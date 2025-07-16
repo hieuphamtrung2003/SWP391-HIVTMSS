@@ -23,7 +23,7 @@ import NotFound from "components/pages/NotFoundPage";
 import DoctorDiagnosisPage from "components/pages/TreatmentPage/DiagnosisPage";
 import TestTypeManagement from "components/pages/TestTypeManagement/TestTypeManagement";
 import EditBlogPage from "components/pages/BlogPage/EditBlogPage";
-import PatientListPage from "components/pages/DoctorPatientList/DoctorPatientList";
+import DoctorScheduleList from "components/pages/DoctorPatientList/DoctorScheduleList";
 import AppointmentTransferRequests from "components/pages/AppoimentChangePage/AppointmentChangePage";
 import TreatmentRegimenManagement from "components/pages/TreatmentRegimenManagement/TreatmentRegimenManagement";
 import DrugManagementPage from "components/pages/DrugManagement/DrugManagement";
@@ -69,7 +69,7 @@ if (role === "CUSTOMER") {
         { path: "/doctor/profile", component: ProfileSettings, layout: DoctorLayout },
         { path: "/doctor/degree", component: DoctorDegreeForm, layout: null },
         { path: "/doctor/treatment/:appointmentId", component: DoctorDiagnosisPage, layout: DoctorLayout },
-        { path: "/doctor/patient-list", component: PatientListPage, layout: DoctorLayout },
+        { path: "/doctor/schedule-list", component: DoctorScheduleList, layout: DoctorLayout },
         { path: "/doctor/chat", component: ChatPage, layout: DoctorLayout },
         { path: "/doctor/appointment-change", component: AppointmentTransferRequests, layout: DoctorLayout },
         { path: "/blog", component: BlogListPage, layout: DoctorLayout },

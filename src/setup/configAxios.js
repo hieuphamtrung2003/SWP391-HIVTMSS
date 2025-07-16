@@ -29,16 +29,27 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response && error.response.status === 402 && !isToastShown) {
+    const isAuthEndpoint = ['/auth/login', '/auth/register', '/auth/reset-password', '/auth/forgot-password']
+      .some(path => originalRequest?.url?.includes(path));
+
+
+    if (
+      error.response?.status === 401 &&
+      !isToastShown &&
+      !isAuthEndpoint
+    ) {
       isToastShown = true;
-      toast.error('Phiên bản đã hết hạn xin hãy đăng nhập lại');
+      toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
+
       window.location.href = '/login';
     }
 
     return Promise.reject(error);
   }
 );
+
 
 export default instance;

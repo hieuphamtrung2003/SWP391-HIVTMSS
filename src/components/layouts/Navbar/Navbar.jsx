@@ -69,7 +69,7 @@ export default function SideNavbar() {
       path: '/blog'
     },
     {
-      name: 'Quản lý blog',
+      name: 'Quản lý blog của bạn',
       icon: <FileText className="h-5 w-5" />,
       path: '/my-blog'
     },

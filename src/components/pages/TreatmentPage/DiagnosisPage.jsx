@@ -359,6 +359,30 @@ const DoctorTreatmentPage = () => {
         }
 
         try {
+
+            // Tách họ và tên từ patientInfo.name
+            const fullName = patientInfo?.name || '';
+            const nameParts = fullName.trim().split(/\s+/);
+
+            let firstName = '';
+            let lastName = '';
+
+            if (nameParts.length === 1) {
+                // Chỉ có một từ, coi như là tên
+                firstName = nameParts[0];
+                lastName = '';
+            } else if (nameParts.length >= 2) {
+                // Có nhiều từ, lấy từ cuối là tên, phần còn lại là họ
+                firstName = nameParts[nameParts.length - 1];
+                lastName = nameParts.slice(0, -1).join(' ');
+            }
+
+            // Nếu bệnh nhân ẩn danh, sử dụng giá trị mặc định
+            if (patientInfo?.name === 'Bệnh nhân ẩn danh') {
+                firstName = 'Ẩn danh';
+                lastName = 'Bệnh nhân';
+            }
+
             const payload = {
                 appointmentId: parseInt(appointmentId),
                 gender: patientInfo?.gender === 'Nam' ? 'MALE' : 'FEMALE',
@@ -368,8 +392,8 @@ const DoctorTreatmentPage = () => {
                 prevention: treatmentForm.prevention,
                 method: parseInt(treatmentForm.method),
                 pregnant: treatmentForm.pregnant,
-                first_name: '...', // nếu có thể lấy từ patientInfo
-                last_name: '...',
+                first_name: firstName,
+                last_name: lastName,
                 medical_history: treatmentForm.medical_history,
                 next_follow_up: treatmentForm.next_follow_up,
                 treatment_regimen_id: parseInt(treatmentForm.treatment_regimen_id)
@@ -906,7 +930,7 @@ const DoctorTreatmentPage = () => {
                                                                 {(
                                                                     selectedRegimen?.treatment_regimen_drugs?.find(drugGroup => drugGroup.method === parseInt(treatmentForm.method))?.drugs || []
                                                                 ).map(drug => (
-                                                                    <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
+                                                                    <li key={drug.drug_id}>{drug.drug_name} ({drug.short_name}) - {drug.drug_type}</li>
                                                                 ))}
                                                             </ul>
                                                         </div>
@@ -974,7 +998,7 @@ const DoctorTreatmentPage = () => {
                                                 <div>
                                                     <label className="block text-sm font-medium text-gray-700 mb-1">Tái khám tiếp theo <span className="text-red-500">*</span></label>
                                                     <input
-                                                        type="datetime-local"
+                                                        type="date"
                                                         name="next_follow_up"
                                                         value={treatmentForm.next_follow_up}
                                                         onChange={handleTreatmentChange}

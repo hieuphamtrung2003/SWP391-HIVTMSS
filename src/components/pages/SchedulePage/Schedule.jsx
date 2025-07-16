@@ -31,6 +31,7 @@ const Schedule = () => {
   const [treatment, setTreatment] = useState(null);
   const [treatmentLoading, setTreatmentLoading] = useState(false);
   const [treatmentError, setTreatmentError] = useState(null);
+  const [treatmentPrognosis, setTreatmentPrognosis] = useState(null);
 
   // Get customer ID from token
   const getCustomerId = () => {
@@ -117,13 +118,20 @@ const Schedule = () => {
     setTreatmentError(null);
 
     try {
-      const response = await axios.get('/api/v1/treatments/appointment', {
+      const treatmentRes = await axios.get('/api/v1/treatments/appointment', {
         params: { appointmentId }
       });
-      setTreatment(response.data);
+      setTreatment(treatmentRes.data);
+
+      const appointmentRes = await axios.get('/api/v1/appointments', {
+        params: { appointmentId },
+      });
+      setTreatmentPrognosis(appointmentRes.data);
+
     } catch (error) {
       console.error('Error fetching treatment:', error);
       setTreatmentError(error.response?.data?.message || 'Không thể tải dữ liệu điều trị');
+      setTreatmentPrognosis(error.response?.data?.message || 'Không thể tải dữ liệu điều trị');
     } finally {
       setTreatmentLoading(false);
     }
@@ -237,10 +245,11 @@ const Schedule = () => {
       setDiagnosis(null);
     }
 
-    if (appointment.treatment_id || true) {
-      await fetchTreatment(appointment.appointment_id);
+    if (appointment.treatment_id) {
+      await fetchTreatment(appointment.appointment_id,);
     } else {
       setTreatment(null);
+      setTreatmentPrognosis(null);
     }
   };
 
@@ -683,21 +692,21 @@ const Schedule = () => {
                           <p className="text-sm text-gray-500">Đơn thuốc</p>
                           <ul className="list-disc list-inside text-sm text-gray-800">
                             {(treatment.drugs || []).map(drug => (
-                              <li key={drug.drug_id}>{drug.short_name} - {drug.name}</li>
+                              <li key={drug.drug_id}>{drug.drug_name} ({drug.short_name}) - {drug.drug_type}</li>
                             ))}
                           </ul>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Tiên lượng</p>
-                          <p className="font-medium">{treatment.prognosis || 'N/A'}</p>
+                          <p className="font-medium">{treatmentPrognosis.prognosis || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Phòng ngừa</p>
-                          <p className="font-medium">{treatment.prevention || 'N/A'}</p>
+                          <p className="font-medium">{treatmentPrognosis.prevention || 'N/A'}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Lịch tái khám</p>
-                          <p className="font-medium">{formatDate(treatment.next_follow_up)} {formatTime(treatment.next_follow_up)}</p>
+                          <p className="font-medium">{formatDate(treatmentPrognosis.next_follow_up)}</p>
                         </div>
                       </div>
                     ) : (

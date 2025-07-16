@@ -209,15 +209,23 @@ const LoginForm = () => {
                     {/* Nội dung form bên phải */}
                     <div className="p-8 md:p-10 flex flex-col justify-center">
                         {/* Logo và mô tả */}
-                        <div
-                            onClick={() => (window.location.href = "/")}
-                            className="font-semibold text-[#373E79] cursor-pointer"
-                        >
+                        <div className="font-semibold text-[#373E79]">
                             <div className="mb-6">
                                 <h1 className="text-3xl font-bold text-blue-700">
-                                    <span className="text-blue-800">HIV</span>
-                                    <span className="text-blue-500">TMSS</span>
+                                    <a
+                                        href="/"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            window.location.href = "/";
+                                        }}
+                                        className="font-semibold text-[#373E79]"
+                                    >
+                                        <span className="text-blue-800">HIV</span>
+                                        <span className="text-blue-500">TMSS</span>
+                                    </a>
+
                                 </h1>
+
                                 <p className="text-sm text-gray-600 mt-1">
                                     Bệnh viện chữa trị HIV hàng đầu
                                 </p>

@@ -1,7 +1,7 @@
 import { Button } from "../../ui/button";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon, ChevronDown } from "lucide-react";
 import axios from "setup/configAxios";
 import { decodeToken } from "../../../utils/tokenUtils";
 import { format, startOfWeek, endOfWeek, addWeeks, parse } from "date-fns";
@@ -17,7 +17,9 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 
 const AppointmentTransferRequests = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [requests, setRequests] = useState([]);
+    const [requestType, setRequestType] = useState("received"); // 'received' or 'sent'
+    const [receivedRequests, setReceivedRequests] = useState([]);
+    const [sentRequests, setSentRequests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [pagination, setPagination] = useState({
@@ -49,7 +51,7 @@ const AppointmentTransferRequests = () => {
         };
     };
 
-    const fetchTransferRequests = async () => {
+    const fetchReceivedRequests = async () => {
         const doctorId = getDoctorId();
         if (!doctorId) {
             setError("Không thể lấy thông tin bác sĩ từ token");
@@ -77,16 +79,59 @@ const AppointmentTransferRequests = () => {
                 }
             });
 
-            setRequests(response.data.content || []);
+            setReceivedRequests(response.data.content || []);
             setPagination({
                 ...pagination,
                 totalPages: response.data.total_pages,
                 totalElements: response.data.total_elements,
             });
         } catch (err) {
-            console.error("Error fetching transfer requests:", err);
-            setError("Không thể tải dữ liệu yêu cầu chuyển lịch hẹn");
-            setRequests([]);
+            console.error("Error fetching received transfer requests:", err);
+            setError("Không thể tải dữ liệu yêu cầu chuyển lịch hẹn nhận được");
+            setReceivedRequests([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSentRequests = async () => {
+        const doctorId = getDoctorId();
+        if (!doctorId) {
+            setError("Không thể lấy thông tin bác sĩ từ token");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        try {
+            const { startTime, endTime } = getCurrentWeekRange();
+
+            const response = await axios.get("api/v1/appointment-changes/sent-requests", {
+                params: {
+                    pageNo: pagination.pageNo,
+                    pageSize: pagination.pageSize,
+                    sortBy: sortConfig.sortBy,
+                    sortDir: sortConfig.sortDir,
+                    doctorId,
+                    startTime,
+                    endTime
+                },
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+                }
+            });
+
+            setSentRequests(response.data.content || []);
+            setPagination({
+                ...pagination,
+                totalPages: response.data.total_pages,
+                totalElements: response.data.total_elements,
+            });
+        } catch (err) {
+            console.error("Error fetching sent transfer requests:", err);
+            setError("Không thể tải dữ liệu yêu cầu chuyển lịch hẹn đã gửi");
+            setSentRequests([]);
         } finally {
             setLoading(false);
         }
@@ -105,7 +150,7 @@ const AppointmentTransferRequests = () => {
             );
 
             // Refresh the list after successful update
-            await fetchTransferRequests();
+            await fetchReceivedRequests();
         } catch (err) {
             console.error("Error updating request status:", err);
             setError(`Không thể ${status === "ACCEPTED" ? "chấp nhận" : "từ chối"} yêu cầu`);
@@ -158,8 +203,14 @@ const AppointmentTransferRequests = () => {
     };
 
     useEffect(() => {
-        fetchTransferRequests();
-    }, [currentDate, pagination.pageNo, sortConfig]);
+        if (requestType === "received") {
+            fetchReceivedRequests();
+        } else {
+            fetchSentRequests();
+        }
+    }, [currentDate, pagination.pageNo, sortConfig, requestType]);
+
+    const currentRequests = requestType === "received" ? receivedRequests : sentRequests;
 
     return (
         <motion.div
@@ -174,6 +225,21 @@ const AppointmentTransferRequests = () => {
                     <h2 className="text-2xl font-semibold text-gray-800">Yêu Cầu Chuyển Lịch Hẹn</h2>
 
                     <div className="flex items-center gap-4">
+                        {/* Request Type Selector */}
+                        <div className="w-[200px]">
+                            <Select value={requestType} onValueChange={setRequestType}>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Loại yêu cầu">
+                                        {requestType === "received" ? "Yêu cầu nhận được" : "Yêu cầu đã gửi"}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent className="bg-white">
+                                    <SelectItem value="received">Yêu cầu nhận được</SelectItem>
+                                    <SelectItem value="sent">Yêu cầu đã gửi</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
                         {/* Week Navigation */}
                         <div className="flex items-center gap-2">
                             <Button
@@ -225,9 +291,15 @@ const AppointmentTransferRequests = () => {
                                 <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
                                     STT
                                 </th>
-                                <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
-                                    Bác Sĩ Gửi
-                                </th>
+                                {requestType === "received" ? (
+                                    <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
+                                        Bác Sĩ Gửi
+                                    </th>
+                                ) : (
+                                    <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
+                                        Bác Sĩ Nhận
+                                    </th>
+                                )}
                                 <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
                                     Lý Do
                                 </th>
@@ -237,26 +309,32 @@ const AppointmentTransferRequests = () => {
                                 <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
                                     Trạng Thái
                                 </th>
-                                <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
-                                    Hành Động
-                                </th>
+                                {requestType === "received" && (
+                                    <th className="p-3 border border-gray-200 font-medium text-center text-blue-700">
+                                        Hành Động
+                                    </th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
-                            {requests.length === 0 && !loading ? (
+                            {currentRequests.length === 0 && !loading ? (
                                 <tr>
                                     <td
-                                        colSpan={6}
+                                        colSpan={requestType === "received" ? 6 : 5}
                                         className="p-8 text-center text-gray-500"
                                     >
                                         <div className="flex flex-col items-center justify-center">
                                             <CalendarIcon className="h-12 w-12 text-gray-400 mb-4" />
-                                            <p className="text-gray-500 text-lg">Không có yêu cầu chuyển lịch hẹn nào trong tuần này</p>
+                                            <p className="text-gray-500 text-lg">
+                                                {requestType === "received"
+                                                    ? "Không có yêu cầu chuyển lịch hẹn nhận được nào trong tuần này"
+                                                    : "Không có yêu cầu chuyển lịch hẹn đã gửi nào trong tuần này"}
+                                            </p>
                                         </div>
                                     </td>
                                 </tr>
                             ) : (
-                                requests.map((request, index) => (
+                                currentRequests.map((request, index) => (
                                     <tr
                                         key={request.appointment_change_id}
                                         className="bg-white hover:bg-gray-50"
@@ -266,10 +344,20 @@ const AppointmentTransferRequests = () => {
                                         </td>
                                         <td className="p-3 border border-gray-200">
                                             <div className="flex flex-col">
-                                                <span className="font-medium">{request.old_doctor.full_name}</span>
-                                                <span className="text-sm text-gray-500">{request.old_doctor.phone}</span>
+                                                <span className="font-medium">
+                                                    {requestType === "received"
+                                                        ? request.old_doctor.full_name
+                                                        : request.new_doctor.full_name}
+                                                </span>
                                                 <span className="text-sm text-gray-500">
-                                                    {request.old_doctor.gender === "MALE" ? "Nam" : "Nữ"}
+                                                    {requestType === "received"
+                                                        ? request.old_doctor.phone
+                                                        : request.new_doctor.phone}
+                                                </span>
+                                                <span className="text-sm text-gray-500">
+                                                    {requestType === "received"
+                                                        ? (request.old_doctor.gender === "MALE" ? "Nam" : "Nữ")
+                                                        : (request.new_doctor.gender === "MALE" ? "Nam" : "Nữ")}
                                                 </span>
                                             </div>
                                         </td>
@@ -292,30 +380,32 @@ const AppointmentTransferRequests = () => {
                                                         request.status === "REJECTED" ? "Đã từ chối" : request.status}
                                             </span>
                                         </td>
-                                        <td className="p-3 border border-gray-200 text-center">
-                                            {request.status === "PENDING" && (
-                                                <div className="flex gap-2 justify-center">
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-green-600 border-green-300"
-                                                        onClick={() => handleAcceptRequest(request.appointment_change_id)}
-                                                        disabled={loading}
-                                                    >
-                                                        Chấp nhận
-                                                    </Button>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="text-red-600 border-red-300"
-                                                        onClick={() => handleRejectRequest(request.appointment_change_id)}
-                                                        disabled={loading}
-                                                    >
-                                                        Từ chối
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </td>
+                                        {requestType === "received" && (
+                                            <td className="p-3 border border-gray-200 text-center">
+                                                {request.status === "PENDING" && (
+                                                    <div className="flex gap-2 justify-center">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-green-600 border-green-300"
+                                                            onClick={() => handleAcceptRequest(request.appointment_change_id)}
+                                                            disabled={loading}
+                                                        >
+                                                            Chấp nhận
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="text-red-600 border-red-300"
+                                                            onClick={() => handleRejectRequest(request.appointment_change_id)}
+                                                            disabled={loading}
+                                                        >
+                                                            Từ chối
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </td>
+                                        )}
                                     </tr>
                                 ))
                             )}
@@ -324,7 +414,7 @@ const AppointmentTransferRequests = () => {
                 </div>
 
                 {/* Pagination */}
-                {requests.length > 0 && (
+                {currentRequests.length > 0 && (
                     <div className="px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500 bg-gray-50">
                         <div>
                             <p>

@@ -32,16 +32,15 @@ const TreatmentRegimenManagement = () => {
         name: '',
         applicable: [],
         note: '',
-        treatmentRegimenDrugs: [{ method: 1, drugId: '' }]
+        treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }] // Thay đổi structure
     });
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [editForm, setEditForm] = useState({
         name: '',
         applicable: [],
         note: '',
-        treatmentRegimenDrugs: []
+        treatmentRegimenMethods: [] // Thay đổi structure giống create form
     });
-
 
     const applicableOptions = [
         { value: 'Infant', label: 'Em bé' },
@@ -75,6 +74,17 @@ const TreatmentRegimenManagement = () => {
         fetchRegimens();
         fetchDrugs();
     }, []);
+
+    // Tạo drug options cho dropdown
+    const getDrugOptions = () => {
+        if (!Array.isArray(drugs)) return [];
+        return drugs
+            .filter(drug => drug.is_active === 'ACTIVE')
+            .map(drug => ({
+                value: drug.drug_id,
+                label: `${drug.drug_name} (${drug.short_name})`
+            }));
+    };
 
     const paginatedData = regimens.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).slice(
         (currentPage - 1) * itemsPerPage,
@@ -111,51 +121,85 @@ const TreatmentRegimenManagement = () => {
         setCreateForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleDrugChange = (index, field, value) => {
+    // Xử lý thay đổi thuốc được chọn trong method
+    const handleMethodDrugChange = (methodIndex, selectedOptions) => {
+        // Giới hạn tối đa 3 thuốc
+        const limitedOptions = selectedOptions.slice(0, 3);
+
         setCreateForm((prev) => {
-            const updatedDrugs = [...prev.treatmentRegimenDrugs];
-            updatedDrugs[index][field] = value;
-            return { ...prev, treatmentRegimenDrugs: updatedDrugs };
+            const updatedMethods = [...prev.treatmentRegimenMethods];
+            updatedMethods[methodIndex].selectedDrugs = limitedOptions;
+            return { ...prev, treatmentRegimenMethods: updatedMethods };
         });
     };
 
-    const handleAddDrug = () => {
-        setCreateForm((prev) => ({
-            ...prev,
-            treatmentRegimenDrugs: [...prev.treatmentRegimenDrugs, { method: 1, drugId: '' }]
-        }));
+    // Thêm phương pháp mới
+    const handleAddMethod = () => {
+        setCreateForm((prev) => {
+            const nextMethodNumber = prev.treatmentRegimenMethods.length + 1;
+            return {
+                ...prev,
+                treatmentRegimenMethods: [
+                    ...prev.treatmentRegimenMethods,
+                    { method: nextMethodNumber, selectedDrugs: [] }
+                ]
+            };
+        });
     };
 
-    const handleRemoveDrug = (index) => {
+    // Xóa phương pháp
+    const handleRemoveMethod = (index) => {
         setCreateForm((prev) => {
-            const updated = [...prev.treatmentRegimenDrugs];
+            const updated = [...prev.treatmentRegimenMethods];
             updated.splice(index, 1);
-            return { ...prev, treatmentRegimenDrugs: updated };
+            // Cập nhật lại số thứ tự method
+            updated.forEach((method, idx) => {
+                method.method = idx + 1;
+            });
+            return { ...prev, treatmentRegimenMethods: updated };
         });
     };
 
-    const handleRemoveEditDrug = (index) => {
+    // Xử lý thay đổi thuốc được chọn trong method cho edit form
+    const handleEditMethodDrugChange = (methodIndex, selectedOptions) => {
+        // Giới hạn tối đa 3 thuốc
+        const limitedOptions = selectedOptions.slice(0, 3);
+
         setEditForm((prev) => {
-            const updated = [...prev.treatmentRegimenDrugs];
-            updated.splice(index, 1);
-            return { ...prev, treatmentRegimenDrugs: updated };
+            const updatedMethods = [...prev.treatmentRegimenMethods];
+            updatedMethods[methodIndex].selectedDrugs = limitedOptions;
+            return { ...prev, treatmentRegimenMethods: updatedMethods };
         });
     };
 
-    const resolveDrugId = (input) => {
-        if (!Array.isArray(drugs)) return null;
-        const normalizedInput = String(input).trim().toLowerCase();
-        const found = drugs.find(d =>
-            d.drug_id.toString() === normalizedInput ||
-            d.drug_name.trim().toLowerCase() === normalizedInput ||
-            d.short_name.trim().toLowerCase() === normalizedInput
-        );
-        return found?.drug_id || null;
+    // Thêm phương pháp mới cho edit form
+    const handleAddEditMethod = () => {
+        setEditForm((prev) => {
+            const nextMethodNumber = prev.treatmentRegimenMethods.length + 1;
+            return {
+                ...prev,
+                treatmentRegimenMethods: [
+                    ...prev.treatmentRegimenMethods,
+                    { method: nextMethodNumber, selectedDrugs: [] }
+                ]
+            };
+        });
     };
 
+    // Xóa phương pháp cho edit form
+    const handleRemoveEditMethod = (index) => {
+        setEditForm((prev) => {
+            const updated = [...prev.treatmentRegimenMethods];
+            updated.splice(index, 1);
+            // Cập nhật lại số thứ tự method
+            updated.forEach((method, idx) => {
+                method.method = idx + 1;
+            });
+            return { ...prev, treatmentRegimenMethods: updated };
+        });
+    };
 
     const handleSubmitCreate = async () => {
-
         if (!createForm.name.trim()) {
             toast.error('Vui lòng nhập tên phác đồ');
             return;
@@ -166,31 +210,25 @@ const TreatmentRegimenManagement = () => {
             return;
         }
 
-        const treatmentRegimenDrugs = createForm.treatmentRegimenDrugs
-            .map((d, index) => {
-                const resolvedId = resolveDrugId(d.drugId);
+        // Chuyển đổi từ treatmentRegimenMethods sang methods theo cấu trúc mới
+        const methods = [];
 
-                if (!d.drugId || !d.method) {
-                    toast.error(`Dòng ${index + 1}: vui lòng nhập đầy đủ thuốc và phương pháp`);
-                    return null;
-                }
+        for (const method of createForm.treatmentRegimenMethods) {
+            if (method.selectedDrugs.length === 0) {
+                toast.error(`Phương pháp ${method.method}: vui lòng chọn ít nhất một thuốc`);
+                return;
+            }
 
-                if (!resolvedId) {
-                    toast.error(`Dòng ${index + 1}: không tìm thấy thuốc phù hợp`);
-                    return null;
-                }
+            const drugs = method.selectedDrugs.map(drug => ({
+                drugId: drug.value,
+                method: method.method,
+                note: "string"
+            }));
 
-                return {
-                    drugId: resolvedId,
-                    method: d.method,
-                    note: 'string'
-                };
-            })
-            .filter(Boolean);
-
-        if (treatmentRegimenDrugs.length === 0) {
-            toast.error('Cần ít nhất một thuốc hợp lệ');
-            return;
+            methods.push({
+                methodNumber: method.method,
+                drugs: drugs
+            });
         }
 
         const payload = {
@@ -198,7 +236,8 @@ const TreatmentRegimenManagement = () => {
             applicable: createForm.applicable.join(','),
             lineLevel: 'FIRST_LINE',
             note: createForm.note,
-            treatmentRegimenDrugs
+            numberOfMethods: methods.length,
+            methods: methods
         };
 
         try {
@@ -206,9 +245,17 @@ const TreatmentRegimenManagement = () => {
             await axios.post('/api/v1/treatment-regimens', payload);
             toast.success('Tạo phác đồ thành công');
             setIsCreateDialogOpen(false);
+            // Reset form
+            setCreateForm({
+                name: '',
+                applicable: [],
+                note: '',
+                treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }]
+            });
             fetchRegimens();
         } catch (err) {
             toast.error('Tạo phác đồ thất bại');
+            console.error('Create error:', err);
         } finally {
             setIsSubmitting(false);
         }
@@ -216,17 +263,51 @@ const TreatmentRegimenManagement = () => {
 
     const handleEdit = (regimen) => {
         setIsViewDialogOpen(false);
+
+        // Chuyển đổi từ cấu trúc mới sang treatmentRegimenMethods
+        const treatmentRegimenMethods = [];
+
+        if (regimen.treatment_regimen_drugs && regimen.treatment_regimen_drugs.length > 0) {
+            // Xử lý cấu trúc cũ nếu vẫn còn
+            const methodsMap = {};
+
+            regimen.treatment_regimen_drugs.forEach(drugSet => {
+                drugSet.drugs.forEach(drug => {
+                    if (!methodsMap[drugSet.method]) {
+                        methodsMap[drugSet.method] = {
+                            method: drugSet.method,
+                            selectedDrugs: []
+                        };
+                    }
+                    methodsMap[drugSet.method].selectedDrugs.push({
+                        value: drug.drug_id,
+                        label: `${drug.drug_name} (${drug.short_name})`
+                    });
+                });
+            });
+
+            treatmentRegimenMethods.push(...Object.values(methodsMap).sort((a, b) => a.method - b.method));
+        } else if (regimen.methods && regimen.methods.length > 0) {
+            // Xử lý cấu trúc mới
+            regimen.methods.forEach(method => {
+                const selectedDrugs = method.drugs.map(drug => ({
+                    value: drug.drugId,
+                    label: `${drug.drug_name || 'Unknown'} (${drug.short_name || 'N/A'})`
+                }));
+
+                treatmentRegimenMethods.push({
+                    method: method.methodNumber,
+                    selectedDrugs: selectedDrugs
+                });
+            });
+        }
+
         setEditForm({
             treatment_regimen_id: regimen.treatment_regimen_id,
             name: regimen.name,
             applicable: regimen.applicable?.split(',') || [],
             note: regimen.note || '',
-            treatmentRegimenDrugs: regimen.treatment_regimen_drugs.flatMap(drugSet =>
-                drugSet.drugs.map(drug => ({
-                    drugId: drug.drug_id,
-                    method: drugSet.method
-                }))
-            )
+            treatmentRegimenMethods: treatmentRegimenMethods.length > 0 ? treatmentRegimenMethods : [{ method: 1, selectedDrugs: [] }]
         });
         setIsEditDialogOpen(true);
     };
@@ -255,28 +336,25 @@ const TreatmentRegimenManagement = () => {
             return;
         }
 
-        const treatmentRegimenDrugs = editForm.treatmentRegimenDrugs
-            .map((d, index) => {
-                const resolvedId = resolveDrugId(d.drugId);
-                if (!d.drugId || !d.method) {
-                    toast.error(`Dòng ${index + 1}: vui lòng nhập đầy đủ thuốc và phương pháp`);
-                    return null;
-                }
-                if (!resolvedId) {
-                    toast.error(`Dòng ${index + 1}: không tìm thấy thuốc phù hợp`);
-                    return null;
-                }
-                return {
-                    drugId: resolvedId,
-                    method: d.method,
-                    note: 'string'
-                };
-            })
-            .filter(Boolean);
+        // Chuyển đổi từ treatmentRegimenMethods sang methods theo cấu trúc mới
+        const methods = [];
 
-        if (treatmentRegimenDrugs.length === 0) {
-            toast.error('Cần ít nhất một thuốc hợp lệ');
-            return;
+        for (const method of editForm.treatmentRegimenMethods) {
+            if (method.selectedDrugs.length === 0) {
+                toast.error(`Phương pháp ${method.method}: vui lòng chọn ít nhất một thuốc`);
+                return;
+            }
+
+            const drugs = method.selectedDrugs.map(drug => ({
+                drugId: drug.value,
+                method: method.method,
+                note: "string" // Có thể thay đổi thành note cụ thể nếu cần
+            }));
+
+            methods.push({
+                methodNumber: method.method,
+                drugs: drugs
+            });
         }
 
         const payload = {
@@ -284,7 +362,8 @@ const TreatmentRegimenManagement = () => {
             applicable: editForm.applicable.join(','),
             lineLevel: 'FIRST_LINE',
             note: editForm.note,
-            treatmentRegimenDrugs
+            numberOfMethods: methods.length,
+            methods: methods
         };
 
         try {
@@ -295,6 +374,7 @@ const TreatmentRegimenManagement = () => {
             fetchRegimens();
         } catch (err) {
             toast.error('Chỉnh sửa phác đồ thất bại');
+            console.error('Edit error:', err);
         } finally {
             setIsSubmitting(false);
         }
@@ -343,7 +423,7 @@ const TreatmentRegimenManagement = () => {
                         ) : (
                             <div className="rounded-lg border overflow-hidden">
                                 <Table>
-                                    <TableHeader className="bg-gray-50">
+                                    <TableHeader>
                                         <TableRow>
                                             <TableHead className="w-[100px]">ID</TableHead>
                                             <TableHead>Tên phác đồ</TableHead>
@@ -407,7 +487,7 @@ const TreatmentRegimenManagement = () => {
                                 <DialogTitle className="text-lg font-bold">Chi tiết phác đồ</DialogTitle>
                             </DialogHeader>
                             {currentRegimen && (
-                                <div className="space-y-4 max-h-96 overflow-y-auto">
+                                <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                     <p><strong className="text-gray-700">Tên:</strong> {currentRegimen.name}</p>
                                     <p><strong className="text-gray-700">Đối tượng áp dụng:</strong> {currentRegimen.applicable}</p>
                                     <p><strong className="text-gray-700">Tuyến điều trị:</strong> {currentRegimen.lineLevel}</p>
@@ -460,7 +540,7 @@ const TreatmentRegimenManagement = () => {
                                     className="text-red-600 hover:text-red-700 border-red-600 hover:border-red-700"
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" />
-                                    Xoá phác đồ
+                                    Xóa phác đồ
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -481,7 +561,7 @@ const TreatmentRegimenManagement = () => {
                                 <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isSubmitting}>
                                     Huỷ
                                 </Button>
-                                <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="bg-red-600 hover:bg-red-700">
+                                <Button variant="destructive" onClick={handleDelete} disabled={isSubmitting} className="bg-red-500 hover:bg-red-600">
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Xoá
                                 </Button>
@@ -490,14 +570,14 @@ const TreatmentRegimenManagement = () => {
                     </Dialog>
                 </AnimatePresence>
 
-                {/* Create Regimen Dialog */}
+                {/* Create Regimen Dialog - UPDATED */}
                 <AnimatePresence>
                     <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
                         <DialogContent className="bg-white max-w-xl border border-gray-300">
                             <DialogHeader>
                                 <DialogTitle className="text-lg font-bold">Tạo phác đồ mới</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
+                            <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                 <div>
                                     <label className="block font-medium mb-1">Tên phác đồ</label>
                                     <Input name="name" value={createForm.name} onChange={handleCreateChange} />
@@ -520,41 +600,71 @@ const TreatmentRegimenManagement = () => {
                                     <label className="block font-medium mb-1">Lưu ý</label>
                                     <Input name="note" value={createForm.note} onChange={handleCreateChange} />
                                 </div>
+
+                                {/* Updated drug selection section */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">Thêm danh sách thuốc</span>
-                                        <Button type="button" onClick={handleAddDrug} size="sm">+ Thêm thuốc</Button>
+                                        <Button type="button" onClick={handleAddMethod} size="sm">
+                                            + Thêm phương pháp
+                                        </Button>
                                     </div>
-                                    {createForm.treatmentRegimenDrugs.map((drug, index) => (
-                                        <div key={index} className="flex items-end gap-4">
-                                            <div className="flex-1">
-                                                {index === 0 && <label className="block text-sm text-gray-600 mb-1">Thuốc</label>}
-                                                <Input
-                                                    placeholder="ID, tên hoặc tên viết tắt"
-                                                    value={drug.drugId}
-                                                    onChange={(e) => handleDrugChange(index, 'drugId', e.target.value)}
-                                                />
+
+                                    {createForm.treatmentRegimenMethods.map((method, index) => (
+                                        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <label className="block font-medium text-gray-700">
+                                                    Phương pháp {method.method}
+                                                </label>
+                                                {createForm.treatmentRegimenMethods.length > 1 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => handleRemoveMethod(index)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                            <div className="flex-1">
-                                                {index === 0 && <label className="block text-sm text-gray-600 mb-1">Phương pháp</label>}
-                                                <Input
-                                                    type="number"
-                                                    value={drug.method}
-                                                    onChange={(e) => handleDrugChange(index, 'method', parseInt(e.target.value))}
+
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-2">
+                                                    Chọn thuốc (tối đa 3 thuốc)
+                                                </label>
+                                                <Select
+                                                    isMulti
+                                                    options={getDrugOptions()}
+                                                    value={method.selectedDrugs}
+                                                    onChange={(selected) => handleMethodDrugChange(index, selected)}
+                                                    className="react-select-container"
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Chọn thuốc..."
+                                                    noOptionsMessage={() => "Không có thuốc nào"}
+                                                    isOptionDisabled={() => method.selectedDrugs.length >= 3}
                                                 />
+                                                {method.selectedDrugs.length >= 3 && (
+                                                    <p className="text-sm text-amber-600 mt-1">
+                                                        Đã đạt giới hạn tối đa 3 thuốc
+                                                    </p>
+                                                )}
                                             </div>
-                                            <Button variant="ghost" onClick={() => handleRemoveDrug(index)} className="text-red-600">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
                                         </div>
                                     ))}
-
                                 </div>
                             </div>
                             <DialogFooter className="mt-4">
                                 <Button
                                     variant="outline"
-                                    onClick={() => setIsCreateDialogOpen(false)}
+                                    onClick={() => {
+                                        setIsCreateDialogOpen(false);
+                                        // Reset form khi đóng dialog
+                                        setCreateForm({
+                                            name: '',
+                                            applicable: [],
+                                            note: '',
+                                            treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }]
+                                        });
+                                    }}
                                     disabled={isSubmitting}
                                 >
                                     Huỷ
@@ -571,14 +681,14 @@ const TreatmentRegimenManagement = () => {
                     </Dialog>
                 </AnimatePresence>
 
-                {/* Edit Regimen Dialog */}
+                {/* Edit Regimen Dialog - UPDATED */}
                 <AnimatePresence>
                     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                         <DialogContent className="bg-white max-w-xl border border-gray-300">
                             <DialogHeader>
                                 <DialogTitle className="text-lg font-bold">Chỉnh sửa phác đồ</DialogTitle>
                             </DialogHeader>
-                            <div className="space-y-4">
+                            <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                 <div>
                                     <label className="block font-medium mb-1">Tên phác đồ</label>
                                     <Input name="name" value={editForm.name} onChange={handleEditChange} />
@@ -592,41 +702,62 @@ const TreatmentRegimenManagement = () => {
                                         onChange={(selected) =>
                                             setEditForm((prev) => ({ ...prev, applicable: selected.map(o => o.value) }))
                                         }
+                                        className="react-select-container"
+                                        classNamePrefix="react-select"
                                     />
                                 </div>
                                 <div>
                                     <label className="block font-medium mb-1">Lưu ý</label>
                                     <Input name="note" value={editForm.note} onChange={handleEditChange} />
                                 </div>
+
+                                {/* Updated drug selection section for edit */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center">
                                         <span className="font-medium">Thêm danh sách thuốc</span>
-                                        <Button type="button" onClick={() => setEditForm(prev => ({
-                                            ...prev,
-                                            treatmentRegimenDrugs: [...prev.treatmentRegimenDrugs, { method: 1, drugId: '' }]
-                                        }))} size="sm">+ Thêm thuốc</Button>
+                                        <Button type="button" onClick={handleAddEditMethod} size="sm">
+                                            + Thêm phương pháp
+                                        </Button>
                                     </div>
-                                    {editForm.treatmentRegimenDrugs.map((drug, index) => (
-                                        <div key={index} className="flex items-end gap-4">
-                                            <div className="flex-1">
-                                                {index === 0 && <label className="block text-sm text-gray-600 mb-1">Thuốc</label>}
-                                                <Input
-                                                    placeholder="ID, tên hoặc tên viết tắt"
-                                                    value={drug.drugId}
-                                                    onChange={(e) => handleEditDrugChange(index, 'drugId', e.target.value)}
-                                                />
+
+                                    {editForm.treatmentRegimenMethods.map((method, index) => (
+                                        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                                            <div className="flex justify-between items-center">
+                                                <label className="block font-medium text-gray-700">
+                                                    Phương pháp {method.method}
+                                                </label>
+                                                {editForm.treatmentRegimenMethods.length > 1 && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => handleRemoveEditMethod(index)}
+                                                        className="text-red-600 hover:text-red-700"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                             </div>
-                                            <div className="flex-1">
-                                                {index === 0 && <label className="block text-sm text-gray-600 mb-1">Phương pháp</label>}
-                                                <Input
-                                                    type="number"
-                                                    value={drug.method}
-                                                    onChange={(e) => handleEditDrugChange(index, 'method', parseInt(e.target.value))}
+
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-2">
+                                                    Chọn thuốc (tối đa 3 thuốc)
+                                                </label>
+                                                <Select
+                                                    isMulti
+                                                    options={getDrugOptions()}
+                                                    value={method.selectedDrugs}
+                                                    onChange={(selected) => handleEditMethodDrugChange(index, selected)}
+                                                    className="react-select-container"
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Chọn thuốc..."
+                                                    noOptionsMessage={() => "Không có thuốc nào"}
+                                                    isOptionDisabled={() => method.selectedDrugs.length >= 3}
                                                 />
+                                                {method.selectedDrugs.length >= 3 && (
+                                                    <p className="text-sm text-amber-600 mt-1">
+                                                        Đã đạt giới hạn tối đa 3 thuốc
+                                                    </p>
+                                                )}
                                             </div>
-                                            <Button variant="ghost" onClick={() => handleRemoveEditDrug(index)} className="text-red-600">
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
                                         </div>
                                     ))}
                                 </div>
@@ -649,8 +780,6 @@ const TreatmentRegimenManagement = () => {
                         </DialogContent>
                     </Dialog>
                 </AnimatePresence>
-
-
 
             </div>
         </motion.div>

@@ -242,7 +242,7 @@ const DashboardContent = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">tổng bài viết</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng bài viết</CardTitle>
             <Pill className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -269,7 +269,7 @@ const DashboardContent = () => {
               <div className="animate-pulse bg-gray-200 rounded w-full h-full" />
             </div>
           ) : (
-            <div className="h-[300px]"> 
+            <div className="h-[300px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" />

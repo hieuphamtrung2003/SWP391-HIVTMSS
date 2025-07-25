@@ -31,6 +31,7 @@ const TreatmentRegimenManagement = () => {
     const [createForm, setCreateForm] = useState({
         name: '',
         applicable: [],
+        lineLevel: '',
         note: '',
         treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }] // Thay đổi structure
     });
@@ -38,6 +39,7 @@ const TreatmentRegimenManagement = () => {
     const [editForm, setEditForm] = useState({
         name: '',
         applicable: [],
+        lineLevel: '',
         note: '',
         treatmentRegimenMethods: [] // Thay đổi structure giống create form
     });
@@ -47,6 +49,13 @@ const TreatmentRegimenManagement = () => {
         { value: 'Adolescents', label: 'Trẻ em' },
         { value: 'Adults', label: 'Người lớn' },
         { value: 'PregnantWomen', label: 'Phụ nữ có thai' }
+    ];
+
+    // Thêm options cho tuyến điều trị
+    const lineLevelOptions = [
+        { value: 'FIRST_LINE', label: 'Tuyến 1' },
+        { value: 'SECOND_LINE', label: 'Tuyến 2' },
+        { value: 'THIRD_LINE', label: 'Tuyến 3' }
     ];
 
     const fetchRegimens = async () => {
@@ -210,6 +219,12 @@ const TreatmentRegimenManagement = () => {
             return;
         }
 
+        // Thêm validation cho lineLevel
+        if (!createForm.lineLevel) {
+            toast.error('Vui lòng chọn tuyến điều trị');
+            return;
+        }
+
         // Chuyển đổi từ treatmentRegimenMethods sang methods theo cấu trúc mới
         const methods = [];
 
@@ -234,7 +249,7 @@ const TreatmentRegimenManagement = () => {
         const payload = {
             name: createForm.name,
             applicable: createForm.applicable.join(','),
-            lineLevel: 'FIRST_LINE',
+            lineLevel: createForm.lineLevel,
             note: createForm.note,
             numberOfMethods: methods.length,
             methods: methods
@@ -249,6 +264,7 @@ const TreatmentRegimenManagement = () => {
             setCreateForm({
                 name: '',
                 applicable: [],
+                lineLevel: '',
                 note: '',
                 treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }]
             });
@@ -306,6 +322,7 @@ const TreatmentRegimenManagement = () => {
             treatment_regimen_id: regimen.treatment_regimen_id,
             name: regimen.name,
             applicable: regimen.applicable?.split(',') || [],
+            lineLevel: regimen.lineLevel || '',
             note: regimen.note || '',
             treatmentRegimenMethods: treatmentRegimenMethods.length > 0 ? treatmentRegimenMethods : [{ method: 1, selectedDrugs: [] }]
         });
@@ -336,6 +353,12 @@ const TreatmentRegimenManagement = () => {
             return;
         }
 
+        // Thêm validation cho lineLevel
+        if (!editForm.lineLevel) {
+            toast.error('Vui lòng chọn tuyến điều trị');
+            return;
+        }
+
         // Chuyển đổi từ treatmentRegimenMethods sang methods theo cấu trúc mới
         const methods = [];
 
@@ -360,7 +383,7 @@ const TreatmentRegimenManagement = () => {
         const payload = {
             name: editForm.name,
             applicable: editForm.applicable.join(','),
-            lineLevel: 'FIRST_LINE',
+            lineLevel: editForm.lineLevel,
             note: editForm.note,
             numberOfMethods: methods.length,
             methods: methods
@@ -490,7 +513,16 @@ const TreatmentRegimenManagement = () => {
                                 <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
                                     <p><strong className="text-gray-700">Tên:</strong> {currentRegimen.name}</p>
                                     <p><strong className="text-gray-700">Đối tượng áp dụng:</strong> {currentRegimen.applicable}</p>
-                                    <p><strong className="text-gray-700">Tuyến điều trị:</strong> {currentRegimen.lineLevel}</p>
+                                    <p>
+                                        <strong className="text-gray-700">Tuyến điều trị:</strong>{' '}
+                                        {
+                                            currentRegimen.lineLevel === 'FIRST_LINE' ? 'Tuyến 1' :
+                                                currentRegimen.lineLevel === 'SECOND_LINE' ? 'Tuyến 2' :
+                                                    currentRegimen.lineLevel === 'THIRD_LINE' ? 'Tuyến 3' :
+                                                        currentRegimen.lineLevel
+                                        }
+                                    </p>
+
                                     <p><strong className="text-gray-700">Trạng thái:</strong> {currentRegimen.isActive === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}</p>
                                     {currentRegimen.note && (
                                         <p><strong className="text-gray-700">Lưu ý:</strong> {currentRegimen.note}</p>
@@ -596,6 +628,21 @@ const TreatmentRegimenManagement = () => {
                                         classNamePrefix="react-select"
                                     />
                                 </div>
+                                {/* Thêm dropdown tuyến điều trị */}
+                                <div>
+                                    <label className="block font-medium mb-1">Tuyến điều trị</label>
+                                    <Select
+                                        options={lineLevelOptions}
+                                        value={lineLevelOptions.find(option => option.value === createForm.lineLevel)}
+                                        onChange={(selected) => {
+                                            setCreateForm((prev) => ({ ...prev, lineLevel: selected ? selected.value : '' }));
+                                        }}
+                                        className="react-select-container"
+                                        classNamePrefix="react-select"
+                                        placeholder="Chọn tuyến điều trị..."
+                                        isClearable
+                                    />
+                                </div>
                                 <div>
                                     <label className="block font-medium mb-1">Lưu ý</label>
                                     <Input name="note" value={createForm.note} onChange={handleCreateChange} />
@@ -661,6 +708,7 @@ const TreatmentRegimenManagement = () => {
                                         setCreateForm({
                                             name: '',
                                             applicable: [],
+                                            lineLevel: '',
                                             note: '',
                                             treatmentRegimenMethods: [{ method: 1, selectedDrugs: [] }]
                                         });
@@ -704,6 +752,21 @@ const TreatmentRegimenManagement = () => {
                                         }
                                         className="react-select-container"
                                         classNamePrefix="react-select"
+                                    />
+                                </div>
+                                {/* Thêm dropdown tuyến điều trị cho edit form */}
+                                <div>
+                                    <label className="block font-medium mb-1">Tuyến điều trị</label>
+                                    <Select
+                                        options={lineLevelOptions}
+                                        value={lineLevelOptions.find(option => option.value === editForm.lineLevel)}
+                                        onChange={(selected) => {
+                                            setEditForm((prev) => ({ ...prev, lineLevel: selected ? selected.value : '' }));
+                                        }}
+                                        className="react-select-container"
+                                        classNamePrefix="react-select"
+                                        placeholder="Chọn tuyến điều trị..."
+                                        isClearable
                                     />
                                 </div>
                                 <div>

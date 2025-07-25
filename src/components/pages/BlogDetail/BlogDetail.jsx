@@ -527,7 +527,7 @@ const BlogDetail = () => {
                                 )}
                             </div>
 
-                            {/* Article Content */}
+
                             {/* Article Content */}
                             <div className="blog-content">
                                 <div

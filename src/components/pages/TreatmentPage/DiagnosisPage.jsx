@@ -3,7 +3,7 @@ import axios from '../../../setup/configAxios'
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from "../../ui/button";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, HelpCircle } from "lucide-react";
 import { toast } from 'react-toastify';
 
 const DoctorTreatmentPage = () => {
@@ -18,9 +18,6 @@ const DoctorTreatmentPage = () => {
     const [appointmentInfo, setAppointmentInfo] = useState(null);
     const [showAdditionalFields, setShowAdditionalFields] = useState(true);
     const [showEditDiagnosisModal, setShowEditDiagnosisModal] = useState(false);
-
-
-
 
     // Initial form state
     const initialFormData = {
@@ -48,10 +45,11 @@ const DoctorTreatmentPage = () => {
         prognosis: '',
         prevention: '',
         method: '',
-        pregnant: false,
+        pregnant: '',
         first_name: '',
         last_name: '',
         medical_history: '',
+        dosage_instruction: '',
         next_follow_up: '',
         treatment_regimen_id: ''
     };
@@ -61,6 +59,9 @@ const DoctorTreatmentPage = () => {
     const [treatmentSubmitSuccess, setTreatmentSubmitSuccess] = useState(false);
     const [treatmentSubmitError, setTreatmentSubmitError] = useState(null);
     const [canShowTreatment, setCanShowTreatment] = useState(false);
+    const [showDosageModal, setShowDosageModal] = useState(false);
+    const [dosageData, setDosageData] = useState([]);
+
 
 
     // Get the selected test type details
@@ -104,17 +105,166 @@ const DoctorTreatmentPage = () => {
         const name = selectedRegimen.name?.toLowerCase();
 
         if (name.includes("ưu tiên")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
+            return ["method", "prognosis", "prevention", "applicable", "dosage_instruction", "next_follow_up"];
         } else if (name.includes("thay thế")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
+            return ["method", "prognosis", "prevention", "applicable", "dosage_instruction", "next_follow_up"];
         } else if (name.includes("đặc biệt")) {
-            return ["method", "prognosis", "prevention", "applicable", "next_follow_up"];
+            return ["method", "prognosis", "prevention", "applicable", "dosage_instruction", "next_follow_up"];
         }
 
         return [];
     };
 
     const fieldsToShowTreatment = getFieldsToShowTreatment();
+
+    // Parse dosage instruction string to dosage data
+    const parseDosageInstruction = (instruction) => {
+        if (!instruction) return [];
+
+        const drugs = [];
+        const lines = instruction.split('. \n').filter(line => line.trim());
+
+        lines.forEach(line => {
+            const drugMatch = line.match(/^(.+?)\s*\((.+?)\):\s*(.+?)(?:\s*-\s*(.+))?$/);
+            if (drugMatch) {
+                const [, drugName, shortName, dosageStr, note] = drugMatch;
+
+                const dosages = { morning: '', noon: '', afternoon: '', evening: '' };
+                const dosageParts = dosageStr.split('/');
+
+                dosageParts.forEach(part => {
+                    const trimmed = part.trim();
+                    if (trimmed.startsWith('Sáng ')) {
+                        dosages.morning = trimmed.replace('Sáng ', '').replace(' viên', '');
+                    } else if (trimmed.startsWith('Trưa ')) {
+                        dosages.noon = trimmed.replace('Trưa ', '').replace(' viên', '');
+                    } else if (trimmed.startsWith('Chiều ')) {
+                        dosages.afternoon = trimmed.replace('Chiều ', '').replace(' viên', '');
+                    } else if (trimmed.startsWith('Tối ')) {
+                        dosages.evening = trimmed.replace('Tối ', '').replace(' viên', '');
+                    }
+                });
+
+                drugs.push({
+                    drug_name: drugName.trim(),
+                    short_name: shortName.trim(),
+                    ...dosages,
+                    note: note ? note.trim() : ''
+                });
+            }
+        });
+
+        return drugs;
+    };
+
+    // Convert dosage data to instruction string
+    const formatDosageInstruction = (dosageData) => {
+        return dosageData.map((drug, index) => {
+            const dosageParts = [];
+            if (drug.morning) dosageParts.push(`Sáng ${drug.morning} viên`);
+            if (drug.noon) dosageParts.push(`Trưa ${drug.noon} viên`);
+            if (drug.afternoon) dosageParts.push(`Chiều ${drug.afternoon} viên`);
+            if (drug.evening) dosageParts.push(`Tối ${drug.evening} viên`);
+
+            let result = `${drug.drug_name}(${drug.short_name}): ${dosageParts.join('/')}`;
+            if (drug.note) {
+                result += ` - ${drug.note}`;
+            }
+            return result;
+        }).join('. \n') + (dosageData.length > 0 ? '. \n' : '');
+    };
+
+    // Initialize dosage data when method changes
+    const initializeDosageData = () => {
+        if (!selectedRegimen || !treatmentForm.method) return;
+
+        const selectedMethod = selectedRegimen.treatment_regimen_drugs?.find(
+            drugGroup => drugGroup.method === parseInt(treatmentForm.method)
+        );
+
+        if (selectedMethod?.drugs) {
+            const newDosageData = selectedMethod.drugs.map(drug => ({
+                drug_name: drug.drug_name,
+                short_name: drug.short_name,
+                morning: '',
+                noon: '',
+                afternoon: '',
+                evening: '',
+                note: ''
+            }));
+            setDosageData(newDosageData);
+
+            setTreatmentForm(prev => ({
+                ...prev,
+                dosage_instruction: ''
+            }));
+        }
+    };
+
+    // Handle opening dosage modal
+    const handleOpenDosageModal = () => {
+        if (treatmentForm.dosage_instruction) {
+            // Parse existing instruction
+            const parsed = parseDosageInstruction(treatmentForm.dosage_instruction);
+            setDosageData(parsed);
+        } else {
+            // Initialize with current drugs
+            initializeDosageData();
+        }
+        setShowDosageModal(true);
+    };
+
+    // Handle dosage data change
+    const handleDosageChange = (index, field, value) => {
+        setDosageData(prev => prev.map((drug, i) =>
+            i === index ? { ...drug, [field]: value } : drug
+        ));
+    };
+
+    // Handle saving dosage
+    const handleSaveDosage = () => {
+        if (dosageData.length === 0) {
+            toast.error('Không có thuốc nào để kê đơn. Vui lòng chọn phác đồ và phương pháp điều trị trước.');
+            return;
+        }
+
+        const errors = [];
+
+        dosageData.forEach((drug, index) => {
+            const { drug_name, short_name, morning, noon, afternoon, evening, note } = drug;
+
+            const isEmpty =
+                (!morning || morning.trim() === '0') &&
+                (!noon || noon.trim() === '0') &&
+                (!afternoon || afternoon.trim() === '0') &&
+                (!evening || evening.trim() === '0');
+
+            // Trường hợp tất cả đều trống và không có ghi chú
+            if (isEmpty && !note.trim()) {
+                errors.push(`Thuốc "${drug_name} (${short_name})" chưa nhập lượng thuốc uống.`);
+            }
+
+            // Trường hợp chỉ có ghi chú mà không nhập liều
+            if (note.trim() && isEmpty) {
+                errors.push(`Thuốc "${drug_name} (${short_name})" chưa nhập lượng thuốc uống.`);
+            }
+
+
+        });
+
+        if (errors.length > 0) {
+            toast.error(errors[0]); // Hiển thị lỗi đầu tiên
+            return;
+        }
+
+        const instruction = formatDosageInstruction(dosageData);
+        setTreatmentForm(prev => ({
+            ...prev,
+            dosage_instruction: instruction
+        }));
+        setShowDosageModal(false);
+    };
+
 
     // Fetch test types and patient/appointment info
     useEffect(() => {
@@ -150,7 +300,8 @@ const DoctorTreatmentPage = () => {
                 setAppointmentInfo({
                     date: new Date(appointmentData.start_time).toLocaleDateString(),
                     reason: appointmentData.chief_complaint || 'Khám tổng quát',
-                    medicalHistory: appointmentData.medical_history || 'Không có'
+                    medicalHistory: appointmentData.medical_history || 'Không có',
+                    isPregnant: appointmentData.is_pregnant || 'False'
                 });
 
                 setPatientInfo({
@@ -177,6 +328,34 @@ const DoctorTreatmentPage = () => {
 
 
     }, [appointmentId]);
+
+    // Initialize dosage data when method changes
+    useEffect(() => {
+        if (treatmentForm.method && selectedRegimen) {
+            initializeDosageData();
+        }
+    }, [treatmentForm.method, selectedRegimen]);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="max-w-4xl mx-auto p-6">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-center text-red-500">
+                        <XCircle className="h-12 w-12 mx-auto" />
+                        <p className="mt-4 text-lg font-medium">{error}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -301,7 +480,8 @@ const DoctorTreatmentPage = () => {
                 prognosis: '',
                 prevention: '',
                 applicable: '',
-                pregnant: false,
+                pregnant: '',
+                dosage_instruction: '',
                 next_follow_up: ''
             }));
             return;
@@ -318,7 +498,8 @@ const DoctorTreatmentPage = () => {
             prognosis: '',
             prevention: '',
             applicable: '',
-            pregnant: false,
+            pregnant: '',
+            dosage_instruction: '',
             next_follow_up: ''
         }));
     };
@@ -391,10 +572,10 @@ const DoctorTreatmentPage = () => {
                 prognosis: treatmentForm.prognosis,
                 prevention: treatmentForm.prevention,
                 method: parseInt(treatmentForm.method),
-                pregnant: treatmentForm.pregnant,
+                pregnant: appointmentInfo?.isPregnant,
                 first_name: firstName,
                 last_name: lastName,
-                medical_history: treatmentForm.medical_history,
+                dosage_instruction: treatmentForm.dosage_instruction,
                 next_follow_up: treatmentForm.next_follow_up,
                 treatment_regimen_id: parseInt(treatmentForm.treatment_regimen_id)
             };
@@ -422,7 +603,8 @@ const DoctorTreatmentPage = () => {
             treatmentForm.prognosis !== '' ||
             treatmentForm.prevention !== '' ||
             treatmentForm.applicable !== '' ||
-            treatmentForm.pregnant !== false ||
+            treatmentForm.dosage_instruction !== '' ||
+            treatmentForm.pregnant !== '' ||
             treatmentForm.next_follow_up !== '';
 
         if (hasTreatmentData) {
@@ -440,6 +622,7 @@ const DoctorTreatmentPage = () => {
         setCanShowTreatment(false);
         setTreatmentSubmitSuccess(false);
         setTreatmentForm(initialTreatmentForm); // reset treatment form
+        setDosageData([]);
         toast.info("Phác đồ điều trị đã được hủy do có thay đổi trong chẩn đoán.");
     };
 
@@ -831,7 +1014,7 @@ const DoctorTreatmentPage = () => {
                         {!treatmentSubmitSuccess && (
                             <form onSubmit={handleSubmitTreatment}>
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                    {/* Left Column: chọn phác đồ + note */}
+                                    {/* Left Column: chọn phác đồ */}
                                     <div className="space-y-6">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">Phác đồ điều trị</label>
@@ -849,17 +1032,31 @@ const DoctorTreatmentPage = () => {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                                            <textarea
-                                                name="medical_history"
-                                                value={treatmentForm.medical_history}
-                                                onChange={handleTreatmentChange}
-                                                rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                placeholder="Nhập ghi chú (nếu có)"
-                                            />
-                                        </div>
+
+                                        {/* Dosage instruction field */}
+                                        {treatmentForm.treatment_regimen_id && fieldsToShowTreatment.includes("dosage_instruction") && (
+                                            <div className="relative">
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú đơn thuốc</label>
+                                                <textarea
+                                                    name="dosage_instruction"
+                                                    value={treatmentForm.dosage_instruction}
+                                                    onChange={handleTreatmentChange}
+                                                    rows={6}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md resize-y"
+                                                    placeholder="Nhập ghi chú đơn thuốc (nếu có)"
+                                                />
+                                                {treatmentForm.method && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleOpenDosageModal}
+                                                        className="absolute bottom-2 right-2 flex items-center text-blue-600 hover:text-blue-800 text-sm"
+                                                    >
+                                                        <HelpCircle className="h-4 w-4 mr-1" />
+                                                        Hỗ trợ ghi chú
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Middle Column: thông tin phác đồ */}
@@ -903,7 +1100,6 @@ const DoctorTreatmentPage = () => {
                                             })()
                                         )}
                                     </div>
-
 
                                     {/* Right Column: fields còn lại */}
                                     {treatmentForm.treatment_regimen_id && (
@@ -976,7 +1172,6 @@ const DoctorTreatmentPage = () => {
                                                         <option value="Adolescents">Trẻ em</option>
                                                         <option value="Adults">Người lớn</option>
                                                         <option value="PregnantWomen">Phụ nữ có thai</option>
-
                                                     </select>
                                                 </div>
                                             )}
@@ -1028,6 +1223,102 @@ const DoctorTreatmentPage = () => {
                                 )}
                             </form>
                         )}
+                    </div>
+                )}
+
+                {/* Dosage Modal */}
+                {showDosageModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                        <div className="bg-white rounded-lg shadow-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto mx-4">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-lg font-semibold">Hỗ trợ cách dùng</h2>
+                                <button
+                                    onClick={() => setShowDosageModal(false)}
+                                    className="text-gray-400 hover:text-gray-600"
+                                >
+                                    <XCircle className="h-6 w-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                {dosageData.map((drug, index) => (
+                                    <div key={index} className="border-b pb-6 last:border-b-0">
+                                        <h3 className="font-semibold text-gray-800 mb-4">
+                                            {index + 1}. {drug.drug_name} ({drug.short_name})
+                                        </h3>
+
+                                        <div className="grid grid-cols-4 gap-4 mb-4">
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">Sáng:</label>
+                                                <input
+                                                    type="text"
+                                                    value={drug.morning}
+                                                    onChange={(e) => handleDosageChange(index, 'morning', e.target.value)}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-center"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">Trưa:</label>
+                                                <input
+                                                    type="text"
+                                                    value={drug.noon}
+                                                    onChange={(e) => handleDosageChange(index, 'noon', e.target.value)}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-center"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">Chiều:</label>
+                                                <input
+                                                    type="text"
+                                                    value={drug.afternoon}
+                                                    onChange={(e) => handleDosageChange(index, 'afternoon', e.target.value)}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-center"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm text-gray-600 mb-1">Tối:</label>
+                                                <input
+                                                    type="text"
+                                                    value={drug.evening}
+                                                    onChange={(e) => handleDosageChange(index, 'evening', e.target.value)}
+                                                    className="w-full px-2 py-1 border border-gray-300 rounded text-center"
+                                                    placeholder="0"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm text-gray-600 mb-1">Ghi chú:</label>
+                                            <input
+                                                type="text"
+                                                value={drug.note}
+                                                onChange={(e) => handleDosageChange(index, 'note', e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded"
+                                                placeholder="Nhập ghi chú (ví dụ: Sau ăn, trước ăn...)"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="flex justify-end space-x-4 mt-6">
+                                <button
+                                    onClick={() => setShowDosageModal(false)}
+                                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+                                >
+                                    Đóng
+                                </button>
+                                <button
+                                    onClick={handleSaveDosage}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                >
+                                    Lưu
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 

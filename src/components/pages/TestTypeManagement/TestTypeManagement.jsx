@@ -384,7 +384,7 @@ const TestTypeManagement = () => {
                                                 classNamePrefix="react-select"
                                                 placeholder="Chọn đối tượng áp dụng..."
                                                 noOptionsMessage={() => "Không có tùy chọn nào"}
-                                                menuPortalTarget={document.body}
+                                                menuPortalTarget={null}
                                                 styles={{
                                                     menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                                     menu: (base) => ({ ...base, zIndex: 9999 }),

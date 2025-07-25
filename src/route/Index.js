@@ -33,6 +33,7 @@ import ApprovedBlogPage from "components/pages/ApprovedBlog/ApprovedBlogPage";
 import AllAppointmentChanges from "components/pages/AppoimentChangePage/AllAppointmentChangePage";
 import UserBlogDetail from "components/pages/BlogDetail/UserBlogDetail";
 import BlogListPage from "components/pages/Blog/BlogListpage";
+import ManagerAppointmentChanges from "components/pages/ManagerAppointmentChange/ManagerAppointmentChange";
 
 
 let publicRoute = [];
@@ -102,6 +103,7 @@ if (role === "CUSTOMER") {
         { path: "/login", component: Login, layout: null },
         { path: "/manager/blog-approval", component: BlogApprovalPage, layout: ManagerLayout },
         { path: "/manager/approved-blogs", component: ApprovedBlogPage, layout: ManagerLayout },
+        { path: "/manager/appointment-changes", component: ManagerAppointmentChanges, layout: ManagerLayout },
         { path: "/blog", component: BlogListPage, layout: ManagerLayout },
         { path: "/blog/:blogId", component: BlogDetail, layout: ManagerLayout },
         { path: "*", component: NotFound, layout: null },

@@ -79,7 +79,12 @@ const AppointmentTransferRequests = () => {
                 }
             });
 
-            setReceivedRequests(response.data.content || []);
+            // Filter out PENDING requests with is_approved = false
+            const filteredRequests = (response.data.content || []).filter(
+                request => !(request.status === "PENDING" && request.is_approved === false)
+            );
+
+            setReceivedRequests(filteredRequests);
             setPagination({
                 ...pagination,
                 totalPages: response.data.total_pages,
@@ -122,7 +127,12 @@ const AppointmentTransferRequests = () => {
                 }
             });
 
-            setSentRequests(response.data.content || []);
+            // Filter out PENDING requests with is_approved = false
+            const filteredRequests = (response.data.content || []).filter(
+                request => !(request.status === "PENDING" && request.is_approved === false)
+            );
+
+            setSentRequests(filteredRequests);
             setPagination({
                 ...pagination,
                 totalPages: response.data.total_pages,
@@ -373,11 +383,13 @@ const AppointmentTransferRequests = () => {
                                             <span className={`inline-block px-2 py-1 rounded-full text-xs ${request.status === "PENDING" ? "bg-yellow-100 text-yellow-800" :
                                                 request.status === "ACCEPTED" ? "bg-green-100 text-green-800" :
                                                     request.status === "REJECTED" ? "bg-red-100 text-red-800" :
-                                                        "bg-gray-100 text-gray-800"
+                                                        request.status === "CANCELLED" ? "bg-gray-100 text-gray-800" :
+                                                            "bg-gray-100 text-gray-800"
                                                 }`}>
                                                 {request.status === "PENDING" ? "Chờ xử lý" :
                                                     request.status === "ACCEPTED" ? "Đã chấp nhận" :
-                                                        request.status === "REJECTED" ? "Đã từ chối" : request.status}
+                                                        request.status === "REJECTED" ? "Đã từ chối" :
+                                                            request.status === "CANCELLED" ? "Đã hủy" : request.status}
                                             </span>
                                         </td>
                                         {requestType === "received" && (

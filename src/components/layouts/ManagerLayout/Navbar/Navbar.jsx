@@ -7,6 +7,7 @@ import {
   CircleUser,
   Table,
   Newspaper,
+  Repeat,
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -61,6 +62,11 @@ export default function SideNavbar() {
       name: 'Blog đã duyệt',
       icon: <Newspaper className="h-5 w-5" />,
       path: '/manager/approved-blogs'
+    },
+    {
+      name: 'duyệt đổi lịch khám',
+      icon: <Repeat className="h-5 w-5" />,
+      path: '/manager/appointment-changes'
     },
     {
       name: 'Xem blog',

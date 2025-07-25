@@ -18,6 +18,14 @@ const DoctorTreatmentPage = () => {
     const [appointmentInfo, setAppointmentInfo] = useState(null);
     const [showAdditionalFields, setShowAdditionalFields] = useState(true);
     const [showEditDiagnosisModal, setShowEditDiagnosisModal] = useState(false);
+    const [nextFollowUpDate, setNextFollowUpDate] = useState('');
+    const [nextFollowUpTimeSlot, setNextFollowUpTimeSlot] = useState('');
+    const [followUpData, setFollowUpData] = useState({
+        next_follow_up_date: '',
+        next_follow_up_time: '',
+        next_follow_up_datetime: ''
+    });
+
 
     // Initial form state
     const initialFormData = {
@@ -631,6 +639,85 @@ const DoctorTreatmentPage = () => {
         setShowEditDiagnosisModal(false);
     };
 
+    // Generate time slots from 8AM to 4PM
+    const generateTimeSlots = () => {
+        const slots = [];
+        for (let hour = 8; hour < 16; hour++) {
+            const startTime = `${hour.toString().padStart(2, '0')}:00`;
+            const endTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+            slots.push({
+                value: `${hour.toString().padStart(2, '0')}:00`,
+                label: `${startTime} - ${endTime}`,
+                hour: hour
+            });
+        }
+        return slots;
+    };
+
+    const timeSlots = generateTimeSlots();
+
+    // Update follow-up data
+    const updateFollowUpData = (newData) => {
+        setFollowUpData(prevData => ({
+            ...prevData,
+            ...newData
+        }));
+    };
+
+    // Handle date change for follow-up
+    const handleFollowUpDateChange = (date) => {
+        setNextFollowUpDate(date);
+        setNextFollowUpTimeSlot('');
+        // Reset follow-up time data
+        updateFollowUpData({
+            next_follow_up_date: date,
+            next_follow_up_time: '',
+            next_follow_up_datetime: ''
+        });
+    };
+
+    // Handle time slot change for follow-up
+    const handleFollowUpTimeSlotChange = (timeSlot) => {
+        setNextFollowUpTimeSlot(timeSlot);
+
+        if (nextFollowUpDate && timeSlot) {
+            // Format datetime for follow-up
+            const followUpDateTime = `${nextFollowUpDate}T${timeSlot}:00.000`;
+
+            updateFollowUpData({
+                next_follow_up_date: nextFollowUpDate,
+                next_follow_up_time: timeSlot,
+                next_follow_up_datetime: followUpDateTime
+            });
+
+            setTreatmentForm(prev => ({
+                ...prev,
+                next_follow_up: followUpDateTime
+            }));
+
+        }
+    };
+
+    // Check if time slot is available for follow-up (similar logic to appointment booking)
+    const isFollowUpTimeSlotAvailable = (timeSlot) => {
+        if (!nextFollowUpDate) return false;
+
+        const now = new Date();
+        const selectedDateTime = new Date(`${nextFollowUpDate}T${timeSlot}:00`);
+
+        // Must be at least 1 hour from now
+        const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+
+        return selectedDateTime >= oneHourLater;
+    };
+
+    // Get minimum date (today)
+    const getMinDate = () => {
+        return new Date().toISOString().split('T')[0];
+    };
+
+
+
 
     return (
         <motion.div
@@ -1033,6 +1120,61 @@ const DoctorTreatmentPage = () => {
                                             </select>
                                         </div>
 
+                                        {fieldsToShowTreatment.includes("prognosis") && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Tiên lượng <span className="text-red-500">*</span></label>
+                                                <input
+                                                    name="prognosis"
+                                                    value={treatmentForm.prognosis}
+                                                    onChange={handleTreatmentChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {fieldsToShowTreatment.includes("prevention") && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ngừa <span className="text-red-500">*</span></label>
+                                                <input
+                                                    name="prevention"
+                                                    value={treatmentForm.prevention}
+                                                    onChange={handleTreatmentChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {fieldsToShowTreatment.includes("applicable") && (
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng áp dụng <span className="text-red-500">*</span></label>
+                                                <select
+                                                    name="applicable"
+                                                    value={treatmentForm.applicable}
+                                                    onChange={handleTreatmentChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                                >
+                                                    <option value="">Chọn đối tượng</option>
+                                                    <option value="Infant">Em bé</option>
+                                                    <option value="Adolescents">Trẻ em</option>
+                                                    <option value="Adults">Người lớn</option>
+                                                    <option value="PregnantWomen">Phụ nữ có thai</option>
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        {fieldsToShowTreatment.includes("pregnant") && patientInfo?.gender === 'Nữ' && (
+                                            <div className="flex items-center">
+                                                <input
+                                                    type="checkbox"
+                                                    name="pregnant"
+                                                    checked={treatmentForm.pregnant}
+                                                    onChange={handleTreatmentChange}
+                                                    className="mr-2"
+                                                />
+                                                <label className="text-sm text-gray-700">Mang thai</label>
+                                            </div>
+                                        )}
+
                                         {/* Dosage instruction field */}
                                         {treatmentForm.treatment_regimen_id && fieldsToShowTreatment.includes("dosage_instruction") && (
                                             <div className="relative">
@@ -1134,71 +1276,79 @@ const DoctorTreatmentPage = () => {
                                                 </div>
                                             )}
 
-                                            {fieldsToShowTreatment.includes("prognosis") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tiên lượng <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        name="prognosis"
-                                                        value={treatmentForm.prognosis}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("prevention") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phòng ngừa <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        name="prevention"
-                                                        value={treatmentForm.prevention}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("applicable") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng áp dụng <span className="text-red-500">*</span></label>
-                                                    <select
-                                                        name="applicable"
-                                                        value={treatmentForm.applicable}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    >
-                                                        <option value="">Chọn đối tượng</option>
-                                                        <option value="Infant">Em bé</option>
-                                                        <option value="Adolescents">Trẻ em</option>
-                                                        <option value="Adults">Người lớn</option>
-                                                        <option value="PregnantWomen">Phụ nữ có thai</option>
-                                                    </select>
-                                                </div>
-                                            )}
-
-                                            {fieldsToShowTreatment.includes("pregnant") && patientInfo?.gender === 'Nữ' && (
-                                                <div className="flex items-center">
-                                                    <input
-                                                        type="checkbox"
-                                                        name="pregnant"
-                                                        checked={treatmentForm.pregnant}
-                                                        onChange={handleTreatmentChange}
-                                                        className="mr-2"
-                                                    />
-                                                    <label className="text-sm text-gray-700">Mang thai</label>
-                                                </div>
-                                            )}
-
                                             {fieldsToShowTreatment.includes("next_follow_up") && (
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Tái khám tiếp theo <span className="text-red-500">*</span></label>
-                                                    <input
-                                                        type="date"
-                                                        name="next_follow_up"
-                                                        value={treatmentForm.next_follow_up}
-                                                        onChange={handleTreatmentChange}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                                    />
+                                                <div className="space-y-4">
+                                                    <label className="block text-sm font-medium text-gray-700">
+                                                        Tái khám tiếp theo *
+                                                    </label>
+
+                                                    {/* Date Selection for Follow-up */}
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Chọn ngày tái khám *
+                                                        </label>
+                                                        <input
+                                                            type="date"
+                                                            value={nextFollowUpDate}
+                                                            min={getMinDate()}
+                                                            onChange={(e) => handleFollowUpDateChange(e.target.value)}
+                                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                        />
+                                                    </div>
+
+                                                    {/* Time Slot Selection for Follow-up */}
+                                                    {nextFollowUpDate && (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                                                                Chọn giờ tái khám *
+                                                            </label>
+                                                            <div className="grid grid-cols-4 gap-3">
+                                                                {timeSlots.map((slot) => {
+                                                                    const isAvailable = isFollowUpTimeSlotAvailable(slot.value);
+                                                                    const isSelected = nextFollowUpTimeSlot === slot.value;
+
+                                                                    return (
+                                                                        <button
+                                                                            key={slot.value}
+                                                                            type="button"
+                                                                            disabled={!isAvailable}
+                                                                            onClick={() => handleFollowUpTimeSlotChange(slot.value)}
+                                                                            className={`p-4 rounded-lg border-2 font-medium transition-all text-center ${isSelected
+                                                                                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                                                : isAvailable
+                                                                                    ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700'
+                                                                                    : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'
+                                                                                }`}
+                                                                        >
+                                                                            <div className="flex flex-col items-center justify-center">
+                                                                                <div className="text-sm font-semibold">
+                                                                                    {slot.value}
+                                                                                </div>
+                                                                                <div className="text-xs text-gray-500">
+                                                                                    -
+                                                                                </div>
+                                                                                <div className="text-sm font-semibold">
+                                                                                    {String(parseInt(slot.value.split(':')[0]) + 1).padStart(2, '0')}:00
+                                                                                </div>
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                            <p className="text-sm text-gray-500 mt-2">
+                                                                * Chỉ có thể đặt lịch tái khám ít nhất 1 giờ trước
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Display selected follow-up info */}
+                                                    {nextFollowUpDate && nextFollowUpTimeSlot && (
+                                                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                                                            <p className="text-sm text-green-700">
+                                                                <strong>Tái khám đã chọn:</strong> {nextFollowUpDate} lúc {nextFollowUpTimeSlot}
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>

@@ -697,6 +697,22 @@ const Schedule = () => {
                           </ul>
                         </div>
                         <div>
+                          <p className="text-sm text-gray-500">Hướng dẫn uống thuốc</p>
+                          <ul className="list-disc list-inside text-sm text-gray-800">
+                            {treatmentPrognosis.dosage
+                              ? treatmentPrognosis.dosage
+                                .split('\n')
+                                .filter(line => line.trim()) // Loại bỏ dòng trống
+                                .map((line, index) => (
+                                  <li key={index} className="text-sm text-gray-800">
+                                    {line.trim()}
+                                  </li>
+                                ))
+                              : <li>N/A</li>
+                            }
+                          </ul>
+                        </div>
+                        <div>
                           <p className="text-sm text-gray-500">Tiên lượng</p>
                           <p className="font-medium">{treatmentPrognosis.prognosis || 'N/A'}</p>
                         </div>
@@ -706,7 +722,7 @@ const Schedule = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Lịch tái khám</p>
-                          <p className="font-medium">{formatDate(treatmentPrognosis.next_follow_up)}</p>
+                          <p className="font-medium">{formatDate(treatmentPrognosis.next_follow_up)} {formatTime(treatmentPrognosis.next_follow_up)}</p>
                         </div>
                       </div>
                     ) : (

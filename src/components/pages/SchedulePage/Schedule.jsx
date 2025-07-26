@@ -722,7 +722,7 @@ const Schedule = () => {
                         </div>
                         <div>
                           <p className="text-sm text-gray-500">Lịch tái khám</p>
-                          <p className="font-medium">{formatDate(treatmentPrognosis.next_follow_up)} {formatTime(treatmentPrognosis.next_follow_up)}</p>
+                          <p className="font-medium">{formatDate(treatmentPrognosis.next_follow_up)}</p>
                         </div>
                       </div>
                     ) : (

@@ -34,6 +34,7 @@ import AllAppointmentChanges from "components/pages/AppoimentChangePage/AllAppoi
 import UserBlogDetail from "components/pages/BlogDetail/UserBlogDetail";
 import BlogListPage from "components/pages/Blog/BlogListpage";
 import ManagerAppointmentChanges from "components/pages/ManagerAppointmentChange/ManagerAppointmentChange";
+import AppointmentListPage from "components/pages/DoctorPatientList/AppointmentListPage";
 
 
 let publicRoute = [];
@@ -73,6 +74,7 @@ if (role === "CUSTOMER") {
         { path: "/doctor/schedule-list", component: DoctorScheduleList, layout: DoctorLayout },
         { path: "/doctor/chat", component: ChatPage, layout: DoctorLayout },
         { path: "/doctor/appointment-change", component: AppointmentTransferRequests, layout: DoctorLayout },
+        { path: "/doctor/patient-appointment-list", component: AppointmentListPage, layout: DoctorLayout },
         { path: "/blog", component: BlogListPage, layout: DoctorLayout },
         { path: "/blog/:blogId", component: BlogDetail, layout: DefaultLayout },
         { path: "*", component: NotFound, layout: null },
@@ -83,7 +85,6 @@ if (role === "CUSTOMER") {
     publicRoute = [
 
         { path: "/profile", component: ProfileSettings, layout: DefaultLayout },
-
         { path: "/blogeditor", component: BlogEditorPage, layout: DefaultLayout },
         { path: "/dashboard", component: DashboardContent, layout: AdminLayout },
         { path: "/login", component: Login, layout: null },
@@ -95,6 +96,7 @@ if (role === "CUSTOMER") {
         { path: "/admin/treatment-regimen", component: TreatmentRegimenManagement, layout: AdminLayout },
         { path: "/admin/drugs", component: DrugManagementPage, layout: AdminLayout },
         { path: "/admin/appointment-changes", component: AllAppointmentChanges, layout: AdminLayout },
+        { path: "/admin/patient-appointment-list", component: AppointmentListPage, layout: AdminLayout },
         { path: "*", component: NotFound, layout: null },
     ]
 } else if (role === "MANAGER") {

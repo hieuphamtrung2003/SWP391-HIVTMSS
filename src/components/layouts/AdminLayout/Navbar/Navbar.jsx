@@ -40,9 +40,6 @@ export default function SideNavbar() {
 
     try {
       await axios.post("api/v1/auth/logout", null, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
       localStorage.removeItem("access_token");

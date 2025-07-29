@@ -11,6 +11,7 @@ import {
   FlaskConical,
   Stethoscope,
   Pill,
+  Users2
 } from 'lucide-react'
 import { Button } from '../../../ui/button'
 import { Link, useLocation } from 'react-router-dom'
@@ -82,6 +83,11 @@ export default function SideNavbar() {
       name: 'Yêu cầu chuyển lịch khám',
       icon: <Calendar className="h-5 w-5" />,
       path: '/admin/appointment-changes'
+    },
+    {
+      name: 'Danh sách lịch khám',
+      icon: <Users2 className="h-5 w-5" />, // Danh sách nhiều người thay vì 1 user
+      path: '/admin/patient-appointment-list'
     }
   ]
 

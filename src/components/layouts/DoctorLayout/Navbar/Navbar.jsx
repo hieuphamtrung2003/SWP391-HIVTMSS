@@ -69,6 +69,11 @@ export default function DoctorSideNavbar() {
       path: '/doctor/schedule-list'
     },
     {
+      name: 'Danh sách lịch khám',
+      icon: <Users2 className="h-5 w-5" />, // Danh sách nhiều người thay vì 1 user
+      path: '/doctor/patient-appointment-list'
+    },
+    {
       name: 'Xem blog',
       icon: <Newspaper className="h-5 w-5" />,
       path: '/blog'

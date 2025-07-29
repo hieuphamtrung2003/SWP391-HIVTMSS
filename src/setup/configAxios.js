@@ -29,14 +29,11 @@ instance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isAuthEndpoint = ['/auth/login', '/auth/register', '/auth/reset-password', '/auth/forgot-password']
-      .some(path => originalRequest?.url?.includes(path));
 
 
     if (
       error.response?.status === 401 &&
-      !isToastShown &&
-      !isAuthEndpoint
+      !isToastShown 
     ) {
       isToastShown = true;
       toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');

@@ -123,11 +123,6 @@ const ManagerAppointmentChanges = () => {
             await axios.put(
                 `api/v1/appointment-changes/review?appointmentChangeId=${appointmentChangeId}&isApproved=${isApproved}`,
                 null,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                    }
-                }
             );
 
             // Refresh the list after successful update

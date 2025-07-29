@@ -452,9 +452,6 @@ const DoctorTreatmentPage = () => {
             };
 
             await axios.put('/api/v1/appointments/diagnosis', payload, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
             });
 
             setSubmitSuccess(true);
@@ -617,9 +614,6 @@ const DoctorTreatmentPage = () => {
             };
 
             await axios.put('/api/v1/appointments/treatment', payload, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                }
             });
 
             toast.success('Đã gửi phác đồ điều trị!');

@@ -154,9 +154,6 @@ const DoctorRequestsManager = () => {
           endTime,
           doctorId
         },
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        }
       });
 
       if (response.data) {
@@ -180,9 +177,6 @@ const DoctorRequestsManager = () => {
 
       const response = await axios.get("api/v1/appointments/available-doctors", {
         params: { startTime: formattedStartTime },
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-        }
       });
       setAvailableDoctors(response.data || []);
     } catch (err) {

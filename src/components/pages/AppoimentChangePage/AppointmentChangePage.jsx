@@ -74,9 +74,6 @@ const AppointmentTransferRequests = () => {
                     startTime,
                     endTime
                 },
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                }
             });
 
             // Filter out PENDING requests with is_approved = false
@@ -122,9 +119,6 @@ const AppointmentTransferRequests = () => {
                     startTime,
                     endTime
                 },
-                headers: {
-                    "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                }
             });
 
             // Filter out PENDING requests with is_approved = false
@@ -152,11 +146,7 @@ const AppointmentTransferRequests = () => {
             setLoading(true);
             await axios.put(
                 `api/v1/appointment-changes?appointmentChangeId=${appointmentChangeId}&status=${status}`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                    }
-                }
+
             );
 
             // Refresh the list after successful update

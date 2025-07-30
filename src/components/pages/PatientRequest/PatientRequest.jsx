@@ -34,6 +34,7 @@ const DoctorRequestsManager = () => {
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [selectedDoctorInfo, setSelectedDoctorInfo] = useState(null);
   const [transferReason, setTransferReason] = useState("");
+  const [diagnosisData, setDiagnosisData] = useState(null);
   const navigate = useNavigate();
 
   const days = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
@@ -75,6 +76,17 @@ const DoctorRequestsManager = () => {
     }
 
     return formattedTime;
+  };
+  const fetchDiagnosisData = async (appointmentId) => {
+    try {
+      const response = await axios.get(`api/v1/diagnosis/appointment`, {
+        params: { appointmentId }
+      });
+      setDiagnosisData(response.data || null);
+    } catch (err) {
+      console.error("Error fetching diagnosis data:", err);
+      setDiagnosisData(null);
+    }
   };
 
   const formatAppointmentsForDisplay = (appointmentData) => {
@@ -262,6 +274,7 @@ const DoctorRequestsManager = () => {
         timeRange
       });
       setIsModalOpen(true);
+      await fetchDiagnosisData(appointment.appointmentId);
     }
   };
 
@@ -625,6 +638,73 @@ const DoctorRequestsManager = () => {
                         <p className="font-medium">{selectedAppointment.phone}</p>
                       </div>
                     </div>
+
+                    {/* Diagnosis Information */}
+                    {diagnosisData && (
+                      <div className="mt-4 border-t pt-4">
+                        <h5 className="text-md font-medium text-blue-600 mb-3">Kết quả xét nghiệm</h5>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">Loại xét nghiệm</p>
+                            <p className="font-medium">{diagnosisData.testType?.test_type_name || "N/A"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Kết quả</p>
+                            <p className="font-medium">
+                              {diagnosisData.result === "POSITIVE" ? "Dương tính" : "Âm tính"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Loại mẫu</p>
+                            <p className="font-medium">
+                              {diagnosisData.sample_type === "WHOLE_BLOOD" ? "Máu toàn phần" :
+                                diagnosisData.sample_type === "SERUM" ? "Huyết thanh" :
+                                  diagnosisData.sample_type || "N/A"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Loại kết quả</p>
+                            <p className="font-medium">
+                              {diagnosisData.result_type === "PRELIMINARY" ? "Sơ bộ" :
+                                diagnosisData.result_type === "CONFIRMATORY" ? "Xác nhận" :
+                                  diagnosisData.result_type || "N/A"}
+                            </p>
+                          </div>
+                          {diagnosisData.ag_ab_result && (
+                            <div>
+                              <p className="text-sm text-gray-500">Kháng nguyên/Kháng thể</p>
+                              <p className="font-medium">
+                                {diagnosisData.ag_ab_result === "POSITIVE" ? "Dương tính" : "Âm tính"}
+                              </p>
+                            </div>
+                          )}
+                          {diagnosisData.viral_load && (
+                            <div>
+                              <p className="text-sm text-gray-500">Tải lượng virus</p>
+                              <p className="font-medium">{diagnosisData.viral_load}</p>
+                            </div>
+                          )}
+                          {diagnosisData.clinical_stage && (
+                            <div>
+                              <p className="text-sm text-gray-500">Giai đoạn lâm sàng</p>
+                              <p className="font-medium">
+                                {diagnosisData.clinical_stage === "STAGE_I" ? "Giai đoạn I" :
+                                  diagnosisData.clinical_stage === "STAGE_II" ? "Giai đoạn II" :
+                                    diagnosisData.clinical_stage === "STAGE_III" ? "Giai đoạn III" :
+                                      diagnosisData.clinical_stage === "STAGE_IV" ? "Giai đoạn IV" :
+                                        diagnosisData.clinical_stage}
+                              </p>
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm text-gray-500">Ngày xét nghiệm</p>
+                            <p className="font-medium">
+                              {diagnosisData.createdDate ? format(new Date(diagnosisData.createdDate), "dd/MM/yyyy HH:mm") : "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

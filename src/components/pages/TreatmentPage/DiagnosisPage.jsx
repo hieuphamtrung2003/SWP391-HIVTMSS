@@ -19,7 +19,6 @@ const DoctorTreatmentPage = () => {
     const [showAdditionalFields, setShowAdditionalFields] = useState(true);
     const [showEditDiagnosisModal, setShowEditDiagnosisModal] = useState(false);
 
-
     // Initial form state
     const initialFormData = {
         result: 'POSITIVE',
@@ -32,13 +31,13 @@ const DoctorTreatmentPage = () => {
         ag_ab_result: 'POSITIVE',
         viral_load: '',
         pcr_type: 'DNA',
-        clinical_stage: 'STAGE_I'
+        clinical_stage: 'STAGE_I',
+        is_finished: false
     };
 
     const [formData, setFormData] = useState(initialFormData);
 
     //Treatment data
-
     const initialTreatmentForm = {
         gender: 'MALE',
         dob: '',
@@ -62,8 +61,6 @@ const DoctorTreatmentPage = () => {
     const [canShowTreatment, setCanShowTreatment] = useState(false);
     const [showDosageModal, setShowDosageModal] = useState(false);
     const [dosageData, setDosageData] = useState([]);
-
-
 
     // Get the selected test type details
     const selectedTestType = formData.test_type_id
@@ -301,7 +298,6 @@ const DoctorTreatmentPage = () => {
         setShowDosageModal(false);
     };
 
-
     // Fetch test types and patient/appointment info
     useEffect(() => {
         const fetchData = async () => {
@@ -361,7 +357,6 @@ const DoctorTreatmentPage = () => {
         };
 
         fetchData();
-
 
     }, [appointmentId]);
 
@@ -448,15 +443,18 @@ const DoctorTreatmentPage = () => {
                 ag_ab_result: formData.ag_ab_result,
                 viral_load: formData.viral_load ? parseInt(formData.viral_load) : null,
                 pcr_type: formData.pcr_type,
-                clinical_stage: formData.clinical_stage
+                clinical_stage: formData.clinical_stage,
+                is_finished: formData.is_finished
             };
 
             await axios.put('/api/v1/appointments/diagnosis', payload, {
             });
 
             setSubmitSuccess(true);
-            setCanShowTreatment(true);
-            toast.success('Chẩn đoán đã được gửi thành công!');
+            setCanShowTreatment(!formData.is_finished);
+            toast.success(formData.is_finished
+                ? 'Chẩn đoán đã được hoàn tất!'
+                : 'Chẩn đoán đã được gửi thành công!');
             setFormData(initialFormData);
             setShowAdditionalFields(false);
         } catch (err) {
@@ -573,7 +571,6 @@ const DoctorTreatmentPage = () => {
         }
 
         try {
-
             // Tách họ và tên từ patientInfo.name
             const fullName = patientInfo?.name || '';
             const nameParts = fullName.trim().split(/\s+/);
@@ -656,12 +653,9 @@ const DoctorTreatmentPage = () => {
         toast.info("Phác đồ điều trị đã được hủy do có thay đổi trong chẩn đoán.");
     };
 
-
     const handleEditDiagnosisNo = () => {
         setShowEditDiagnosisModal(false);
     };
-
-
 
     return (
         <motion.div
@@ -730,7 +724,11 @@ const DoctorTreatmentPage = () => {
                         <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-6">
                             <div className="flex items-center text-green-700">
                                 <CheckCircle2 className="h-5 w-5 mr-2" />
-                                <p className="font-medium">Chẩn đoán đã được gửi thành công!</p>
+                                <p className="font-medium">
+                                    {formData.is_finished
+                                        ? "Chẩn đoán đã được hoàn tất!"
+                                        : "Chẩn đoán đã được gửi thành công!"}
+                                </p>
                             </div>
                             <Button
                                 className="mt-4 bg-blue-600 hover:bg-blue-700"
@@ -738,7 +736,6 @@ const DoctorTreatmentPage = () => {
                             >
                                 Chỉnh sửa chuẩn đoán
                             </Button>
-
                         </div>
                     ) : submitError && (
                         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
@@ -988,11 +985,26 @@ const DoctorTreatmentPage = () => {
                                                 placeholder="Nhập ghi chú (nếu có)"
                                             />
                                         </div>
+
+                                        <div className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                id="is_finished"
+                                                name="is_finished"
+                                                checked={formData.is_finished}
+                                                onChange={(e) => setFormData(prev => ({
+                                                    ...prev,
+                                                    is_finished: e.target.checked
+                                                }))}
+                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                            />
+                                            <label htmlFor="is_finished" className="ml-2 block text-sm text-gray-700">
+                                                Hoàn tất chẩn đoán (không điều trị)
+                                            </label>
+                                        </div>
                                     </div>
                                 )}
                             </div>
-
-
 
                             {showAdditionalFields && (
                                 <div className="mt-8 flex justify-end">
@@ -1011,15 +1023,11 @@ const DoctorTreatmentPage = () => {
                                 </div>
                             )}
                         </form>
-
-
-
                     )}
-
                 </div>
 
-                {/* Treatment Form */}
-                {canShowTreatment && (
+                {/* Treatment Form - Only show if diagnosis submitted and not marked as finished */}
+                {canShowTreatment && !formData.is_finished && (
                     <div className="p-6 border-b">
                         <h2 className="text-lg font-medium text-gray-800 mb-4">Chọn phác đồ điều trị</h2>
 
@@ -1378,9 +1386,6 @@ const DoctorTreatmentPage = () => {
                         </div>
                     </div>
                 )}
-
-
-
             </div>
         </motion.div>
     );

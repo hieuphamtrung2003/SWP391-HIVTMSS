@@ -298,7 +298,7 @@ const AccountManagementPage = () => {
                                 className="hover:bg-muted"
                               >
                                 <Eye className="h-4 w-4 mr-2" />
-                                View
+                                Xem chi tiết
                               </Button>
                             </TableCell>
                           </TableRow>
@@ -363,13 +363,13 @@ const AccountManagementPage = () => {
         <DialogContent className="sm:max-w-3xl bg-white">
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? 'Edit Account' : 'Account Details'}
+              {isEditMode ? 'Chỉnh sửa tài khoản' : 'Thông tin tài khoản'}
             </DialogTitle>
             <DialogDescription>
               {isEditMode ? (
-                'Update the account information'
+                'Cập nhật thông tin tài khoản'
               ) : (
-                `Detailed information about ${selectedAccount?.first_name} ${selectedAccount?.last_name}`
+                `Thông tin chi tiết về ${selectedAccount?.first_name} ${selectedAccount?.last_name}`
               )}
             </DialogDescription>
           </DialogHeader>
@@ -409,9 +409,10 @@ const AccountManagementPage = () => {
                             />
                           </div>
                         ) : (
-                          <span className="ml-2">
-                            {accountDetails.last_name} {accountDetails.first_name}
-                          </span>
+                          <p className="text-sm">
+                            <span className="font-medium text-muted-foreground">Họ và tên:</span>
+                            <span className="ml-2">{accountDetails.last_name} {accountDetails.first_name}</span>
+                          </p>
                         )}
                       </div>
                       <p className="text-sm">
@@ -428,7 +429,8 @@ const AccountManagementPage = () => {
                             className="mt-1"
                           />
                         ) : (
-                          <span className="ml-2">
+                          <span className="text-sm">
+                            <span className="font-medium text-muted-foreground">Địa chỉ: </span>
                             {accountDetails.address || 'N/A'}
                           </span>
                         )}
@@ -446,7 +448,7 @@ const AccountManagementPage = () => {
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select gender" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white">
                               <SelectItem value="MALE">Nam</SelectItem>
                               <SelectItem value="FEMALE">Nữ</SelectItem>
                               <SelectItem value="OTHER">Giới tính khác</SelectItem>
@@ -479,7 +481,7 @@ const AccountManagementPage = () => {
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select role" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-white">
                               <SelectItem value="1">Bệnh nhân</SelectItem>
                               <SelectItem value="2">Bác sĩ</SelectItem>
                               <SelectItem value="3">Quản lý</SelectItem>

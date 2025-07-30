@@ -154,12 +154,12 @@ export const useAccountStore = create((set, get) => ({
     try {
       set({ detailsLoading: true });
       await axios.put(`/api/v1/accounts/admin?id=${accountDetails.account_id}`, editFormData);
-      toast.success('Account updated successfully');
+      toast.success('Đã cập nhật tài khoản thành công!');
       get().fetchAccounts();
       await get().fetchAccountDetails(accountDetails.account_id);
       set({ isEditMode: false });
     } catch (error) {
-      toast.error('Failed to update account');
+      toast.error('Đã xảy ra lỗi khi cập nhật tài khoản');
       console.error('Error updating account:', error);
     } finally {
       set({ detailsLoading: false });
@@ -172,25 +172,25 @@ export const useAccountStore = create((set, get) => ({
 
     // Validation
     if (!formValue.first_name.trim() || !formValue.last_name.trim() || !formValue.email.trim()) {
-      toast.error("Please fill in all required fields!");
+      toast.error("Vui lòng điền đầy đủ thông tin!");
       return;
     }
 
     try {
       const res = await axios.post("/api/v1/accounts/admin/new-account", formValue);
       if (res?.http_status === 201) {
-        toast.success("Registration successful!");
+        toast.success("Đăng ký thành công!");
         set({ isCreateOpen: false });
         get().fetchAccounts();
       } else {
-        toast.error("Registration failed. Please try again!");
+        toast.error("Đăng ký không thành công. Vui lòng thử lại!");
       }
     } catch (error) {
       if (error.response) {
         const { message } = error.response.data;
-        toast.error(message || "Server error. Registration failed!");
+        toast.error(message || "Lỗi máy chủ. Đăng ký không thành công!");
       } else {
-        toast.error("Cannot connect to server!");
+        toast.error("Không thể kết nối đến máy chủ!");
       }
       console.error("Registration failed:", error);
     }

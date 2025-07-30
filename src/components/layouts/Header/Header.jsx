@@ -77,8 +77,7 @@ export default function Header() {
         }))
 
         setNotifications(updatedNotifications)
-
-        // Update unread count
+        
         const newUnreadCount = updatedNotifications.filter(n => n.status === 'unread').length
         setUnreadCount(newUnreadCount)
       } catch (error) {

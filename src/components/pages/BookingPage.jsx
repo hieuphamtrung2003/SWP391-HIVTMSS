@@ -105,7 +105,12 @@ const BookingPage = () => {
         setSelectedTimeSlot('');
       }, 3000);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt lịch");
+      if (error.response?.status === 500) {
+        toast.error("Xin hãy nhập đầy đủ thông tin trước khi đặt");
+        
+      } else {
+        toast.error(error.response?.data?.message || "Đã xảy ra lỗi khi đặt lịch");
+      }
     }
   };
 
@@ -114,7 +119,7 @@ const BookingPage = () => {
     return new Date().toISOString().split('T')[0];
   };
 
-  // Check if time slot is available (not in the past)
+  // Check if time slot is available
   const isTimeSlotAvailable = (timeSlot) => {
     if (!selectedDate) return false;
 

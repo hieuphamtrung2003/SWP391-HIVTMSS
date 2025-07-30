@@ -1,4 +1,4 @@
-import { Bell, MessageSquare, Search, PartyPopper , CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
+import { Bell, MessageSquare, Search, PartyPopper, CheckCircle, Calendar, Pill, MoreVertical } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../../ui/avatar'
 import { Input } from '../../ui/input'
 import { Button } from '../../ui/button'
@@ -77,7 +77,7 @@ export default function Header() {
         }))
 
         setNotifications(updatedNotifications)
-        
+
         const newUnreadCount = updatedNotifications.filter(n => n.status === 'unread').length
         setUnreadCount(newUnreadCount)
       } catch (error) {
@@ -215,6 +215,9 @@ export default function Header() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left side - Logo/Name */}
         <div className="flex items-center">
+          <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+          </svg>
           <h1 className="text-2xl font-bold text-blue-600">
             <span className="text-blue-800">HIV</span>
             <span className="text-blue-600">TMSS</span>
